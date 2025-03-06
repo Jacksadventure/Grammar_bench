@@ -78,23 +78,13 @@ def generate_example_string(grammar, symbol, max_depth=10):
 # ---------------------------
 # Step 3: Generate Recursive Descent Parser Code
 # ---------------------------
-def generate_parser_code(grammar, nonterminals, examples, start_symbol):
+def generate_parser_code(grammar, nonterminals, start_symbol):
     """
     Generate a complete Python source code string for a recursive descent parser.
     Each nonterminal gets its own function (e.g. parse_A for nonterminal A).
     The parser expects a list of tokens and uses a global index 'pos'.
     """
     code_lines = []
-    code_lines.append('#!/usr/bin/env python3')
-    code_lines.append('"""')
-    code_lines.append('Generated Recursive Descent Parser')
-    code_lines.append('')
-    code_lines.append('This parser was automatically generated from a random LL(1) grammar.')
-    code_lines.append('Example derivations:')
-    for ex in examples:
-        code_lines.append(f'#   {ex}')
-    code_lines.append('"""')
-    code_lines.append('')
     code_lines.append('import sys')
     code_lines.append('')
     code_lines.append('tokens = []')
@@ -148,7 +138,7 @@ def generate_parser_code(grammar, nonterminals, examples, start_symbol):
     # Main parse function.
     code_lines.append('def parse_input(input_str):')
     code_lines.append('    global tokens, pos')
-    code_lines.append('    tokens = input_str.strip().split()')
+    code_lines.append('    tokens = list(input_str)')
     code_lines.append('    pos = 0')
     code_lines.append(f'    parse_{start_symbol}()')
     code_lines.append('    if pos != len(tokens):')
@@ -191,15 +181,16 @@ def gen(numterminals,numnonterminals,maxproductions,max_original_examples):
     examples = []
     for _ in range(max_original_examples):
         ex = generate_example_string(grammar, start_symbol)
-        examples.append(ex)
+        if len(ex)>3 and len(ex)<6:
+            examples.append(ex)
 
     # print("\nExample input strings:")
     # for ex in examples:
     #     print("  " + ex)
     
     # 3. Generate the recursive descent parser code.
-    parser_code = generate_parser_code(grammar, nonterminals, examples, start_symbol)
+    parser_code = generate_parser_code(grammar, nonterminals, start_symbol)
 
-    return (parser_code, set(examples),terminals)
+    return (parser_code, set(examples),grammar,nonterminals, terminals)
 # if __name__ == "__main__":
 #     main()

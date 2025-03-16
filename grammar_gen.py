@@ -15,45 +15,108 @@ import random
 # ---------------------------
 # Step 1: Generate a Random Grammar for LL(1)
 # ---------------------------
+import random
+
+def compute_reachable(grammar, start):
+    """
+    Compute the set of nonterminals that are reachable from the start symbol.
+    Since the first symbol of each production is a terminal (for LL(1) reasons),
+    we only traverse symbols from the production starting at the second symbol.
+    """
+    reachable = set()
+    queue = [start]
+    while queue:
+        nt = queue.pop(0)
+        if nt in reachable:
+            continue
+        reachable.add(nt)
+        for prod in grammar[nt]:
+            # Check symbols in the production starting from the second position
+            for symbol in prod[1:]:
+                if symbol in grammar and symbol not in reachable:
+                    queue.append(symbol)
+    return reachable
+
 def generate_random_grammar(num_nonterminals=10, num_terminals=10, max_productions=10, max_rhs_length=3):
     """
-    Generates a random grammar with:
-      - Nonterminals: Uppercase letters (e.g. A, B, C, …)
-      - Terminals: Lowercase letters (e.g. a, b, c, …)
-    For each nonterminal:
-      - The number of productions is between 1 and max_productions (ensuring max_productions <= num_terminals).
-      - Each production's first symbol is chosen from the terminal set without repetition,
-        ensuring unique FIRST tokens for alternatives.
-      - The remaining symbols (if any) are randomly chosen from the union of terminals and nonterminals.
-    Returns: (grammar, nonterminals, terminals)
-      where grammar is a dict mapping nonterminal -> list of productions (each production is a list of symbols).
+    Generates a random LL(1) grammar while ensuring that all nonterminals are reachable
+    from the start symbol (the first nonterminal). Note: if max_rhs_length < 2 and there
+    are more than one nonterminal, it's impossible to inject unreachable nonterminals.
     """
-    # Ensure we can assign distinct starting terminals
+    # Ensure the number of productions for each nonterminal does not exceed the number of terminals
     max_productions = min(max_productions, num_terminals)
     
+    # If max_rhs_length is less than 2, it's impossible to add nonterminals beyond the first symbol.
+    if max_rhs_length < 2 and num_nonterminals > 1:
+        raise ValueError("max_rhs_length must be at least 2 to ensure all nonterminals are reachable.")
+    
+    # Create nonterminals (uppercase letters) and terminals (lowercase letters)
     nonterminals = [chr(i) for i in range(65, 65 + num_nonterminals)]
     terminals = [chr(i) for i in range(97, 97 + num_terminals)]
     grammar = {}
     
+    # Generate productions for each nonterminal
     for nt in nonterminals:
         productions = []
-        available_terminals = terminals[:]  # copy for selecting first symbol uniquely
+        available_terminals = terminals[:]  # Copy of terminals for unique first symbol selection
         num_prods = random.randint(1, max_productions)
         for _ in range(num_prods):
             length = random.randint(1, max_rhs_length)
             prod = []
-            # For LL(1), ensure the first symbol is a terminal.
+            # The first symbol must be a terminal
             if available_terminals:
                 first = random.choice(available_terminals)
                 available_terminals.remove(first)
             else:
                 first = random.choice(terminals)
             prod.append(first)
-            # For subsequent symbols, randomly choose from terminals ∪ nonterminals.
+            # For the remaining positions, choose randomly from terminals ∪ nonterminals
             for _ in range(1, length):
                 prod.append(random.choice(terminals + nonterminals))
             productions.append(prod)
         grammar[nt] = productions
+
+    # Compute the set of nonterminals reachable from the start symbol (first nonterminal)
+    reachable = compute_reachable(grammar, nonterminals[0])
+    unreachable = set(nonterminals) - reachable
+    
+    # For each unreachable nonterminal, inject it into a production of a reachable nonterminal.
+    while unreachable:
+        un = unreachable.pop()  # Get an unreachable nonterminal
+        candidate = random.choice(list(reachable))  # Randomly choose a reachable nonterminal as a candidate
+        injection_done = False
+        
+        # First, try appending the unreachable nonterminal to one of candidate's productions if length allows
+        for prod in grammar[candidate]:
+            if len(prod) < max_rhs_length:
+                prod.append(un)
+                injection_done = True
+                break
+        
+        # If not possible, try replacing a symbol (other than the first) in one of candidate's productions
+        if not injection_done:
+            for prod in grammar[candidate]:
+                if len(prod) > 1:
+                    index = random.randint(1, len(prod) - 1)
+                    prod[index] = un
+                    injection_done = True
+                    break
+        
+        # Finally, if no injection was possible and candidate can accept more productions,
+        # add a new production that starts with a unique terminal and then the unreachable nonterminal.
+        if not injection_done and len(grammar[candidate]) < max_productions:
+            used_firsts = {prod[0] for prod in grammar[candidate]}
+            available_firsts = [t for t in terminals if t not in used_firsts]
+            if not available_firsts:
+                available_firsts = terminals[:]
+            new_prod = [random.choice(available_firsts), un]
+            grammar[candidate].append(new_prod)
+            injection_done = True
+        
+        # Recalculate reachable set after injection until all nonterminals are reachable
+        reachable = compute_reachable(grammar, nonterminals[0])
+        unreachable = set(nonterminals) - reachable
+    
     return grammar, nonterminals, terminals
 
 # ---------------------------

@@ -50,4 +50,4 @@ def mutate_grammar(grammar, nonterminals, terminals):
     # Update the mutated production
     mutated_grammar[nt][prod_index] = production
     
-    return (mutated_grammar,nonterminals,terminals)
+    return (mutated_grammar,nonterminals,terminals,nt,prod_index)

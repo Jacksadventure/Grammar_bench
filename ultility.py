@@ -1,7 +1,7 @@
 import subprocess
 
-def validation_check(input):
-    command = ['python3', 'generated_parser.py', input]
+def validation_check(input,parser):
+    command = ['python3', parser, input]
     result = subprocess.run(command, stdout=subprocess.PIPE).returncode
     if(result == 0):
         return True
@@ -29,4 +29,25 @@ def levenshtein_distance(a: str, b: str) -> int:
                 dp[i - 1][j - 1] + cost # Substitution
             )
     return dp[-1][-1]
+
+def get_path(grammar,start,nonterminal):
+    """Get the path to a nonterminal in the grammar.
+    From target nonterminal to start nonterminal,then reverse the path
+    """
+    path = []
+    visited = set()
+    while nonterminal != start:
+        for nt in grammar:
+            for i,prod in enumerate(grammar[nt]):
+                if nonterminal in prod:
+                    if (nt,i) in visited:
+                        print("Loop detected")
+                        return None 
+                    visited.add((nt,i))
+                    path.append((nt,i))
+                    nonterminal = nt
+                    break
+    return path[::-1]
+
+    
     

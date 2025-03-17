@@ -1,5 +1,5 @@
 import subprocess
-
+from collections import deque
 def validation_check(input,parser):
     command = ['python3', parser, input]
     result = subprocess.run(command, stdout=subprocess.PIPE).returncode
@@ -30,24 +30,60 @@ def levenshtein_distance(a: str, b: str) -> int:
             )
     return dp[-1][-1]
 
-def get_path(grammar,start,nonterminal):
-    """Get the path to a nonterminal in the grammar.
-    From target nonterminal to start nonterminal,then reverse the path
+def get_path(grammar, start, target):
     """
-    path = []
-    visited = set()
-    while nonterminal != start:
-        for nt in grammar:
-            for i,prod in enumerate(grammar[nt]):
-                if nonterminal in prod:
-                    if (nt,i) in visited:
-                        print("Loop detected")
-                        return None 
-                    visited.add((nt,i))
-                    path.append((nt,i))
-                    nonterminal = nt
-                    break
-    return path[::-1]
+    Finds a derivation path from the start nonterminal to the target nonterminal using BFS.
+    
+    This function traverses the grammar starting from 'start'. Since the first symbol
+    of every production is guaranteed to be a terminal (by construction), we only inspect
+    symbols from index 1 onward. For every encountered nonterminal (child), we store its
+    parent nonterminal and the production index that led to its discovery.
+    
+    Parameters:
+      grammar: dict
+          A dictionary mapping nonterminals to a list of productions. Each production is a list of symbols.
+      start: str
+          The starting nonterminal symbol.
+      target: str
+          The target nonterminal symbol for which we want to find a derivation path.
+          
+    Returns:
+      A list of tuples (parent, production_index) representing the derivation steps from start to target.
+      Each tuple indicates that the target nonterminal was reached from 'parent' using production at index 'production_index'.
+      If the start is the target, an empty list is returned.
+      If no path exists, returns None.
+    """
+    if start == target:
+        return []
+    
+    # Use BFS to traverse reachable nonterminals and record how we reached them.
+    queue = deque([start])
+    # parent[symbol] will store the nonterminal from which 'symbol' was reached.
+    parent = {start: None}
+    # prod_used[symbol] stores the production index (and parent) used to derive this symbol.
+    prod_used = {}
+
+    while queue:
+        cur = queue.popleft()
+        # Traverse each production of the current nonterminal.
+        for i, prod in enumerate(grammar[cur]):
+            # Only consider symbols beyond the first, since the first is a terminal.
+            for symbol in prod[1:]:
+                # Only process nonterminals (keys in grammar) not already visited.
+                if symbol in grammar and symbol not in parent:
+                    parent[symbol] = cur
+                    prod_used[symbol] = (cur, i)
+                    if symbol == target:
+                        # Reconstruct the path from target back to start.
+                        path = []
+                        s = target
+                        while s != start:
+                            path.append(prod_used[s])
+                            s = parent[s]
+                        return path[::-1]  # reverse the path to get start-to-target order.
+                    queue.append(symbol)
+    # If BFS finishes without reaching the target, no derivation path exists.
+    return None
 
     
     

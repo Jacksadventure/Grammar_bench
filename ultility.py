@@ -85,5 +85,76 @@ def get_path(grammar, start, target):
     # If BFS finishes without reaching the target, no derivation path exists.
     return None
 
-    
-    
+def get_shortcut(grammar):
+    """
+    Computes the shortcut string for each symbol in the given grammar.
+
+    Grammar format:
+      grammar: dict, where keys are nonterminals (e.g., "A", "B", ...),
+               and values are lists of productions, where each production is a list of symbols.
+
+    - Terminals: Symbols that do not appear as keys in grammar. Their shortcut is themselves.
+    - Nonterminals:
+      - If a production consists of a single symbol, and that symbol already has a shortcut,
+        the nonterminal takes that shortcut.
+      - If a production consists of multiple symbols, and all of them have shortcuts,
+        the nonterminal's shortcut is the concatenation of those shortcuts.
+
+    The algorithm first assigns shortcuts to all terminal symbols.
+    It then iterates over the grammar to propagate shortcuts to nonterminals.
+    The process continues until no new shortcuts are discovered.
+
+    Returns:
+      A dictionary `shortcut` where keys are symbols (both terminals and nonterminals),
+      and values are their corresponding shortcut strings.
+    """
+    shortcut = {}
+
+    # Collect all symbols that appear in any production
+    all_symbols = set()
+    for nt, prods in grammar.items():
+        for prod in prods:
+            for sym in prod:
+                all_symbols.add(sym)
+
+    # Identify terminal symbols (those that are not in grammar.keys())
+    terminals = {sym for sym in all_symbols if sym not in grammar}
+
+    # Assign shortcuts for terminal symbols
+    for t in terminals:
+        shortcut[t] = t
+
+    # Iteratively update shortcuts for nonterminals
+    while True:
+        flag = False  # Indicates whether a new shortcut was assigned in this iteration
+        for nt in grammar.keys():
+            # Skip if this nonterminal already has a shortcut
+            if nt in shortcut:
+                continue
+            # Try to derive the shortcut from its productions
+            for prod in grammar[nt]:
+                # Case 1: Production has a single symbol (similar to "non_terminal" type in C++)
+                if len(prod) == 1:
+                    sym = prod[0]
+                    if sym in shortcut:
+                        shortcut[nt] = shortcut[sym]
+                        flag = True
+                        break
+                else:
+                    # Case 2: Production has multiple symbols (similar to "expression" type in C++)
+                    combination = ""
+                    all_found = True
+                    for sym in prod:
+                        if sym in shortcut:
+                            combination += shortcut[sym]
+                        else:
+                            all_found = False
+                            break
+                    if all_found:
+                        shortcut[nt] = combination
+                        flag = True
+                        break
+        # Stop when no new shortcuts are assigned
+        if not flag:
+            break
+    return shortcut

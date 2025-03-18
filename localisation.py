@@ -5,15 +5,24 @@ PLEASE DO NOT EXPLAIN,
 PLEASE DO NOT ADD OTHER FORMAT, 
 Please return result in this format:
 {
-    "function_name": "parse_A",
+    "function_name": "parse_A"
 }
 Please do not add markdown notation like ```json
 """
 
+program_localisation_prompt = """You are an localisation expert. Your task is to localize the corrupted function in the parser based on the parser’s code. You should only return a function name.that caused the inconsistency between the code of parser and input" \
+PLEASE DO NOT EXPLAIN,
+PLEASE DO NOT ADD OTHER FORMAT, 
+Please return result in this format:
+{
+    "function_name": "parse_A"
+}
+Please do not add markdown notation like ```json
+"""
 def localise_program_input(program,corrupted_text,backend,model):
     ai  =  AIInterface(backend,model)
     return ai.get_response(repair_prompt,"parser code:\n"+program+"corrupted_input:\n"+corrupted_text)
 
 def localise_program(program,input,backend,model):
     ai  =  AIInterface(backend,model)
-    return ai.get_response(repair_prompt,"parser code:\n"+program+"input:\n"+input)
+    return ai.get_response(program_localisation_prompt,"parser code:\n"+program+"input:\n"+input) 

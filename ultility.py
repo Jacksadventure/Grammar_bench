@@ -1,4 +1,5 @@
 import subprocess
+import ast
 from collections import deque
 def validation_check(input,parser):
     command = ['python3', parser, input]
@@ -158,3 +159,21 @@ def get_shortcut(grammar):
         if not flag:
             break
     return shortcut
+
+def get_function_ranges(filename):
+    """
+    Parse the given Python file and return a list of tuples.
+    Each tuple contains (function name, start line, estimated end line).
+    """
+    with open(filename, 'r', encoding='utf-8') as f:
+        source = f.read()
+    tree = ast.parse(source, filename)
+    funcs = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            start = node.lineno
+            # Estimate the function's end line by taking the maximum line number of all nodes inside it.
+            end = max((getattr(n, 'lineno', start) for n in ast.walk(node)), default=start)
+            funcs.append((node.name, start, end))
+    return funcs
+

@@ -1,15 +1,16 @@
 import argparse
-from grammar_gen import gen,generate_example_string
+import json
+from grammar_gen import gen,generate_example_string, generate_parser_code
 from generate_corrupt_input import mutate
 from repair import repair
 from ultility import levenshtein_distance,validation_check,get_path
-# from localisation import localise
+from localisation import localise_program_input,localise_program
 from patch import replace_function_ast_in_file
-from grammar_gen import generate_parser_code
 from mutation import mutate_grammar
-from file_diff import diff
+from file_diff import get_diff_function
 from testies import generate_biased_example_wrapper
 from time import sleep
+from file_diff import diff
 
 MAX_TESTS = 1
 MAX_EXAMPLES = 100
@@ -81,7 +82,22 @@ def program_reapir(backend,model):
         print(code)
         print("test cases:")
         print(instances)
-        
+        instance = min(instances,key=len)
+        validation_set =  instances - set([instance])
+        response = localise_program(code,instance,backend,model)
+        print(response)
+        sleep(5)
+        response_json = json.loads(response)
+        suspicious_function = response_json["function_name"]
+        print("Suspicious function:")
+        print(suspicious_function)
+        print("Correct answer:")
+        print(f"parse_{nt}")
+        # function_answer=get_diff_function("original_generated_parser.py","corrupted_generated_parser.py")
+        if suspicious_function == f"parse_{nt}":
+            print("localisation passed")
+        else:
+            print("localisation failed")
 
 def main():
     parser = argparse.ArgumentParser(description='Sample Parser')

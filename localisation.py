@@ -6,11 +6,14 @@ PLEASE DO NOT ADD OTHER FORMAT,
 Please return result in this format:
 {
     "function_name": "parse_A",
-    "corrupted_input_position": 5
 }
 Please do not add markdown notation like ```json
 """
 
-def localise(program,corrupted_text,backend,model):
+def localise_program_input(program,corrupted_text,backend,model):
     ai  =  AIInterface(backend,model)
     return ai.get_response(repair_prompt,"parser code:\n"+program+"corrupted_input:\n"+corrupted_text)
+
+def localise_program(program,input,backend,model):
+    ai  =  AIInterface(backend,model)
+    return ai.get_response(repair_prompt,"parser code:\n"+program+"input:\n"+input)

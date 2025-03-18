@@ -9,10 +9,11 @@ from grammar_gen import generate_parser_code
 from mutation import mutate_grammar
 from file_diff import diff
 from testies import generate_biased_example_wrapper
+from time import sleep
 
 MAX_TESTS = 1
 MAX_EXAMPLES = 100
-
+MAX_MUTATE_ATTEMPTS = 100
 # def program_input_reapir(backend,model):
 #     SUCCESS = 0
 #     TOTAL = 0
@@ -53,27 +54,34 @@ def program_reapir(backend,model):
         with open("original_generated_parser.py","w") as f:
             f.write(code)
         ## get corruption code
-        corrupted_grammar,new_nonterminals,new_terminals,nt,prod_index = mutate_grammar(grammar,nonterminals,terminals)
-        code = generate_parser_code(corrupted_grammar,new_nonterminals,new_nonterminals[0])
-        print ("Corrupted code:")
-        print(code)
-        ##  write code to file
-        with open("corrupted_generated_parser.py","w") as f:
-            f.write(code)
-        ## get diff
-        diff("original_generated_parser.py","corrupted_generated_parser.py")
-        path = get_path(grammar,new_nonterminals[0],nt)
-        path =  path + [(nt,prod_index)]
-        print(f"path: {path}")
-        # get some instances that can be parsered by original code but not by corrupted code
-        print(grammar.keys())                       
+        code = ""
         instances  = set()
-        for j in range(200):
-            temp = generate_biased_example_wrapper(grammar=grammar,symbol=new_nonterminals[0],path=path,max_depth=20)
-            if not validation_check(temp,"corrupted_generated_parser.py"):
-                instances.add(temp)
-        for index, instance in enumerate(instances):
-            print(f"{index} instance: {instance}")
+        for apptempt in range(MAX_MUTATE_ATTEMPTS):
+            corrupted_grammar,new_nonterminals,new_terminals,nt,prod_index = mutate_grammar(grammar,nonterminals,terminals)
+            code = generate_parser_code(corrupted_grammar,new_nonterminals,new_nonterminals[0])
+            print ("Corrupted code:")
+            print(code)
+            ##  write code to file
+            with open("corrupted_generated_parser.py","w") as f:
+                f.write(code)
+            ## get diff
+            diff("original_generated_parser.py","corrupted_generated_parser.py")
+            path = get_path(grammar,new_nonterminals[0],nt)
+            path =  path + [(nt,prod_index)]                  
+            for j in range(200):
+                temp = generate_biased_example_wrapper(grammar=grammar,symbol=new_nonterminals[0],path=path,max_depth=20)
+                if not validation_check(temp,"corrupted_generated_parser.py"):
+                    instances.add(temp)
+            for index, instance in enumerate(instances):
+                print(f"{index} instance: {instance}")
+            if len(instances) <= 2:
+                continue
+            break
+        print("corrupted code:")
+        print(code)
+        print("test cases:")
+        print(instances)
+        
 
 def main():
     parser = argparse.ArgumentParser(description='Sample Parser')

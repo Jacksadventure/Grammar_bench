@@ -98,6 +98,23 @@ def program_reapir(backend,model):
             print("localisation passed")
         else:
             print("localisation failed")
+        patch =  response_json["correct_version"]
+        print("patch:")
+        print(patch)
+        replace_function_ast_in_file("corrupted_generated_parser.py",patch,suspicious_function,"repaired_generated_parser.py")
+        count = 0 
+        for series, test in enumerate(validation_set):
+            print(f"========Test {i+1} Original {series}========")
+            if validation_check(test,"repaired_generated_parser.py"):
+                count += 1
+                print("Validation check passed")
+            else:
+                print("Validation check failed")
+        if count == len(validation_set):
+            print("Validation check passed for all test cases")
+            SUCCESS += 1
+        else:  
+            print("Validation check failed for some test cases")
 
 def main():
     parser = argparse.ArgumentParser(description='Sample Parser')

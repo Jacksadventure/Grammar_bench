@@ -10,12 +10,13 @@ Please return result in this format:
 Please do not add markdown notation like ```json
 """
 
-program_localisation_prompt = """You are an localisation expert. Your task is to localize the corrupted function in the parser based on the parser’s code. You should only return a function name.that caused the inconsistency between the code of parser and input" \
+program_localisation_prompt = """You are an localisation expert. Your task is to localize the corrupted function in the parser based on the parser’s code. You should only return a function name.that caused the inconsistency between the code of parser and input, and also give a correct version of that function" \
 PLEASE DO NOT EXPLAIN,
 PLEASE DO NOT ADD OTHER FORMAT, 
 Please return result in this format:
 {
     "function_name": "parse_A"
+    "correct_version": "def parse_A():\n  ..."
 }
 Please do not add markdown notation like ```json
 """

@@ -5,7 +5,7 @@ generate_patch_prompt = """
 You are a patch generator 
 """
 
-def replace_function_ast_in_file(original_file: str, new_function_code: str, func_name: str):
+def replace_function_ast_in_file(original_file: str, new_function_code: str, func_name: str, new_file: str):
     """
     Replaces the function named `func_name` in `original_file` with
     the new function code given by `new_function_code` (a string).
@@ -56,7 +56,7 @@ def replace_function_ast_in_file(original_file: str, new_function_code: str, fun
         sys.exit(1)
 
     # 6. Overwrite the original file
-    with open(original_file, "w", encoding="utf-8") as f:
+    with open(new_file, "w", encoding="utf-8") as f:
         f.write(updated_code)
 
     print(f"Successfully replaced function '{func_name}' in '{original_file}'.")

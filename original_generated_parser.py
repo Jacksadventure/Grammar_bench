@@ -19,29 +19,24 @@ def parse_A():
     if pos >= len(tokens):
         error("Unexpected end of input in A")
     lookahead = tokens[pos]
-    if lookahead == "j":
-        match("j")
+    if lookahead == "d":
+        match("d")
+        parse_A()
+        parse_B()
     elif lookahead == "h":
         match("h")
-    elif lookahead == "a":
-        match("a")
-        parse_B()
-        parse_I()
-    elif lookahead == "d":
-        match("d")
-        parse_D()
         parse_A()
-    elif lookahead == "e":
-        match("e")
-        parse_D()
     elif lookahead == "b":
         match("b")
     elif lookahead == "g":
         match("g")
-        match("i")
-        match("h")
+        match("d")
+    elif lookahead == "e":
+        match("e")
+    elif lookahead == "f":
+        match("f")
     else:
-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(["j", "h", "a", "d", "e", "b", "g"]))
+        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(["d", "h", "b", "g", "e", "f"]))
 
 def parse_B():
     global pos, tokens
@@ -50,103 +45,119 @@ def parse_B():
     lookahead = tokens[pos]
     if lookahead == "i":
         match("i")
-        match("a")
+        parse_H()
+        parse_E()
+    elif lookahead == "h":
+        match("h")
+        match("e")
     elif lookahead == "g":
         match("g")
+        parse_A()
+        match("d")
     else:
-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(["i", "g"]))
+        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(["i", "h", "g"]))
 
 def parse_C():
     global pos, tokens
     if pos >= len(tokens):
         error("Unexpected end of input in C")
     lookahead = tokens[pos]
-    if lookahead == "c":
+    if lookahead == "g":
+        match("g")
+    elif lookahead == "d":
+        match("d")
+    elif lookahead == "i":
+        match("i")
+        match("h")
+        match("a")
+    elif lookahead == "j":
+        match("j")
+        match("b")
+    elif lookahead == "e":
+        match("e")
+        parse_J()
+    elif lookahead == "a":
+        match("a")
+    elif lookahead == "h":
+        match("h")
+        parse_C()
+        match("g")
+    elif lookahead == "c":
         match("c")
     elif lookahead == "b":
         match("b")
-    elif lookahead == "g":
-        match("g")
-        match("b")
-        match("j")
-    elif lookahead == "i":
-        match("i")
-    elif lookahead == "f":
-        match("f")
-        match("j")
-        match("c")
+        parse_H()
     else:
-        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(["c", "b", "g", "i", "f"]))
+        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(["g", "d", "i", "j", "e", "a", "h", "c", "b"]))
 
 def parse_D():
     global pos, tokens
     if pos >= len(tokens):
         error("Unexpected end of input in D")
     lookahead = tokens[pos]
-    if lookahead == "h":
-        match("h")
-        match("j")
-        parse_A()
-    elif lookahead == "a":
-        match("a")
-        parse_J()
-    elif lookahead == "g":
-        match("g")
-        parse_F()
-    elif lookahead == "d":
-        match("d")
-        parse_D()
-        parse_C()
+    if lookahead == "f":
+        match("f")
     elif lookahead == "i":
         match("i")
-        parse_B()
-        match("c")
-    elif lookahead == "c":
-        match("c")
-    elif lookahead == "e":
-        match("e")
+        match("h")
+        parse_C()
+    elif lookahead == "g":
+        match("g")
     elif lookahead == "b":
         match("b")
+        parse_A()
     else:
-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(["h", "a", "g", "d", "i", "c", "e", "b"]))
+        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(["f", "i", "g", "b"]))
 
 def parse_E():
     global pos, tokens
     if pos >= len(tokens):
         error("Unexpected end of input in E")
     lookahead = tokens[pos]
-    if lookahead == "g":
-        match("g")
-        parse_I()
-        parse_B()
-    elif lookahead == "b":
-        match("b")
-    elif lookahead == "f":
-        match("f")
-        parse_G()
-        parse_D()
-    elif lookahead == "a":
+    if lookahead == "a":
         match("a")
-        match("i")
-        match("c")
-    elif lookahead == "c":
-        match("c")
-        match("i")
-        match("b")
+        match("f")
+    elif lookahead == "h":
+        match("h")
+        parse_H()
+    elif lookahead == "j":
+        match("j")
+        match("a")
+    elif lookahead == "e":
+        match("e")
+        match("j")
+        parse_D()
+    elif lookahead == "g":
+        match("g")
     else:
-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(["g", "b", "f", "a", "c"]))
+        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(["a", "h", "j", "e", "g"]))
 
 def parse_F():
     global pos, tokens
     if pos >= len(tokens):
         error("Unexpected end of input in F")
     lookahead = tokens[pos]
-    if lookahead == "j":
+    if lookahead == "d":
+        match("d")
+        parse_I()
+    elif lookahead == "b":
+        match("b")
+        parse_H()
+    elif lookahead == "j":
         match("j")
-        match("h")
-        parse_B()
+        parse_I()
+    elif lookahead == "c":
+        match("c")
+        parse_G()
+        match("g")
+    elif lookahead == "g":
+        match("g")
+        match("i")
+    elif lookahead == "f":
+        match("f")
+        match("i")
     else:
-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(["j"]))
+        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(["d", "b", "j", "c", "g", "f"]))
 
 def parse_G():
     global pos, tokens
@@ -155,107 +166,129 @@ def parse_G():
     lookahead = tokens[pos]
     if lookahead == "c":
         match("c")
-        parse_E()
+        match("g")
+    elif lookahead == "j":
+        match("j")
     elif lookahead == "e":
         match("e")
-        parse_D()
+        parse_E()
+    elif lookahead == "a":
+        match("a")
         parse_A()
-    elif lookahead == "b":
-        match("b")
-        parse_A()
-    elif lookahead == "h":
-        match("h")
-        match("h")
+        parse_F()
     elif lookahead == "f":
         match("f")
-        parse_D()
-        match("f")
+        parse_E()
+        match("c")
+    elif lookahead == "d":
+        match("d")
+    elif lookahead == "i":
+        match("i")
+        parse_A()
+        parse_H()
+    elif lookahead == "h":
+        match("h")
+    elif lookahead == "g":
+        match("g")
+        match("a")
     else:
-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(["c", "e", "b", "h", "f"]))
+        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(["c", "j", "e", "a", "f", "d", "i", "h", "g"]))
 
 def parse_H():
     global pos, tokens
     if pos >= len(tokens):
         error("Unexpected end of input in H")
     lookahead = tokens[pos]
-    if lookahead == "a":
-        match("a")
-        match("j")
-    elif lookahead == "b":
-        match("b")
-        match("b")
+    if lookahead == "d":
+        match("d")
+        match("d")
         parse_F()
-    elif lookahead == "g":
-        match("g")
-    elif lookahead == "h":
-        match("h")
-        match("j")
-    elif lookahead == "j":
-        match("j")
-    elif lookahead == "e":
-        match("e")
-        match("g")
-        parse_I()
-    elif lookahead == "i":
-        match("i")
     elif lookahead == "f":
         match("f")
+        parse_I()
+        parse_J()
+    elif lookahead == "h":
         match("h")
-    elif lookahead == "c":
-        match("c")
+        match("e")
+        parse_B()
+    elif lookahead == "b":
+        match("b")
+        parse_G()
+        parse_I()
+    elif lookahead == "e":
+        match("e")
+    elif lookahead == "a":
+        match("a")
+        match("i")
+        match("d")
     else:
-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(["a", "b", "g", "h", "j", "e", "i", "f", "c"]))
+        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(["d", "f", "h", "b", "e", "a"]))
 
 def parse_I():
     global pos, tokens
     if pos >= len(tokens):
         error("Unexpected end of input in I")
     lookahead = tokens[pos]
-    if lookahead == "j":
-        match("j")
-        parse_G()
-        parse_H()
+    if lookahead == "b":
+        match("b")
+        parse_J()
+    elif lookahead == "a":
+        match("a")
     elif lookahead == "e":
         match("e")
-    elif lookahead == "f":
-        match("f")
-        match("f")
-        parse_D()
     elif lookahead == "i":
         match("i")
-        match("e")
+        parse_F()
+        match("c")
+    elif lookahead == "h":
+        match("h")
+    elif lookahead == "f":
+        match("f")
+        parse_E()
+    elif lookahead == "g":
+        match("g")
+        match("f")
     else:
-        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(["j", "e", "f", "i"]))
+        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(["b", "a", "e", "i", "h", "f", "g"]))
 
 def parse_J():
     global pos, tokens
     if pos >= len(tokens):
         error("Unexpected end of input in J")
     lookahead = tokens[pos]
-    if lookahead == "i":
+    if lookahead == "a":
+        match("a")
+        match("j")
+    elif lookahead == "c":
+        match("c")
+        parse_B()
+        match("a")
+    elif lookahead == "g":
+        match("g")
+        parse_I()
+    elif lookahead == "d":
+        match("d")
+        parse_C()
+        match("b")
+    elif lookahead == "f":
+        match("f")
+        match("f")
+    elif lookahead == "b":
+        match("b")
+        match("i")
+    elif lookahead == "h":
+        match("h")
+        match("b")
         match("i")
     elif lookahead == "j":
         match("j")
-        match("c")
-        parse_F()
-    elif lookahead == "h":
-        match("h")
         parse_E()
+    elif lookahead == "e":
         match("e")
-    elif lookahead == "a":
-        match("a")
-        parse_C()
-        parse_E()
-    elif lookahead == "g":
-        match("g")
         match("h")
-    elif lookahead == "c":
         match("c")
-    elif lookahead == "d":
-        match("d")
-        parse_E()
     else:
-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(["i", "j", "h", "a", "g", "c", "d"]))
+        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(["a", "c", "g", "d", "f", "b", "h", "j", "e"]))
 
 def parse_input(input_str):
     global tokens, pos

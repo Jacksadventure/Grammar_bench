@@ -3,7 +3,7 @@ from ultility import get_shortcut
 
 MAX_TEMP = 1000
 
-def generate_biased_example(grammar, symbol, path, shortcut, max_depth=80):
+def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
     """
     Recursively generate a derivation string from the given nonterminal symbol.
     

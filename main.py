@@ -46,7 +46,7 @@ def program_reapir(backend,model):
     TOTAL = 0
     for i in range(MAX_TESTS):
         print(f"========Test {i+1}========")
-        code, _ , grammar ,nonterminals, terminals = gen(3,3,10,MAX_EXAMPLES)
+        code, _ , grammar ,nonterminals, terminals = gen(20,20,20,MAX_EXAMPLES)
         print ("Generated code:")
         print(code)
         ##  write code to file 
@@ -66,10 +66,10 @@ def program_reapir(backend,model):
         path =  path + [(nt,prod_index)]
         print(f"path: {path}")
         # get some instances that can be parsered by original code but not by corrupted code
-        print(grammar.keys())   
+        print(grammar.keys())                       
         instances  = set()
         for j in range(200):
-            temp = generate_biased_example_wrapper(grammar,new_nonterminals[0],nt,prod_index)
+            temp = generate_biased_example_wrapper(grammar=grammar,symbol=new_nonterminals[0],path=path,max_depth=20)
             if not validation_check(temp,"corrupted_generated_parser.py"):
                 instances.add(temp)
         for index, instance in enumerate(instances):

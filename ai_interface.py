@@ -1,4 +1,4 @@
-from models import OpenAIModel, OllamaModel
+from models import OpenAIModel, OllamaModel, Gemini
 
 class AIInterface:
     def __init__(self,backend,model: str):
@@ -6,6 +6,8 @@ class AIInterface:
             self.model = OllamaModel(model)
         elif backend == "openai":
             self.model = OpenAIModel(model)
+        elif backend == "gemini":
+            self.model = Gemini(model)
         else:
             raise ValueError("Invalid backend")
         

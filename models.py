@@ -1,5 +1,6 @@
 from langchain_ollama import OllamaLLM
 from openai import OpenAI
+from google import genai
 import re
 
 def remove_think_tags(text):
@@ -45,4 +46,14 @@ class OpenAIModel:
             messages=messages,
         )
         return completion.choices[0].message.content
-      
+
+class Gemini:
+    def __init__(self, model):
+        self.client = genai.Client()
+        self.model = model
+    def get_response(self, prompt: str, text: str):
+        response = self.client.models.generate_content(
+            model = self.model,
+            contents = prompt + "\n" + text
+        ).text
+        return response

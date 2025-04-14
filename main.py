@@ -150,7 +150,6 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
             localisation_flag BOOLEAN,
             fixed BOOLEAN,
             iteration INTEGER,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
     conn.commit()

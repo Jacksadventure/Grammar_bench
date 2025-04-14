@@ -3,8 +3,6 @@ from openai import OpenAI
 from google import genai
 import re
 import os
-def remove_think_tags(text):
-    return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
 
 class OllamaModel:
     def __init__(self,model_name:str):

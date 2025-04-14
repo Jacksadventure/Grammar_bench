@@ -1,5 +1,5 @@
 from ai_interface import AIInterface
-
+from ultility import remove_markdown_tags,remove_think_tags
 repair_prompt = """You are an localisation expert. Your task is to localize position of corrupted input and funtion name in the parser based on the parser’s code. You should only return 1 function name and when counting the position of corrupted input, you should start from 0. 
 PLEASE DO NOT EXPLAIN,
 PLEASE DO NOT ADD OTHER FORMAT, 
@@ -27,4 +27,4 @@ def localise_program_input(program,corrupted_text,backend,model):
 
 def localise_program(program,input,backend,model):
     ai  =  AIInterface(backend,model)
-    return ai.get_response(program_localisation_prompt,"parser code:\n"+program+"input:\n"+input) 
+    return remove_markdown_tags(remove_think_tags(ai.get_response(program_localisation_prompt,"parser code:\n"+program+"input:\n"+input)))

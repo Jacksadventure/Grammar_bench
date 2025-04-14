@@ -1,6 +1,7 @@
 import subprocess
 import ast
 from collections import deque
+import re
 def validation_check(input,parser):
     command = ['python3', parser, input]
     result = subprocess.run(command, stdout=subprocess.PIPE).returncode
@@ -177,3 +178,8 @@ def get_function_ranges(filename):
             funcs.append((node.name, start, end))
     return funcs
 
+def remove_think_tags(text):
+    return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
+
+def remove_markdown_tags(text):
+    return re.sub(r'```json*?```', '', text, flags=re.DOTALL)

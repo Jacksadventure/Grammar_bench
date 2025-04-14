@@ -181,5 +181,10 @@ def get_function_ranges(filename):
 def remove_think_tags(text):
     return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
 
-def remove_markdown_tags(text):
-    return re.sub(r'```json*?```', '', text, flags=re.DOTALL)
+def remove_markdown_tags(text:str):
+    pattern = r'^```json\s*([\s\S]*?)\s*```$'
+    match = re.search(pattern, text.strip())
+    if match:
+        return match.group(1)
+    else:
+        raise ValueError("Input format is not valid. Could not extract content.")

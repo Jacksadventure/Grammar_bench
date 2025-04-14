@@ -145,6 +145,8 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS benchmark_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            backend TEXT,
+            model TEXT,
             dimension INTEGER,
             kpath INTEGER,
             localisation_flag BOOLEAN,
@@ -162,9 +164,9 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
             
             # Insert the benchmark result into the database.
             cursor.execute("""
-                INSERT INTO benchmark_results (dimension, kpath, localisation_flag, fixed, iteration)
-                VALUES (?, ?, ?, ?, ?)
-            """, (used_dimension, kpath, localisation_flag, fixed, iteration))
+                INSERT INTO benchmark_results (backend,model,dimension, kpath, localisation_flag, fixed, iteration)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (backend, model, used_dimension, kpath, localisation_flag, fixed, iteration))
             conn.commit()
     
     conn.close()

@@ -25,7 +25,6 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
     Returns:
       A derivation string generated from the grammar.
     """
-    # Base case: if the symbol is terminal or max depth is reached, return it directly.
     if max_depth <= 0:
         return shortcut[symbol]
     
@@ -45,7 +44,8 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
     result = []
     for s in prod:
         if s in grammar.keys():
-            result.append(generate_biased_example(grammar, s, next_path, max_depth-1))
+            # Correctly pass the 'shortcut' along with the decremented max_depth.
+            result.append(generate_biased_example(grammar, s, next_path, shortcut, max_depth-1))
         else:
             result.append(s)
     return "".join(result)

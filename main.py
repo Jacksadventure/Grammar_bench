@@ -43,7 +43,7 @@ def program_reapir(backend, model, dimension=20):
     instances = set()
     for attempt in range(MAX_MUTATE_ATTEMPTS):
         corrupted_grammar, new_nonterminals, new_terminals, nt, prod_index = mutate_grammar(grammar, nonterminals, terminals)
-        code = generate_parser_code(corrupted_grammar, new_nonterminals, new_nonterminals[0])
+        code = generate_parser_code(corrupted_grammar, new_nonterminals, terminals, new_nonterminals[0])
         print("Corrupted code:")
         print(code)
         
@@ -149,7 +149,7 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
             kpath INTEGER,
             localisation_flag BOOLEAN,
             fixed BOOLEAN,
-            iteration INTEGER,
+            iteration INTEGER
         )
     """)
     conn.commit()

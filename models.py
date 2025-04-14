@@ -2,7 +2,7 @@ from langchain_ollama import OllamaLLM
 from openai import OpenAI
 from google import genai
 import re
-
+import os
 def remove_think_tags(text):
     return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
 
@@ -49,7 +49,8 @@ class OpenAIModel:
 
 class Gemini:
     def __init__(self, model):
-        self.client = genai.Client()
+        api_key = os.getenv("GOOGLE_GENAI_API_KEY")
+        self.client = genai.Client(api_key=api_key)
         self.model = model
     def get_response(self, prompt: str, text: str):
         response = self.client.models.generate_content(

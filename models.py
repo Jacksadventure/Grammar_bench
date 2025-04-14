@@ -3,7 +3,6 @@ from openai import OpenAI
 from google import genai
 import re
 import os
-
 class OllamaModel:
     def __init__(self,model_name:str):
             self.model = OllamaLLM(model=model_name)
@@ -20,8 +19,6 @@ class OllamaModel:
             }
         ]
         response = self.model.invoke(message)
-        if self.model == "deepseek-r1:70b":
-            response = remove_think_tags(response)
         return response
 
 class OpenAIModel:

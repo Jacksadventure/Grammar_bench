@@ -1,0 +1,6 @@
+[submodule "SWE-agent"]
+	path = SWE-agent
+	url = https://github.com/SWE-agent/SWE-agent.git
+[submodule "auto-code-rover"]
+	path = auto-code-rover
+	url = https://github.com/AutoCodeRoverSG/auto-code-rover.git

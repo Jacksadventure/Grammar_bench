@@ -124,6 +124,7 @@ def program_reapir(backend, model, dimension=20):
 def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, iterations=3):
     """
     Run the program repair benchmark over a range of dimensions.
+
     
     For each dimension in [start_dimension, end_dimension] (incremented by `step`) and for a number of iterations,
     the function calls program_reapir and records key metrics into a SQLite database.
@@ -182,7 +183,7 @@ def main():
                         help='Model name to use')
     # Benchmark-specific arguments.
     parser.add_argument('--start_dim', type=int, default=10, help='Starting dimension for benchmark')
-    parser.add_argument('--end_dim', type=int, default=30, help='Ending dimension for benchmark')
+    parser.add_argument('--end_dim', type=int, default=20, help='Ending dimension for benchmark')
     parser.add_argument('--step', type=int, default=10, help='Step increment for dimension in benchmark')
     parser.add_argument('--iterations', type=int, default=3, help='Number of iterations per dimension for benchmark')
     

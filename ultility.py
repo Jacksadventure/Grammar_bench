@@ -2,6 +2,8 @@ import subprocess
 import ast
 from collections import deque
 import re
+import os
+from pathlib import Path
 def validation_check(input,parser):
     command = ['python3', parser, input]
     result = subprocess.run(command, stdout=subprocess.PIPE).returncode
@@ -188,3 +190,17 @@ def remove_markdown_tags(text:str):
         return match.group(1)
     else:
         raise ValueError("Input format is not valid. Could not extract content.")
+
+def creat_repo(repo_name:str,code:str,issue:str):
+    folder_path = Path(f"{repo_name}/{repo_name}")
+    folder_path.mkdir(parents=True, exist_ok=True)
+    with open(folder_path / "corrupted_generated_parser.py", "w") as f:
+        f.write(code)
+    with open(Path(f"{repo_name}") / "issue.txt", "w") as f:
+        f.write(issue)
+    # Initialize a git repository
+    subprocess.run(["git", "init"], cwd=repo_name)
+    # Add all files to the repository
+    subprocess.run(["git", "add", "."], cwd=repo_name)
+    # Commit the changes
+    subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=repo_name)

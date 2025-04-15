@@ -12,7 +12,7 @@ For token patterns of the form "a+" or "b+", instead of using regular expression
 
 import random
 import sys
-
+from ultility import grammar_printer
 # ---------------------------
 # Step 1: Generate a Random Grammar for LL(1)
 # ---------------------------
@@ -299,9 +299,8 @@ def gen(numterminals=10, numnonterminals=10, maxproductions=10, max_original_exa
     # 1. Generate a random LL(1) grammar.
     grammar, nonterminals, terminals = generate_random_grammar(numnonterminals, numterminals, maxproductions)
     print("Generated Grammar:")
-    for nt in nonterminals:
-        for prod in grammar[nt]:
-            print(f"  {nt} -> {' '.join(prod)}")
+    # grammar_printer(nonterminals=nonterminals, grammar=grammar)
+
     start_symbol = nonterminals[0]
     
     # 2. Generate a few example derivations.

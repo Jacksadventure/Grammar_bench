@@ -3,7 +3,7 @@ import json
 from grammar_gen import gen, generate_example_string, generate_parser_code
 from generate_corrupt_input import mutate
 from repair import repair
-from ultility import levenshtein_distance, validation_check, get_path, creat_repo
+from ultility import levenshtein_distance, validation_check, get_path, creat_repo, grammar_printer
 from localisation import localise_program_input, localise_program
 from patch import replace_function_ast_in_file
 from mutation import mutate_grammar
@@ -14,12 +14,13 @@ from sqlite3 import connect
 import os
 import uuid
 from issue_maker import create_issue
+
 MAX_EXAMPLES = 100
 MAX_MUTATE_ATTEMPTS = 100
 
 repos = [] 
 
-def program_reapir(backend, model, dimension=20):
+def program_reapir(backend, model, dimension=5):
     """
     This function generates a parser, mutates it, and then localizes the mutation.
     It generates a parser code, mutates it, and then localizes the mutation using a given backend and model.
@@ -35,8 +36,8 @@ def program_reapir(backend, model, dimension=20):
     """
     # Generate a valid parser code using given dimension parameters.
     code, _, grammar, nonterminals, terminals = gen(dimension, dimension, dimension, MAX_EXAMPLES)
-    print("Generated code:")
-    print(code)
+    # print("Generated code:")
+    # print(code)
     
     # Write the original code to file.
     with open("original_generated_parser.py", "w") as f:
@@ -48,8 +49,8 @@ def program_reapir(backend, model, dimension=20):
     for attempt in range(MAX_MUTATE_ATTEMPTS):
         corrupted_grammar, new_nonterminals, new_terminals, nt, prod_index = mutate_grammar(grammar, nonterminals, terminals)
         code = generate_parser_code(corrupted_grammar, new_nonterminals, terminals, new_nonterminals[0])
-        print("Corrupted code:")
-        print(code)
+        # print("Corrupted code:")
+        # print(code)
         
         # Write corrupted code to file.
         with open("corrupted_generated_parser.py", "w") as f:
@@ -60,7 +61,8 @@ def program_reapir(backend, model, dimension=20):
         path = get_path(grammar, new_nonterminals[0], nt)
         path = path + [(nt, prod_index)]
         kpath = len(path)
-        
+        print(f"kpath length:{kpath-1}")
+        print(f"Path: {path}")
         # Generate instances that cause a validation failure
         for j in range(200):
             temp = generate_biased_example_wrapper(grammar=grammar, symbol=new_nonterminals[0], path=path, max_depth=20)
@@ -71,9 +73,11 @@ def program_reapir(backend, model, dimension=20):
         if len(instances) <= 2:
             continue
         break
-
-    print("Corrupted code:")
-    print(code)
+    
+    print("Original grammar:")
+    grammar_printer(nonterminals=nonterminals, grammar=grammar)
+    print("Corrupted grammar:")
+    grammar_printer(nonterminals=new_nonterminals, grammar=corrupted_grammar)
     print("Test cases:")
     print(instances)
     
@@ -206,10 +210,10 @@ def main():
         program_reapir(args.backend, args.model)
     else:
         print("Invalid mode specified. Use 'program_repair' or 'benchmark'.")
-    # Clean up any created repositories
-    for repo in repos:
-        os.system(f"rm -rf {repo}")
-        print(f"Removed repository: {repo}")
-        
+    # # Clean up any created repositories
+    # for repo in repos:
+    #     os.system(f"rm -rf {repo}")
+    #     print(f"Removed repository: {repo}")
+
 if __name__ == "__main__":
     main()

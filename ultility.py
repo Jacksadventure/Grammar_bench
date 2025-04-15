@@ -204,3 +204,11 @@ def creat_repo(repo_name:str,code:str,issue:str):
     subprocess.run(["git", "add", "."], cwd=repo_name)
     # Commit the changes
     subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=repo_name)
+
+def grammar_printer(nonterminals, grammar):
+    """
+    Prints the grammar in a readable format.
+    """
+    for nt in nonterminals:
+        for prod in grammar[nt]:
+            print(f"  {nt} -> {' '.join(prod)}")

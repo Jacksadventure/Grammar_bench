@@ -3,7 +3,7 @@ import json
 from grammar_gen import gen, generate_example_string, generate_parser_code
 from generate_corrupt_input import mutate
 from repair import repair
-from ultility import levenshtein_distance, validation_check, get_path
+from ultility import levenshtein_distance, validation_check, get_path, creat_repo
 from localisation import localise_program_input, localise_program
 from patch import replace_function_ast_in_file
 from mutation import mutate_grammar
@@ -12,9 +12,12 @@ from testies import generate_biased_example_wrapper
 from time import sleep
 from sqlite3 import connect
 import os
+import uuid
 from issue_maker import create_issue
 MAX_EXAMPLES = 100
 MAX_MUTATE_ATTEMPTS = 100
+
+repos = [] 
 
 def program_reapir(backend, model, dimension=20):
     """
@@ -77,8 +80,14 @@ def program_reapir(backend, model, dimension=20):
     # Use the shortest failing instance as the primary test input.
     instance = min(instances, key=len)
     validation_set = instances - {instance}
+
+    # Creat repo for tools on swe-bench
+    repo_name = str(uuid.uuid4().hex)
+    issue = create_issue(instance)
+    creat_repo(repo_name=repo_name, code=code, issue=issue)
+    repos.append(repo_name)
+    print("Repo created")
     
-    # 
     # Localise the suspicious function using the given backend and model.
     response = localise_program(code, instance, backend, model)
     print("Localisation response:")
@@ -197,6 +206,10 @@ def main():
         program_reapir(args.backend, args.model)
     else:
         print("Invalid mode specified. Use 'program_repair' or 'benchmark'.")
-
+    # Clean up any created repositories
+    for repo in repos:
+        os.system(f"rm -rf {repo}")
+        print(f"Removed repository: {repo}")
+        
 if __name__ == "__main__":
     main()

@@ -212,15 +212,6 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
     code_lines.append('    if len(sys.argv) > 1:')
     code_lines.append('        input_str = sys.argv[1]')
     code_lines.append('        parse_input(input_str)')
-    # code_lines.append('    else:')
-    # code_lines.append('        examples = [')
-    # for ex in examples:
-    #     code_lines.append(f'            "{ex}",')
-    # code_lines.append('        ]')
-    # code_lines.append('        for ex in examples:')
-    # code_lines.append('            print("Testing input:", ex)')
-    # code_lines.append('            parse_input(ex)')
-    # code_lines.append('            print()')
     code_lines.append('')
     code_lines.append('if __name__ == "__main__":')
     code_lines.append('    main()')
@@ -245,11 +236,6 @@ def gen(numterminals,numnonterminals,maxproductions,max_original_examples):
         if len(ex)>3 and len(ex)<6:
             examples.append(ex)
 
-    # print("\nExample input strings:")
-    # for ex in examples:
-    #     print("  " + ex)
-    
-    # 3. Generate the recursive descent parser code.
     parser_code = generate_parser_code(grammar, nonterminals, start_symbol)
 
     return (parser_code, set(examples),grammar,nonterminals, terminals)

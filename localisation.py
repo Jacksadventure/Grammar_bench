@@ -20,7 +20,9 @@ Please return result in this format:
 }
 Please do not add markdown notation like ```json!!!
 Plsease make sure the function name is correct and the function is complete, and the function should be a valid python code.
-Please make sure that responce is a valid json format, using \\n if necessary."""
+Please make sure that responce is a valid json format, using \\n if necessary.
+Please make sure the field "function_name" is the function name that caused the inconsistency between the code of parser and input, and also give a correct version of that function.
+"""
 def localise_program_input(program,corrupted_text,backend,model):
     ai  =  AIInterface(backend,model)
     return ai.get_response(repair_prompt,"parser code:\n"+program+"corrupted_input:\n"+corrupted_text)

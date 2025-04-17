@@ -183,13 +183,17 @@ def get_function_ranges(filename):
 def remove_think_tags(text):
     return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL)
 
-def remove_markdown_tags(text:str):
+def remove_markdown_tags(text: str) -> str:
+    """
+    Remove wrapping ```json…``` fences from the input text if they exist.
+    If the text isn’t enclosed in ```json …```, return it unchanged.
+    """
+    # Pattern matches ```json<optional whitespace>…``` fences around the entire string
     pattern = r'^```json\s*([\s\S]*?)\s*```$'
     match = re.search(pattern, text.strip())
     if match:
         return match.group(1)
-    else:
-        raise ValueError("Input format is not valid. Could not extract content.")
+    return text
 
 def creat_repo(repo_name:str,code:str,issue:str):
     folder_path = Path(f"{repo_name}/{repo_name}")

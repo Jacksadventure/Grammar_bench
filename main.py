@@ -164,6 +164,7 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
             backend TEXT,
             model TEXT,
             dimension INTEGER,
+            RECURSIVE_PROB REAL,
             kpath INTEGER,
             localisation_flag BOOLEAN,
             fixed BOOLEAN,
@@ -180,9 +181,9 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
             
             # Insert the benchmark result into the database.
             cursor.execute("""
-                INSERT INTO benchmark_results (backend,model,dimension, kpath, localisation_flag, fixed, iteration)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (backend, model, used_dimension, kpath, localisation_flag, fixed, iteration))
+                INSERT INTO benchmark_results (backend,model,dimension, recursivce_prob, kpath, localisation_flag, fixed, iteration)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (backend, model, used_dimension, recursive_prob, kpath, localisation_flag, fixed, iteration))
             conn.commit()
     
     conn.close()
@@ -194,10 +195,10 @@ def main():
                         help='Mode to run: "program_repair" or "benchmark"')
     parser.add_argument('--backend', type=str, default='openai', 
                         help='Backend to use (e.g., openai, ollama, Claude)')
-    parser.add_argument('--model', type=str, default='o1-mini-2024-09-12', 
-                        help='Model name to use')
-    parser.add_argument('dimension', type=int, default=5,)
-    parser.add_argument('--recursive_prob', type=float, default=0.5,)
+    parser.add_argument('--model', type=str, default='o1-mini-2024-09-12', help='Model name to use')
+    parser.add_argument('--recursive_prob', type=float, default=0.5, help='Probability of recursive production rules')
+    parser.add_argument('--dim', type=int, default=5, help='Grammar generation dimension')
+
     # Benchmark-specific arguments.
     parser.add_argument('--start_dim', type=int, default=10, help='Starting dimension for benchmark')
     parser.add_argument('--end_dim', type=int, default=20, help='Ending dimension for benchmark')
@@ -207,15 +208,24 @@ def main():
     args = parser.parse_args()
     
     if args.mode == 'benchmark':
-        benchmark(args.backend, args.model, args.start_dim, args.end_dim, args.step, args.iterations,recursive_prob=0.5)
+        benchmark(
+            backend=args.backend,
+            model=args.model,
+            start_dimension=args.start_dim,
+            end_dimension=args.end_dim,
+            step=args.step,
+            iterations=args.iterations,
+            recursive_prob=args.recursive_prob
+        )
     elif args.mode == 'program_repair':
-        program_reapir(args.backend, args.model, dimension=5, recursive_prob=0.5)
+        program_reapir(
+            backend=args.backend,
+            model=args.model,
+            dimension=args.dim,
+            recursive_prob=args.recursive_prob
+        )
     else:
         print("Invalid mode specified. Use 'program_repair' or 'benchmark'.")
-    # # Clean up any created repositories
-    # for repo in repos:
-    #     os.system(f"rm -rf {repo}")
-    #     print(f"Removed repository: {repo}")
 
 if __name__ == "__main__":
     main()

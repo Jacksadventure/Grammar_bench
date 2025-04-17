@@ -26,7 +26,7 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
       A derivation string generated from the grammar.
     """
     if max_depth <= 0:
-        return shortcut[symbol]
+        return shortcut.get(symbol,"")
     
     # Check if we should follow the biased path for this nonterminal.
     if path and path[0][0] == symbol:

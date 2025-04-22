@@ -39,79 +39,95 @@ def generate_random_grammar(
     num_terminals=10,
     max_productions=10,
     max_rhs_length=3,
-    recursion_prob=0.5
+    recursion_prob=0.5,
+    loop_prob=0.5          # ← NEW: probability that a non‑terminal gets the “α Nt | ε” pair
 ):
-    """
-    Generates a random LL(1) grammar while ensuring that all nonterminals are reachable
-    from the start symbol. The `recursion_prob` parameter controls the probability of
-    nonterminal occurrences in the RHS, thus adjusting how recursive the grammar is.
-    """
-    # Ensure the number of productions for each nonterminal does not exceed the number of terminals
+    # At most one production per terminal as first‑symbol
     max_productions = min(max_productions, num_terminals)
 
-    # If max_rhs_length is less than 2, it's impossible to add nonterminals beyond the first symbol.
     if max_rhs_length < 2 and num_nonterminals > 1:
-        raise ValueError("max_rhs_length must be at least 2 to ensure all nonterminals are reachable.")
+        raise ValueError("max_rhs_length must be ≥ 2 to keep all non‑terminals reachable.")
 
-    # Create nonterminals (uppercase letters) and terminals (lowercase letters)
-    nonterminals = [chr(i) for i in range(65, 65 + num_nonterminals)]
-    terminals = [chr(i) for i in range(97, 97 + num_terminals)]
-    grammar = {}
+    # Build symbol pools
+    nonterminals = [chr(65 + i) for i in range(num_nonterminals)]
+    terminals     = [chr(97 + i) for i in range(num_terminals)]
+    grammar       = {}
 
-    # Generate productions for each nonterminal
+    # -------------------------------------------------------------
+    # 1. Create productions for every non‑terminal
+    # -------------------------------------------------------------
     for nt in nonterminals:
         productions = []
-        available_terminals = terminals[:]  # Copy of terminals for unique first symbol selection
-        num_prods = random.randint(1, max_productions)
-        for _ in range(num_prods):
+
+        # --- Optionally insert the Kleene‑star loop: α Nt | ε ---
+        if loop_prob > 0 and random.random() < loop_prob and max_productions >= 2:
+            # Build α (length 1..max_rhs_length, first symbol must be terminal)
             length = random.randint(1, max_rhs_length)
-            prod = []
-            # The first symbol must be a terminal
-            if available_terminals:
-                first = random.choice(available_terminals)
-                available_terminals.remove(first)
-            else:
-                first = random.choice(terminals)
-            prod.append(first)
-            # For the remaining positions, choose based on recursion_prob
+            alpha  = [random.choice(terminals)]                        # first terminal
             for _ in range(1, length):
-                if random.random() < recursion_prob:
-                    prod.append(random.choice(nonterminals))
-                else:
-                    prod.append(random.choice(terminals))
+                alpha.append(random.choice(nonterminals)
+                            if random.random() < recursion_prob
+                            else random.choice(terminals))
+            alpha.append(nt)           # make it left‑recursive
+            productions.append(alpha)  # α Nt
+            productions.append([])     # ε
+        # ---------------------------------------------------------
+
+        # Remaining “regular” productions
+        used_first    = {p[0] for p in productions if p}
+        avail_terms   = [t for t in terminals if t not in used_first] or terminals[:]
+        remaining_num = random.randint(1, max_productions - len(productions))
+
+        for _ in range(remaining_num):
+            length = random.randint(1, max_rhs_length)
+            first  = random.choice(avail_terms) if avail_terms else random.choice(terminals)
+            if first in avail_terms:
+                avail_terms.remove(first)
+
+            prod = [first]
+            for _ in range(1, length):
+                prod.append(random.choice(nonterminals)
+                            if random.random() < recursion_prob
+                            else random.choice(terminals))
             productions.append(prod)
+
         grammar[nt] = productions
 
-    # Ensure all nonterminals are reachable from the start symbol
-    start = nonterminals[0]
-    reachable = compute_reachable(grammar, start)
+    # -------------------------------------------------------------
+    # 2. Ensure every non‑terminal is reachable from the start
+    # -------------------------------------------------------------
+    start       = nonterminals[0]
+    reachable   = compute_reachable(grammar, start)
     unreachable = set(nonterminals) - reachable
 
     while unreachable:
-        un = unreachable.pop()
-        candidate = random.choice(list(reachable))
-        injection_done = False
-        # Try appending
-        for prod in grammar[candidate]:
+        un  = unreachable.pop()
+        src = random.choice(list(reachable))
+        injected = False
+
+        # Try appending the unreachable symbol
+        for prod in grammar[src]:
             if len(prod) < max_rhs_length:
                 prod.append(un)
-                injection_done = True
+                injected = True
                 break
-        # Try replacing
-        if not injection_done:
-            for prod in grammar[candidate]:
+
+        # Try replacing a non‑first symbol
+        if not injected:
+            for prod in grammar[src]:
                 if len(prod) > 1:
                     idx = random.randint(1, len(prod) - 1)
                     prod[idx] = un
-                    injection_done = True
+                    injected = True
                     break
-        # Add new production if needed
-        if not injection_done and len(grammar[candidate]) < max_productions:
-            used = {p[0] for p in grammar[candidate]}
-            avail = [t for t in terminals if t not in used] or terminals[:]
-            new_prod = [random.choice(avail), un]
-            grammar[candidate].append(new_prod)
-        reachable = compute_reachable(grammar, start)
+
+        # As a last resort, add a new production
+        if not injected and len(grammar[src]) < max_productions:
+            used = {p[0] for p in grammar[src]}
+            first = random.choice([t for t in terminals if t not in used] or terminals)
+            grammar[src].append([first, un])
+
+        reachable   = compute_reachable(grammar, start)
         unreachable = set(nonterminals) - reachable
 
     return grammar, nonterminals, terminals
@@ -262,7 +278,8 @@ def gen(
     numnonterminals,
     maxproductions,
     max_original_examples,
-    recursion_prob=0.5
+    recursion_prob=0.5,
+    loop_prob=0.5,
 ):
     # 1. Generate a random LL(1) grammar with controlled recursion
     grammar, nonterminals, terminals = generate_random_grammar(

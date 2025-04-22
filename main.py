@@ -20,7 +20,7 @@ MAX_MUTATE_ATTEMPTS = 100
 
 repos = [] 
 
-def program_reapir(backend, model, dimension=5, recursive_prob=0.5):
+def program_reapir(backend, model, dimension=5, recursive_prob=0.5, loop_prob=0.5):
     """
     This function generates a parser, mutates it, and then localizes the mutation.
     It generates a parser code, mutates it, and then localizes the mutation using a given backend and model.
@@ -35,7 +35,7 @@ def program_reapir(backend, model, dimension=5, recursive_prob=0.5):
       - kpath: The length of the path used in repair.
     """
     # Generate a valid parser code using given dimension parameters.
-    code, _, grammar, nonterminals, terminals = gen(dimension, dimension, dimension,MAX_EXAMPLES,0.5)
+    code, _, grammar, nonterminals, terminals = gen(dimension, dimension, dimension,MAX_EXAMPLES, recursive_prob, loop_prob)
     # print("Generated code:")
     # print(code)
     
@@ -136,7 +136,7 @@ def program_reapir(backend, model, dimension=5, recursive_prob=0.5):
     
     return (localisation_flag, fixed, dimension, kpath)
 
-def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, iterations=3,recursive_prob=0.5):
+def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, iterations=3,recursive_prob=0.5, loop_prob=0.5):
     """
     Run the program repair benchmark over a range of dimensions.
 
@@ -177,7 +177,7 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
     for dim in range(start_dimension, end_dimension + 1, step):
         for iteration in range(iterations):
             print(f"Running benchmark for dimension: {dim}, iteration: {iteration}")
-            localisation_flag, fixed, used_dimension, kpath = program_reapir(backend, model, dimension=dim, recursive_prob=recursive_prob)
+            localisation_flag, fixed, used_dimension, kpath = program_reapir(backend, model, dimension=dim, recursive_prob=recursive_prob, loop_prob=loop_prob)
             
             # Insert the benchmark result into the database.
             cursor.execute("""
@@ -197,6 +197,7 @@ def main():
                         help='Backend to use (e.g., openai, ollama, Claude)')
     parser.add_argument('--model', type=str, default='o1-mini-2024-09-12', help='Model name to use')
     parser.add_argument('--recursive_prob', type=float, default=0.5, help='Probability of recursive production rules')
+    parser.add_argument('--loop_prob', type=float, default=0.5, help='Probability of loop production rules')
     parser.add_argument('--dim', type=int, default=5, help='Grammar generation dimension')
 
     # Benchmark-specific arguments.
@@ -215,14 +216,16 @@ def main():
             end_dimension=args.end_dim,
             step=args.step,
             iterations=args.iterations,
-            recursive_prob=args.recursive_prob
+            recursive_prob=args.recursive_prob,
+            loop_prob=args.loop_prob
         )
     elif args.mode == 'program_repair':
         program_reapir(
             backend=args.backend,
             model=args.model,
             dimension=args.dim,
-            recursive_prob=args.recursive_prob
+            recursive_prob=args.recursive_prob,
+            loop_prob=args.loop_prob
         )
     else:
         print("Invalid mode specified. Use 'program_repair' or 'benchmark'.")

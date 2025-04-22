@@ -165,6 +165,7 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
             model TEXT,
             dimension INTEGER,
             recursive_prob REAL,
+            loop_prob REAL,
             kpath INTEGER,
             localisation_flag BOOLEAN,
             fixed BOOLEAN,
@@ -181,9 +182,9 @@ def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, ite
             
             # Insert the benchmark result into the database.
             cursor.execute("""
-                INSERT INTO benchmark_results (backend,model,dimension, recursive_prob, kpath, localisation_flag, fixed, iteration)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-            """, (backend, model, used_dimension, recursive_prob, kpath, localisation_flag, fixed, iteration))
+                INSERT INTO benchmark_results (backend,model,dimension, recursive_prob, loop_prob, kpath, localisation_flag, fixed, iteration)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (backend, model, used_dimension, recursive_prob, loop_prob, kpath, localisation_flag, fixed, iteration))
             conn.commit()
     
     conn.close()

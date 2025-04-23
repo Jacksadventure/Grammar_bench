@@ -1,238 +1,163 @@
+#!/usr/bin/env python3
+"""
+Generate parser grammars, purposely corrupt them, and store everything
+in a SQLite database for later analysis.  No localisation, no repair.
+"""
+
 import argparse
 import json
-from grammar_gen import gen, generate_example_string, generate_parser_code
-from generate_corrupt_input import mutate
-from repair import repair
-from ultility import levenshtein_distance, validation_check, get_path, creat_repo, grammar_printer
-from localisation import localise_program_input, localise_program
-from patch import replace_function_ast_in_file
-from mutation import mutate_grammar
-from file_diff import get_diff_function, diff
-from testies import generate_biased_example_wrapper
-from time import sleep
-from sqlite3 import connect
 import os
 import uuid
-from issue_maker import create_issue
+from datetime import datetime
+from sqlite3 import connect
 
-MAX_EXAMPLES = 100
-MAX_MUTATE_ATTEMPTS = 100
+from grammar_gen import gen, generate_example_string, generate_parser_code
+from mutation import mutate_grammar
+from testies import generate_biased_example_wrapper
+from ultility import validation_check, grammar_printer
 
-repos = [] 
+MAX_EXAMPLES = 100          # examples when building a fresh parser
+MAX_MUTATE_ATTEMPTS = 100   # how many corruption attempts per case
+MAX_INSTANCE_SEARCH = 200   # attempts to find failing inputs
 
-def program_reapir(backend, model, dimension=5, recursive_prob=0.5, loop_prob=0.5):
+# --------------------------------------------------------------------------- #
+# Core workflow
+# --------------------------------------------------------------------------- #
+
+def generate_case(dim: int,
+                  recursive_prob: float,
+                  loop_prob: float) -> dict:
     """
-    This function generates a parser, mutates it, and then localizes the mutation.
-    It generates a parser code, mutates it, and then localizes the mutation using a given backend and model.
-    It also validates the generated examples against the original and repaired parser.
-    
-    Returns a tuple:
-      (localisation_flag, fixed, dimension, kpath)
-    where:
-      - localisation_flag: True if the suspicious function identified matches expected function name.
-      - fixed: True if all test cases pass on the repaired code.
-      - dimension: The dimension used for generation.
-      - kpath: The length of the path used in repair.
+    Generate one (original, corrupted) parser pair and collect failing inputs.
+
+    Returns:
+        dict containing all artefacts ready to be stored in SQLite.
     """
-    # Generate a valid parser code using given dimension parameters.
-    code, _, grammar, nonterminals, terminals = gen(dimension, dimension, dimension,MAX_EXAMPLES, recursive_prob, loop_prob)
-    # print("Generated code:")
-    # print(code)
-    
-    # Write the original code to file.
-    with open("original_generated_parser.py", "w") as f:
-        f.write(code)
-    
-    # Introduce corruption to the generated parser.
-    code = ""
+    # 1. create a valid grammar + parser
+    original_code, _, grammar, nts, terms = gen(
+        dim, dim, dim, MAX_EXAMPLES, recursive_prob, loop_prob
+    )
+
+    # 2. corrupt the grammar until we get at least two failing inputs
     instances = set()
-    for attempt in range(MAX_MUTATE_ATTEMPTS):
-        corrupted_grammar, new_nonterminals, new_terminals, nt, prod_index = mutate_grammar(grammar, nonterminals, terminals)
-        code = generate_parser_code(corrupted_grammar, new_nonterminals, new_nonterminals[0])
-        # print("Corrupted code:")
-        # print(code)
-        
-        # Write corrupted code to file.
-        with open("corrupted_generated_parser.py", "w") as f:
-            f.write(code)
-        
-        # Get the diff between the original and corrupted code (for logging/analysis)
-        diff("original_generated_parser.py", "corrupted_generated_parser.py")
-        path = get_path(grammar, new_nonterminals[0], nt)
-        path = path + [(nt, prod_index)]
-        kpath = len(path)
-        print(f"kpath length:{kpath-1}")
-        print(f"Path: {path}")
-        # Generate instances that cause a validation failure
-        for j in range(200):
-            temp = generate_biased_example_wrapper(grammar=grammar, symbol=new_nonterminals[0], path=path, max_depth=20)
-            if not validation_check(temp, "corrupted_generated_parser.py"):
-                instances.add(temp)
-        for index, instance in enumerate(instances):
-            print(f"{index} instance: {instance}")
-        if len(instances) <= 2:
-            continue
-        break
-    
-    print("Original grammar:")
-    grammar_printer(nonterminals=nonterminals, grammar=grammar)
-    print("Corrupted grammar:")
-    grammar_printer(nonterminals=new_nonterminals, grammar=corrupted_grammar)
-    print("Test cases:")
-    print(instances)
-    
-    # Use the shortest failing instance as the primary test input.
-    instance = min(instances, key=len)
-    validation_set = instances - {instance}
+    for _ in range(MAX_MUTATE_ATTEMPTS):
+        corrupted_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(
+            grammar, nts, terms
+        )
+        corrupted_code = generate_parser_code(
+            corrupted_grammar, new_nts, new_nts[0]
+        )
 
-    # Creat repo for tools on swe-bench
-    repo_name = str(uuid.uuid4().hex)
-    issue = create_issue(instance)
-    creat_repo(repo_name=repo_name, code=code, issue=issue)
-    repos.append(repo_name)
-    print("Repo created")
-    
-    # Localise the suspicious function using the given backend and model.
-    response = localise_program(code, instance, backend, model)
-    print("Localisation response:")
-    print(response)
-    sleep(5)  # Allow time for any asynchronous processes if required
-    response_json = json.loads(response)
-    suspicious_function = response_json["function_name"]
-    print("Suspicious function identified:")
-    print(suspicious_function)
-    print("Correct answer:")
-    print(f"parse_{nt}")
+        # search for failing strings
+        for _ in range(MAX_INSTANCE_SEARCH):
+            s = generate_biased_example_wrapper(
+                grammar=grammar,
+                symbol=new_nts[0],
+                path=[(nt, prod_idx)],  # bias toward the mutated rule
+                max_depth=20,
+            )
+            if not validation_check(s, parser=corrupted_code):
+                instances.add(s)
 
-    localisation_flag = False
-    if suspicious_function == f"parse_{nt}":
-        localisation_flag = True
-        print("Localisation passed")
-    else:
-        print("Localisation failed")
-    
-    patch = response_json["correct_version"]
-    print("Proposed patch:")
-    print(patch)
-    
-    # Apply the patch to create a repaired version of the parser code.
-    replace_function_ast_in_file("corrupted_generated_parser.py", patch, suspicious_function, "repaired_generated_parser.py")
-    
-    count = 0
-    fixed = False
-    # Check each validation input against the repaired code.
-    for series, test in enumerate(validation_set):
-        print(f"========Test Case {series}========")
-        if validation_check(test, "repaired_generated_parser.py"):
-            count += 1
-            print("Validation check passed")
-        else:
-            print("Validation check failed")
-    if count == len(validation_set):
-        print("Validation check passed for all test cases")
-        fixed = True
-    else:
-        print("Validation check failed for some test cases")
-    
-    return (localisation_flag, fixed, dimension, kpath)
+        if len(instances) >= 20:
+            break  # success
 
-def benchmark(backend, model, start_dimension=10, end_dimension=30, step=10, iterations=3,recursive_prob=0.5, loop_prob=0.5):
-    """
-    Run the program repair benchmark over a range of dimensions.
+    if not instances:
+        raise RuntimeError("Could not find any failing instances")
 
-    
-    For each dimension in [start_dimension, end_dimension] (incremented by `step`) and for a number of iterations,
-    the function calls program_reapir and records key metrics into a SQLite database.
-    
-    The database file 'benchmark_results.db' will contain the following columns:
-      - id (auto-increment primary key)
-      - dimension (the input dimension used)
-      - kpath (the length of the mutation path)
-      - localisation_flag (boolean, True if correct function localized)
-      - fixed (boolean, True if all test cases passed on repaired code)
-      - iteration (the iteration number for that dimension)
-      - timestamp (when the entry was recorded)
-    """
-    # Connect to (or create) the SQLite database.
-    conn = connect("benchmark_results.db")
-    cursor = conn.cursor()
-    
-    # Create the results table if it doesn't already exist.
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS benchmark_results (
+    # prepare JSON-serialisable artefacts
+    return {
+        "dim": dim,
+        "recursive_prob": recursive_prob,
+        "loop_prob": loop_prob,
+        "original_grammar": json.dumps(grammar, ensure_ascii=False, indent=2),
+        "original_parser": original_code,
+        "corrupted_grammar": json.dumps(corrupted_grammar, ensure_ascii=False, indent=2),
+        "corrupted_parser": corrupted_code,
+        "test_cases": json.dumps(list(instances), ensure_ascii=False, indent=2),
+        "timestamp": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+    }
+
+
+# --------------------------------------------------------------------------- #
+# SQLite helpers
+# --------------------------------------------------------------------------- #
+
+def init_db(cursor):
+    """Create table if it does not already exist."""
+    cursor.execute(
+        """
+        CREATE TABLE IF NOT EXISTS cases (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            backend TEXT,
-            model TEXT,
-            dimension INTEGER,
+            dim INTEGER,
             recursive_prob REAL,
             loop_prob REAL,
-            kpath INTEGER,
-            localisation_flag BOOLEAN,
-            fixed BOOLEAN,
-            iteration INTEGER
+            original_grammar TEXT,
+            original_parser TEXT,
+            corrupted_grammar TEXT,
+            corrupted_parser TEXT,
+            test_cases TEXT,
+            timestamp TEXT
         )
-    """)
-    conn.commit()
+        """
+    )
 
-    # Iterate over dimensions and iterations.
-    for dim in range(start_dimension, end_dimension + 1, step):
-        for iteration in range(iterations):
-            print(f"Running benchmark for dimension: {dim}, iteration: {iteration}")
-            localisation_flag, fixed, used_dimension, kpath = program_reapir(backend, model, dimension=dim, recursive_prob=recursive_prob, loop_prob=loop_prob)
-            
-            # Insert the benchmark result into the database.
-            cursor.execute("""
-                INSERT INTO benchmark_results (backend,model,dimension, recursive_prob, loop_prob, kpath, localisation_flag, fixed, iteration)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (backend, model, used_dimension, recursive_prob, loop_prob, kpath, localisation_flag, fixed, iteration))
-            conn.commit()
-    
-    conn.close()
-    print("Benchmark complete. Results written to benchmark_results.db.")
+def save_case(cursor, artefacts: dict):
+    """Insert one case into the database."""
+    cursor.execute(
+        """
+        INSERT INTO cases (
+            dim, recursive_prob, loop_prob,
+            original_grammar, original_parser,
+            corrupted_grammar, corrupted_parser,
+            test_cases, timestamp
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            artefacts["dim"],
+            artefacts["recursive_prob"],
+            artefacts["loop_prob"],
+            artefacts["original_grammar"],
+            artefacts["original_parser"],
+            artefacts["corrupted_grammar"],
+            artefacts["corrupted_parser"],
+            artefacts["test_cases"],
+            artefacts["timestamp"],
+        ),
+    )
+
+# --------------------------------------------------------------------------- #
+# CLI & main loop
+# --------------------------------------------------------------------------- #
 
 def main():
-    parser = argparse.ArgumentParser(description='Parser Repair Benchmark')
-    parser.add_argument('--mode', type=str, default='program_repair', 
-                        help='Mode to run: "program_repair" or "benchmark"')
-    parser.add_argument('--backend', type=str, default='openai', 
-                        help='Backend to use (e.g., openai, ollama, Claude)')
-    parser.add_argument('--model', type=str, default='o1-mini-2024-09-12', help='Model name to use')
-    parser.add_argument('--recursive_prob', type=float, default=0.5, help='Probability of recursive production rules')
-    parser.add_argument('--loop_prob', type=float, default=0.5, help='Probability of loop production rules')
-    parser.add_argument('--dim', type=int, default=5, help='Grammar generation dimension')
+    p = argparse.ArgumentParser(description="Generate corrupted parser cases.")
+    p.add_argument("--cases", type=int, default=10,
+                   help="Number of cases to generate")
+    p.add_argument("--dim", type=int, default=5,
+                   help="Grammar dimension (fixed for all cases)")
+    p.add_argument("--recursive_prob", type=float, default=0.5)
+    p.add_argument("--loop_prob", type=float, default=0.5)
+    p.add_argument("--db", type=str, default="parser_cases.db",
+                   help="SQLite file name")
+    args = p.parse_args()
 
-    # Benchmark-specific arguments.
-    parser.add_argument('--start_dim', type=int, default=10, help='Starting dimension for benchmark')
-    parser.add_argument('--end_dim', type=int, default=20, help='Ending dimension for benchmark')
-    parser.add_argument('--step', type=int, default=10, help='Step increment for dimension in benchmark')
-    parser.add_argument('--iterations', type=int, default=3, help='Number of iterations per dimension for benchmark')
-    
-    args = parser.parse_args()
-    
-    if args.mode == 'benchmark':
-        benchmark(
-            backend=args.backend,
-            model=args.model,
-            start_dimension=args.start_dim,
-            end_dimension=args.end_dim,
-            step=args.step,
-            iterations=args.iterations,
+    conn = connect(args.db)
+    cur = conn.cursor()
+    init_db(cur)
+
+    for i in range(args.cases):
+        print(f"[+] Generating case #{i+1}/{args.cases} …")
+        artefacts = generate_case(
+            dim=args.dim,
             recursive_prob=args.recursive_prob,
-            loop_prob=args.loop_prob
+            loop_prob=args.loop_prob,
         )
-    elif args.mode == 'program_repair':
-        program_reapir(
-            backend=args.backend,
-            model=args.model,
-            dimension=args.dim,
-            recursive_prob=args.recursive_prob,
-            loop_prob=args.loop_prob
-        )
-    else:
-        print("Invalid mode specified. Use 'program_repair' or 'benchmark'.")
+        save_case(cur, artefacts)
+        conn.commit()
+
+    conn.close()
+    print(f"[✓] Done. All cases stored in {args.db}")
 
 if __name__ == "__main__":
     main()
-    # clean all repos
-    for repo in repos:
-        os.system(f"rm -rf {repo}")

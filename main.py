@@ -47,7 +47,6 @@ def generate_case(dim: int,
         corrupted_code = generate_parser_code(
             corrupted_grammar, new_nts, new_nts[0]
         )
-
         # search for failing strings
         for _ in range(MAX_INSTANCE_SEARCH):
             s = generate_biased_example_wrapper(

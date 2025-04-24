@@ -56,7 +56,7 @@ def generate_case(dim: int,
                 path=[(nt, prod_idx)],  # bias toward the mutated rule
                 max_depth=20,
             )
-            if not validation_check(s, parser=corrupted_code):
+            if not validation_check(s, parser_code=corrupted_code):
                 instances.add(s)
 
         if len(instances) >= 20:

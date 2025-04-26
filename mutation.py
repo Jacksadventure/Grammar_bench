@@ -18,8 +18,9 @@ def mutate_grammar(grammar, nonterminals, terminals):
     # Randomly select a nonterminal
     nt = random.choice(list(mutated_grammar.keys()))
     
-    # Randomly select one production of that nonterminal
+    # Randomly select one production of that nonterminal, amd make sure that productions are not empty
     productions = mutated_grammar[nt]
+    productions = [p for p in productions if len(p) > 0]
     prod_index = random.randrange(len(productions))
     production = productions[prod_index]
     

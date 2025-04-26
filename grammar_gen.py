@@ -223,7 +223,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             prods = grammar[nt]
             alternatives = []
             for prod in prods:
-                first_tok = prod[0]
+                first_tok = "" if not prod else prod[0]
                 alternatives.append((first_tok, prod))
             code_lines.append('    if pos >= len(tokens):')
             code_lines.append(f'        error("Unexpected end of input in {nt}")')
@@ -232,6 +232,8 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             # Create a list of expected tokens for error reporting.
             expected_tokens = [f'"{alt[0]}"' for alt in alternatives]
             for first_tok, prod in alternatives:
+                if first_tok == "":
+                    continue
                 cond = 'if' if first_condition else 'elif'
                 code_lines.append(f'    {cond} lookahead == "{first_tok}":')
                 for s in prod:

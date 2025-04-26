@@ -7,6 +7,7 @@ in a SQLite database for later analysis.  No localisation, no repair.
 import argparse
 import json
 import os
+import random
 import uuid
 from datetime import datetime
 from sqlite3 import connect
@@ -128,27 +129,43 @@ def save_case(cursor, artefacts: dict):
 # --------------------------------------------------------------------------- #
 # CLI & main loop
 # --------------------------------------------------------------------------- #
-
 def main():
     p = argparse.ArgumentParser(description="Generate corrupted parser cases.")
     p.add_argument("--cases", type=int, default=10,
                    help="Number of cases to generate")
-    p.add_argument("--dim", type=int, default=5,
-                   help="Grammar dimension (fixed for all cases)")
+
+    # --dim (fixed) OR --dim_range MIN MAX (random per case)
+    grp = p.add_mutually_exclusive_group(required=False)
+    grp.add_argument("--dim", type=int,
+                     help="Fixed grammar dimension for every case")
+    grp.add_argument("--dim_range", nargs=2, type=int, metavar=("MIN", "MAX"),
+                     help="Generate a random dimension in [MIN, MAX] for each case")
+
     p.add_argument("--recursive_prob", type=float, default=0.5)
     p.add_argument("--loop_prob", type=float, default=0.5)
     p.add_argument("--db", type=str, default="parser_cases.db",
                    help="SQLite file name")
     args = p.parse_args()
 
+    # determine how to pick dimensions
+    if args.dim_range:
+        dim_min, dim_max = args.dim_range
+        if dim_min <= 0 or dim_max < dim_min:
+            p.error("Invalid --dim_range (must satisfy 0 < MIN ≤ MAX)")
+        pick_dim = lambda: random.randint(dim_min, dim_max)
+    else:
+        dim_fixed = args.dim or 5  # default to 5 if neither flag supplied
+        pick_dim = lambda: dim_fixed
+
     conn = connect(args.db)
     cur = conn.cursor()
     init_db(cur)
 
     for i in range(args.cases):
-        print(f"[+] Generating case #{i+1}/{args.cases} …")
+        dim_now = pick_dim()
+        print(f"[+] Generating case #{i+1}/{args.cases} (dim={dim_now}) …")
         artefacts = generate_case(
-            dim=args.dim,
+            dim=dim_now,
             recursive_prob=args.recursive_prob,
             loop_prob=args.loop_prob,
         )

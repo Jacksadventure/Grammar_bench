@@ -132,14 +132,13 @@ def save_case(cursor, artefacts: dict):
 def main():
     p = argparse.ArgumentParser(description="Generate corrupted parser cases.")
     p.add_argument("--cases", type=int, default=10,
-                   help="Number of cases to generate")
+                   help="Number of cases to generate **per dimension**")
 
-    # --dim (fixed) OR --dim_range MIN MAX (random per case)
     grp = p.add_mutually_exclusive_group(required=False)
     grp.add_argument("--dim", type=int,
-                     help="Fixed grammar dimension for every case")
+                     help="Generate only this dimension (old behaviour)")
     grp.add_argument("--dim_range", nargs=2, type=int, metavar=("MIN", "MAX"),
-                     help="Generate a random dimension in [MIN, MAX] for each case")
+                     help="Generate every dimension in [MIN, MAX] (inclusive)")
 
     p.add_argument("--recursive_prob", type=float, default=0.5)
     p.add_argument("--loop_prob", type=float, default=0.5)
@@ -147,30 +146,29 @@ def main():
                    help="SQLite file name")
     args = p.parse_args()
 
-    # determine how to pick dimensions
+    # build the list of dimensions to iterate over
     if args.dim_range:
-        dim_min, dim_max = args.dim_range
-        if dim_min <= 0 or dim_max < dim_min:
+        d_min, d_max = args.dim_range
+        if d_min <= 0 or d_max < d_min:
             p.error("Invalid --dim_range (must satisfy 0 < MIN ≤ MAX)")
-        pick_dim = lambda: random.randint(dim_min, dim_max)
+        dims = list(range(d_min, d_max + 1))
     else:
-        dim_fixed = args.dim or 5  # default to 5 if neither flag supplied
-        pick_dim = lambda: dim_fixed
+        dims = [args.dim or 5]       # default fixed dimension 5
 
     conn = connect(args.db)
     cur = conn.cursor()
     init_db(cur)
 
-    for i in range(args.cases):
-        dim_now = pick_dim()
-        print(f"[+] Generating case #{i+1}/{args.cases} (dim={dim_now}) …")
-        artefacts = generate_case(
-            dim=dim_now,
-            recursive_prob=args.recursive_prob,
-            loop_prob=args.loop_prob,
-        )
-        save_case(cur, artefacts)
-        conn.commit()
+    for dim in dims:
+        for i in range(args.cases):
+            print(f"[+] Generating dim={dim}  case #{i+1}/{args.cases}")
+            artefacts = generate_case(
+                dim=dim,
+                recursive_prob=args.recursive_prob,
+                loop_prob=args.loop_prob,
+            )
+            save_case(cur, artefacts)
+            conn.commit()
 
     conn.close()
     print(f"[✓] Done. All cases stored in {args.db}")

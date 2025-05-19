@@ -10,7 +10,7 @@ Please return result in this format:
 Please do not add markdown notation like ```json
 """
 
-program_localisation_prompt = """You are an localisation expert. Your task is to localize the corrupted function in the parser based on the parser’s code. You should only return a function name.that caused the inconsistency between the code of parser and input, and also give a correct version of that function" \
+program_localisation_prompt = """You are an localisation expert. Your task is to localize the corrupted function in the parser based on the original grammar. You should only return a function name.that caused the inconsistency between the code of parser and input, and also give a correct version of that function" \
 PLEASE DO NOT EXPLAIN,
 PLEASE DO NOT ADD OTHER FORMAT, 
 Please return result in this format:
@@ -27,6 +27,6 @@ def localise_program_input(program,corrupted_text,backend,model):
     ai  =  AIInterface(backend,model)
     return ai.get_response(repair_prompt,"parser code:\n"+program+"corrupted_input:\n"+corrupted_text)
 
-def localise_program(program,input,backend,model):
+def localise_program(program,grammar,backend,model):
     ai  =  AIInterface(backend,model)
-    return remove_markdown_tags(remove_think_tags(ai.get_response(program_localisation_prompt,"parser code:\n"+program+"input:\n"+input)))
+    return remove_markdown_tags(remove_think_tags(ai.get_response(program_localisation_prompt,"parser code:\n"+program+"grammar:\n"+grammar)))

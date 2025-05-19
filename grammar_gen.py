@@ -9,6 +9,8 @@ It also embeds a few example derivations.
 """
 
 import random
+import string
+from itertools import product as _itertools_product
 
 # ---------------------------
 # Step 1: Generate a Random Grammar for LL(1)
@@ -47,8 +49,29 @@ def generate_random_grammar(
     if max_rhs_length < 2 and num_nonterminals > 1:
         raise ValueError("max_rhs_length must be ≥ 2 to keep all NTs reachable")
 
-    nonterminals = [chr(65 + i) for i in range(num_nonterminals)]
-    terminals    = [chr(97 + i) for i in range(num_terminals)]
+    # ----------------- symbol pools -----------------
+    # Nonterminal symbols: allow letters (upper/lower), generate names of increasing length
+    ALPHABET_NT = string.ascii_letters
+    def _generate_labels(alphabet: str, count: int) -> list[str]:
+        labels = []
+        length = 1
+        # generate combinations of given alphabet until required count reached
+        while len(labels) < count:
+            for p in _itertools_product(alphabet, repeat=length):
+                labels.append(''.join(p))
+                if len(labels) >= count:
+                    break
+            length += 1
+        return labels[:count]
+    nonterminals = _generate_labels(ALPHABET_NT, num_nonterminals)
+    # Terminal symbols: single-character tokens from allowed set
+    ALPHABET_T = string.ascii_letters + string.digits + string.punctuation
+    if num_terminals > len(ALPHABET_T):
+        raise ValueError(f"num_terminals={num_terminals} exceeds allowed terminal characters ({len(ALPHABET_T)})")
+    # suffle the terminal symbols to randomize their order
+    ALPHABET_T = list(ALPHABET_T)
+    random.shuffle(ALPHABET_T)
+    terminals = list(ALPHABET_T[:num_terminals])
     grammar      = {}
 
     # ------------- generate productions -------------
@@ -211,13 +234,13 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             # Assume that the base alternative (from <X><Xs>) starts with a terminal,
             # which we use for the while loop test.
             first_tok = base_prod[0]
-            code_lines.append(f'    while pos < len(tokens) and tokens[pos] == "{first_tok}":')
+            code_lines.append(f'    while pos < len(tokens) and tokens[pos] == {repr(first_tok)}:')
             # Generate code for the symbols in the base production.
             for s in base_prod:
                 if s in nonterminals:
                     code_lines.append(f'        parse_{s}()')
                 else:
-                    code_lines.append(f'        match("{s}")')
+                    code_lines.append(f'        match({repr(s)})')
         else:
             # Use the original recursive descent code generation.
             prods = grammar[nt]
@@ -230,17 +253,17 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             code_lines.append('    lookahead = tokens[pos]')
             first_condition = True
             # Create a list of expected tokens for error reporting.
-            expected_tokens = [f'"{alt[0]}"' for alt in alternatives]
+            expected_tokens = [repr(alt[0]) for alt in alternatives]
             for first_tok, prod in alternatives:
                 if first_tok == "":
                     continue
                 cond = 'if' if first_condition else 'elif'
-                code_lines.append(f'    {cond} lookahead == "{first_tok}":')
+                code_lines.append(f'    {cond} lookahead == {repr(first_tok)}:')
                 for s in prod:
                     if s in nonterminals:
                         code_lines.append(f'        parse_{s}()')
-                    else:
-                        code_lines.append(f'        match("{s}")')
+                else:
+                        code_lines.append(f'        match({repr(s)})')
                 first_condition = False
             expected_tokens_str = ", ".join(expected_tokens)
             error_line = ('    else:\n'
@@ -259,12 +282,14 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
     code_lines.append('        error("Extra tokens after parsing: " + " ".join(tokens[pos:]))')
     code_lines.append('    print("Input accepted.")')
     code_lines.append('')
-    # Main block: use command-line argument if provided.
+    # Main block: use command-line argument if provided, else read from stdin.
     code_lines.append('def main():')
     code_lines.append('    import sys')
     code_lines.append('    if len(sys.argv) > 1:')
     code_lines.append('        input_str = sys.argv[1]')
-    code_lines.append('        parse_input(input_str)')
+    code_lines.append('    else:')
+    code_lines.append('        input_str = sys.stdin.read()')
+    code_lines.append('    parse_input(input_str)')
     code_lines.append('')
     code_lines.append('if __name__ == "__main__":')
     code_lines.append('    main()')
@@ -278,7 +303,7 @@ def gen(
     numnonterminals,
     maxproductions,
     max_original_examples,
-    recursion_prob=0.5,
+    recursion_prob,
     loop_prob=0.5,
 ):
     # 1. Generate a random LL(1) grammar with controlled recursion
@@ -286,10 +311,11 @@ def gen(
         num_nonterminals=numnonterminals,
         num_terminals=numterminals,
         max_productions=maxproductions,
-        recursion_prob=recursion_prob
+        max_rhs_length=10,
+        recursion_prob=recursion_prob,
+        loop_prob=loop_prob
     )
     start_symbol = nonterminals[0]
-
     # 2. Generate a few example derivations
     examples = []
     for _ in range(max_original_examples):

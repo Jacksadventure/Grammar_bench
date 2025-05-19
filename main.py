@@ -4,28 +4,29 @@ Generate parser grammars, purposely corrupt them, and store everything
 in a SQLite database for later analysis.  No localisation, no repair.
 """
 
-import argparse
 import json
-import os
 import random
-import uuid
 from datetime import datetime
 from sqlite3 import connect
 
 from grammar_gen import gen, generate_example_string, generate_parser_code
 from mutation import mutate_grammar
 from testies import generate_biased_example_wrapper
-from ultility import validation_check, grammar_printer
+from ultility import validation_check
 
 MAX_EXAMPLES = 100          # examples when building a fresh parser
 MAX_MUTATE_ATTEMPTS = 100   # how many corruption attempts per case
 MAX_INSTANCE_SEARCH = 200   # attempts to find failing inputs
+MIN_TEST_CASES = 20         # minimum failing instances per case
+KEEP_TEST_CASES = 20        # number of test cases to keep in DB
 
 # --------------------------------------------------------------------------- #
 # Core workflow
 # --------------------------------------------------------------------------- #
 
-def generate_case(dim: int,
+def generate_case(num_terminals: int,
+                  num_nonterminals: int,
+                  max_productions: int,
                   recursive_prob: float,
                   loop_prob: float) -> dict:
     """
@@ -35,11 +36,16 @@ def generate_case(dim: int,
         dict containing all artefacts ready to be stored in SQLite.
     """
     # 1. create a valid grammar + parser
+    # 1. create a valid grammar + parser with explicit parameter names
     original_code, _, grammar, nts, terms = gen(
-        dim, dim, dim, MAX_EXAMPLES, recursive_prob, loop_prob
+        numterminals=num_terminals,
+        numnonterminals=num_nonterminals,
+        maxproductions=max_productions,
+        max_original_examples=MAX_EXAMPLES,
+        recursion_prob=recursive_prob,
+        loop_prob=loop_prob,
     )
-
-    # 2. corrupt the grammar until we get at least two failing inputs
+    # 2. corrupt the grammar until we get at least MIN_TEST_CASES failing inputs
     instances = set()
     for _ in range(MAX_MUTATE_ATTEMPTS):
         corrupted_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(
@@ -59,22 +65,23 @@ def generate_case(dim: int,
             if not validation_check(s, parser_code=corrupted_code):
                 instances.add(s)
 
-        if len(instances) >= 20:
-            break  # success
+        if len(instances) >= MIN_TEST_CASES:
+            break  # found enough failing instances
 
-    if not instances:
-        raise RuntimeError("Could not find any failing instances")
+    # ensure we have enough cases
+    if len(instances) < MIN_TEST_CASES:
+        raise RuntimeError(f"Could not find at least {MIN_TEST_CASES} failing instances, only found {len(instances)}")
 
     # prepare JSON-serialisable artefacts
     return {
-        "dim": dim,
         "recursive_prob": recursive_prob,
         "loop_prob": loop_prob,
         "original_grammar": json.dumps(grammar, ensure_ascii=False, indent=2),
         "original_parser": original_code,
         "corrupted_grammar": json.dumps(corrupted_grammar, ensure_ascii=False, indent=2),
         "corrupted_parser": corrupted_code,
-        "test_cases": json.dumps(list(instances), ensure_ascii=False, indent=2),
+        # keep only the first KEEP_TEST_CASES test cases in the database
+        "test_cases": json.dumps(list(instances)[:KEEP_TEST_CASES], ensure_ascii=False, indent=2),
         "timestamp": datetime.utcnow().isoformat(timespec="seconds") + "Z",
     }
 
@@ -130,45 +137,48 @@ def save_case(cursor, artefacts: dict):
 # CLI & main loop
 # --------------------------------------------------------------------------- #
 def main():
-    p = argparse.ArgumentParser(description="Generate corrupted parser cases.")
-    p.add_argument("--cases", type=int, default=10,
-                   help="Number of cases to generate **per dimension**")
+    # Embedded benchmark parameters
+    dims = range(10, 21)  # dimensions from 10 to 20 inclusive
+    recursion_probs = [0.2, 0.4, 0.6]
+    loop_probs = [0.2, 0.4, 0.6]
+    cases_per_setting = 3
+    db_file = "parser_cases2.db"
 
-    grp = p.add_mutually_exclusive_group(required=False)
-    grp.add_argument("--dim", type=int,
-                     help="Generate only this dimension (old behaviour)")
-    grp.add_argument("--dim_range", nargs=2, type=int, metavar=("MIN", "MAX"),
-                     help="Generate every dimension in [MIN, MAX] (inclusive)")
-
-    p.add_argument("--recursive_prob", type=float, default=0.5)
-    p.add_argument("--loop_prob", type=float, default=0.5)
-    p.add_argument("--db", type=str, default="parser_cases.db",
-                   help="SQLite file name")
-    args = p.parse_args()
-
-    # build the list of dimensions to iterate over
-    if args.dim_range:
-        d_min, d_max = args.dim_range
-        if d_min <= 0 or d_max < d_min:
-            p.error("Invalid --dim_range (must satisfy 0 < MIN ≤ MAX)")
-        dims = list(range(d_min, d_max + 1))
-    else:
-        dims = [args.dim or 5]       # default fixed dimension 5
-
-    conn = connect(args.db)
+    conn = connect(db_file)
     cur = conn.cursor()
     init_db(cur)
 
     for dim in dims:
-        for i in range(args.cases):
-            print(f"[+] Generating dim={dim}  case #{i+1}/{args.cases}")
-            artefacts = generate_case(
-                dim=dim,
-                recursive_prob=args.recursive_prob,
-                loop_prob=args.loop_prob,
-            )
-            save_case(cur, artefacts)
-            conn.commit()
+        for recursion_prob in recursion_probs:
+            for loop_prob in loop_probs:
+                for i in range(cases_per_setting):
+                    nt_count = dim
+                    nnt_count = dim
+                    max_prod = dim
+                    print(
+                        f"[+] Generating grammar(nt={nt_count}, nnt={nnt_count}, prod={max_prod}, "
+                        f"rec_prob={recursion_prob}, loop_prob={loop_prob}) "
+                        f"case #{i+1}/{cases_per_setting}"
+                    )
+                    # attempt to generate a valid corrupted parser with sufficient failing cases
+                    while True:
+                        try:
+                            artefacts = generate_case(
+                                num_terminals=nt_count,
+                                num_nonterminals=nnt_count,
+                                max_productions=max_prod,
+                                recursive_prob=recursion_prob,
+                                loop_prob=loop_prob,
+                            )
+                            break
+                        except RuntimeError as e:
+                            print(f"[!] {e}, regenerating grammar")
+                    # record parameters used for this case
+                    artefacts['dim'] = dim
+                    artefacts['recursive_prob'] = recursion_prob
+                    artefacts['loop_prob'] = loop_prob
+                    save_case(cur, artefacts)
+                    conn.commit()
 
     conn.close()
     print(f"[✓] Done. All cases stored in {args.db}")

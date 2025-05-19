@@ -7,8 +7,14 @@ from pathlib import Path
 def validation_check(input:str,parser_code:str)-> bool:
     with open("temp.py", "w") as f:
         f.write(parser_code)
-    command = ['python3',"temp.py", input]
-    result = subprocess.run(command, stdout=subprocess.PIPE).returncode
+    # Execute the parser by feeding the input via stdin to avoid long argument lists
+    result = subprocess.run(
+        ['python3', 'temp.py'],
+        input=input,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True
+    ).returncode
     if(result == 0):
         return True
     else:

@@ -1,0 +1,150 @@
+import argparse
+import json
+from grammar_gen import gen,generate_example_string, generate_parser_code
+# from repair import repair  # deprecated import removed to avoid unused dependency errors
+from ultility import levenshtein_distance,validation_check,get_path
+from localisation import localise_program_input,localise_program
+import sqlite3
+import subprocess
+import random
+from datetime import datetime
+from patch import replace_function_ast_in_file
+from mutation import mutate_grammar
+from file_diff import get_diff_function
+from testies import generate_biased_example_wrapper
+from time import sleep
+from file_diff import diff
+
+MAX_TESTS = 1
+MAX_EXAMPLES = 100
+MAX_MUTATE_ATTEMPTS = 100
+
+def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db'):
+    """
+    Read parser cases from a SQLite database and perform localization for each case.
+    """
+    # generate a unique run identifier to avoid filename collisions
+    run_id = random.randint(1000000, 9999999)
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT id, dim, recursive_prob, loop_prob, original_grammar, original_parser,"
+        " corrupted_grammar, corrupted_parser, test_cases"
+        " FROM cases"
+    )
+    rows = cursor.fetchall()
+
+    # Prepare results database
+    results_conn = sqlite3.connect(results_db)
+    results_cursor = results_conn.cursor()
+    results_cursor.execute('''
+        CREATE TABLE IF NOT EXISTS repair_results (
+            case_id INTEGER PRIMARY KEY,
+            dim INTEGER,
+            recursive_prob REAL,
+            loop_prob REAL,
+            total_tests INTEGER,
+            passed_tests INTEGER
+        )
+    ''')
+    results_conn.commit()
+    for row in rows:
+        case_id, dim, recursive_prob, loop_prob, orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json = row
+        print(f"========Case {case_id}========")
+        print(f"dim: {dim}, recursive_prob: {recursive_prob}, loop_prob: {loop_prob}")
+
+        # Load test cases
+        try:
+            test_cases = json.loads(test_cases_json)
+        except json.JSONDecodeError:
+            test_cases = json.loads(test_cases_json.replace("'", '"'))
+        total_tests = len(test_cases)
+        print(f"Total test cases: {total_tests}")
+        # # devide test cases into two parts
+        # trigger_inputs = test_cases[:total_tests//2]
+        # validation_test_cases = test_cases[total_tests//2:]
+
+        response = localise_program(corr_parser, orig_grammar, backend, model)
+        print("Localization response:")
+        print(response)
+        try:
+            response_json = json.loads(response)
+            suspicious_function = response_json.get("function_name")
+            correct_version = response_json.get("correct_version")
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse localization response: {e}")
+            passed_tests = 0
+            results_cursor.execute(
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob ,total_tests, passed_tests) VALUES (?, ?, ?, ?, ?, ?)',
+            )
+            results_conn.commit()
+            continue
+
+        if not correct_version or not suspicious_function:
+            print("Missing 'correct_version' or 'function_name'; skipping repair.")
+            passed_tests = 0
+            results_cursor.execute(
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob ,total_tests, passed_tests) VALUES (?, ?, ?, ?, ?, ?)',
+                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests)
+            )
+            results_conn. commit()
+            continue
+
+        # Write corrupted parser to file with unique suffix to avoid collisions
+        corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
+        with open(corrupted_file, 'w', encoding='utf-8') as f:
+            f.write(corr_parser)
+
+        # Apply repair patch, output to a uniquely named file
+        repaired_file = f"case_{case_id}_repaired_{run_id}.py"
+        try:
+            replace_function_ast_in_file(corrupted_file, correct_version, suspicious_function, repaired_file)
+        except Exception as e:
+            print(f"Repair failed for case {case_id}: {e}")
+            passed_tests = 0
+            results_cursor.execute(
+                'INSERT OR REPLACE INTO repair_results(case_id, total_tests, passed_tests) VALUES (?, ?, ?)',
+                (case_id, total_tests, passed_tests)
+            )
+            results_conn.commit()
+            continue
+
+        # Run all test cases on repaired parser
+        passed_tests = 0
+        for test_input in test_cases:
+            proc = subprocess.run(['python3', repaired_file, test_input],
+                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if proc.returncode == 0:
+                passed_tests += 1
+            else:
+                print(f"Test failed on input: {test_input}, return code: {proc.returncode}")
+
+        print(f"Case {case_id}: {passed_tests}/{total_tests} tests passed after repair.")
+        results_cursor.execute(
+            'INSERT OR REPLACE INTO repair_results(case_id, total_tests, passed_tests) VALUES (?, ?, ?)',
+            (case_id, total_tests, passed_tests)
+        )
+        results_conn.commit()
+
+def main():
+    parser = argparse.ArgumentParser(description='Sample Parser')
+    # parser.add_argument('--mode', type=str, default='input_repair', help='mode: input_repair or program_repair')
+    parser.add_argument('--backend', type=str, default='openai', help='backend: openai / ollama / Claude')
+    parser.add_argument('--model', type=str, default='o1-mini-2024-09-12', help='model: model name')
+    parser.add_argument('--db-path', type=str, default='parser_cases.db', help='Path to the parser_cases SQLite database')
+    parser.add_argument('--results-db', type=str, default='repair_results.db', help='Path to output results SQLite database')
+    args = parser.parse_args()
+    # if args.mode == 'input_repair':
+    #     program_input_reapir(args.backend,args.model)
+    # elif args.mode == 'program_repair':
+    #     program_reapir(args.backend,args.model)
+    # else:
+    #     print("Invalid mode")
+    # generate a timestamped results database name including backend and model
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    results_db_name = f"repair_results_{args.backend}_{args.model}_{timestamp}.db"
+    print(f"Saving results to database: {results_db_name}")
+    program_reapir(args.backend, args.model, args.db_path, results_db_name)
+            
+if __name__ == "__main__":
+    main()

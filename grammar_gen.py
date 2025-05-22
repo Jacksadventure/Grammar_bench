@@ -1,5 +1,5 @@
 """
-This generator (grammar_gen.py) produces a random LL(1) grammar 
+This generator (grammar_gen.py) produces a random LL(1) grammar with nonterminals wrapped in angle brackets (e.g., <X>)
 and outputs a standalone recursive descent parser in generated_parser.py.
 The generated grammar satisfies:
   - Each nonterminal has productions whose first symbol is a terminal.
@@ -79,13 +79,13 @@ def generate_random_grammar(
         prods = []
 
         # α Nt | ε  ----------------------------------------------------
-        if random.random() < loop_prob and max_productions >= 2:
+        if random.random() < recursion_prob and max_productions >= 2:
             length = random.randint(1, max_rhs_length)
             alpha  = [random.choice(terminals)]
             for _ in range(1, length):
                 alpha.append(
                     random.choice(nonterminals)
-                    if random.random() < recursion_prob
+                    if random.random() < loop_prob
                     else random.choice(terminals)
                 )
             alpha.append(nt)      # right‑recursive tail
@@ -324,4 +324,30 @@ def gen(
             examples.append(ex)
 
     parser_code = generate_parser_code(grammar, nonterminals, start_symbol)
-    return parser_code, set(examples), grammar, nonterminals, terminals
+
+    # Wrap nonterminals in angle brackets and post-process grammar to include epsilon for recursion
+    raw_grammar = grammar
+    raw_nts = nonterminals
+    # Bracketed nonterminal names
+    bracket_nts = [f'<{nt}>' for nt in raw_nts]
+    # Build bracketed grammar dict
+    bracket_grammar = {}
+    raw_nts_set = set(raw_nts)
+    for nt in raw_nts:
+        nt_br = f'<{nt}>'
+        prods = raw_grammar[nt]
+        br_prods = []
+        for prod in prods:
+            br_prod = []
+            for s in prod:
+                if s in raw_nts_set:
+                    br_prod.append(f'<{s}>')
+                else:
+                    br_prod.append(s)
+            br_prods.append(br_prod)
+        # Ensure epsilon production for recursive rules
+        if any((f'<{nt}>' in br_prod) for br_prod in br_prods) and [] not in br_prods:
+            br_prods.append([])
+        bracket_grammar[nt_br] = br_prods
+
+    return parser_code, set(examples), bracket_grammar, bracket_nts, terminals

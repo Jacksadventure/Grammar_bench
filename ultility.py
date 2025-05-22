@@ -222,5 +222,33 @@ def grammar_printer(nonterminals, grammar):
     Prints the grammar in a readable format.
     """
     for nt in nonterminals:
+        # wrap nonterminal in angle brackets
+        nt_repr = f"<{nt}>"
         for prod in grammar[nt]:
-            print(f"  {nt} -> {' '.join(prod)}")
+            # wrap each symbol (terminal or nonterminal) in angle brackets
+            prod_wrapped = ' '.join(f"<{s}>" for s in prod)
+            print(f"  {nt_repr} -> {prod_wrapped}")
+
+# Compute maximum grammar depth without recursion
+def get_max_depth(grammar: dict, start: str) -> int:
+    """
+    Compute the maximum depth (longest acyclic chain of nonterminal expansions)
+    from the given start nonterminal in the grammar.
+    Cycles are ignored (not revisited).
+    Returns depth as an integer >= 1; returns 0 if start not in grammar.
+    """
+    if start not in grammar:
+        return 0
+    max_depth = 0
+    # stack entries: (symbol, current_depth, visited_set)
+    stack = [(start, 1, {start})]
+    while stack:
+        symbol, depth, visited = stack.pop()
+        if depth > max_depth:
+            max_depth = depth
+        for production in grammar.get(symbol, []):
+            for sym in production:
+                if sym in grammar and sym not in visited:
+                    new_visited = visited | {sym}
+                    stack.append((sym, depth + 1, new_visited))
+    return max_depth

@@ -1,0 +1,2 @@
+openai o1
+gemini-2.5-flash-preview-04-17

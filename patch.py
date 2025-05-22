@@ -1,5 +1,4 @@
 import ast
-import sys
 
 generate_patch_prompt = """
 You are a patch generator 
@@ -21,9 +20,7 @@ def replace_function_ast_in_file(original_file: str, new_function_code: str, fun
     try:
         new_func_ast = ast.parse(new_function_code)
     except SyntaxError as e:
-        print("Failed to parse new function code. Please check for syntax errors.")
-        print(f"Error: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"Failed to parse new function code. Please check for syntax errors. Error: {e}")
 
     # 3. Locate the function definition in the new function code
     new_func_def = None
@@ -33,8 +30,7 @@ def replace_function_ast_in_file(original_file: str, new_function_code: str, fun
             break
 
     if not new_func_def:
-        print(f"No function named '{func_name}' found in the new function code.")
-        sys.exit(1)
+        raise RuntimeError(f"No function named '{func_name}' found in the new function code.")
 
     # 4. Create a NodeTransformer to replace the old function with the new one
     class FunctionReplacer(ast.NodeTransformer):
@@ -51,9 +47,7 @@ def replace_function_ast_in_file(original_file: str, new_function_code: str, fun
     try:
         updated_code = ast.unparse(updated_ast)
     except Exception as e:
-        print("Error during unparse. Possibly Python version < 3.9 or AST issue.")
-        print(f"Error: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"Error during unparse. Possibly Python version < 3.9 or AST issue. Error: {e}")
 
     # 6. Overwrite the original file
     with open(new_file, "w", encoding="utf-8") as f:

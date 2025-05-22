@@ -7,7 +7,8 @@ from localisation import localise_program_input,localise_program
 import sqlite3
 import subprocess
 import random
-from datetime import datetime
+import os
+import uuid
 from patch import replace_function_ast_in_file
 from mutation import mutate_grammar
 from file_diff import get_diff_function
@@ -24,7 +25,7 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     Read parser cases from a SQLite database and perform localization for each case.
     """
     # generate a unique run identifier to avoid filename collisions
-    run_id = random.randint(1000000, 9999999)
+    run_id = uuid.uuid4().hex
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(
@@ -44,12 +45,20 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
             recursive_prob REAL,
             loop_prob REAL,
             total_tests INTEGER,
-            passed_tests INTEGER
+            passed_tests INTEGER,
+            fix INTEGER
         )
     ''')
     results_conn.commit()
+    # Check for previously processed cases to allow resuming
+    results_cursor.execute("SELECT case_id FROM repair_results")
+    processed_cases = {r[0] for r in results_cursor.fetchall()}
     for row in rows:
         case_id, dim, recursive_prob, loop_prob, orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json = row
+        # Skip cases already recorded in results DB
+        if case_id in processed_cases:
+            print(f"Skipping case {case_id}: already processed")
+            continue
         print(f"========Case {case_id}========")
         print(f"dim: {dim}, recursive_prob: {recursive_prob}, loop_prob: {loop_prob}")
 
@@ -74,8 +83,10 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         except json.JSONDecodeError as e:
             print(f"Failed to parse localization response: {e}")
             passed_tests = 0
+            fix = 0
             results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob ,total_tests, passed_tests) VALUES (?, ?, ?, ?, ?, ?)',
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
             )
             results_conn.commit()
             continue
@@ -83,11 +94,12 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         if not correct_version or not suspicious_function:
             print("Missing 'correct_version' or 'function_name'; skipping repair.")
             passed_tests = 0
+            fix = 0
             results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob ,total_tests, passed_tests) VALUES (?, ?, ?, ?, ?, ?)',
-                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests)
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
             )
-            results_conn. commit()
+            results_conn.commit()
             continue
 
         # Write corrupted parser to file with unique suffix to avoid collisions
@@ -102,29 +114,42 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         except Exception as e:
             print(f"Repair failed for case {case_id}: {e}")
             passed_tests = 0
+            fix = 0
             results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, total_tests, passed_tests) VALUES (?, ?, ?)',
-                (case_id, total_tests, passed_tests)
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
             )
             results_conn.commit()
             continue
 
-        # Run all test cases on repaired parser
+        # Run all test cases on repaired parser, record 0 passed if program fails to run
         passed_tests = 0
-        for test_input in test_cases:
-            proc = subprocess.run(['python3', repaired_file, test_input],
-                                   stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            if proc.returncode == 0:
-                passed_tests += 1
-            else:
-                print(f"Test failed on input: {test_input}, return code: {proc.returncode}")
+        try:
+            for test_input in test_cases:
+                proc = subprocess.run(
+                    ['python3', repaired_file, test_input],
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                )
+                if proc.returncode == 0:
+                    passed_tests += 1
+                else:
+                    print(f"Test failed on input: {test_input}, return code: {proc.returncode}")
+        except Exception as e:
+            print(f"Error running repaired program for case {case_id}: {e}")
+            passed_tests = 0
 
         print(f"Case {case_id}: {passed_tests}/{total_tests} tests passed after repair.")
+        fix = 1 if passed_tests == total_tests else 0
         results_cursor.execute(
-            'INSERT OR REPLACE INTO repair_results(case_id, total_tests, passed_tests) VALUES (?, ?, ?)',
-            (case_id, total_tests, passed_tests)
+            'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
         )
         results_conn.commit()
+        # Delete repaired parser file for this case
+        try:
+            os.remove(repaired_file)
+        except OSError:
+            pass
 
 def main():
     parser = argparse.ArgumentParser(description='Sample Parser')
@@ -140,11 +165,22 @@ def main():
     #     program_reapir(args.backend,args.model)
     # else:
     #     print("Invalid mode")
-    # generate a timestamped results database name including backend and model
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    results_db_name = f"repair_results_{args.backend}_{args.model}_{timestamp}.db"
-    print(f"Saving results to database: {results_db_name}")
+    # Determine results database name; include source DB, backend, and model to enable resuming
+    default_arg = 'repair_results.db'
+    if args.results_db == default_arg:
+        src_base = os.path.splitext(os.path.basename(args.db_path))[0]
+        results_db_name = f"repair_results_{args.backend}_{args.model}_{src_base}.db"
+    else:
+        results_db_name = args.results_db
+    print(f"Using results database: {results_db_name}")
     program_reapir(args.backend, args.model, args.db_path, results_db_name)
+    # Clean up repaired files after run
+    for fname in os.listdir('.'):
+        if fname.startswith('case_') and '_repaired_' in fname:
+            try:
+                os.remove(fname)
+            except OSError:
+                pass
             
 if __name__ == "__main__":
     main()

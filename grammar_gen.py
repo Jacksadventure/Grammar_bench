@@ -151,6 +151,17 @@ def generate_random_grammar(
         reachable   = compute_reachable(grammar, start)
         unreachable = set(nonterminals) - reachable
 
+    # Ensure each nonterminal has at least one terminal-only or empty production
+    for nt in nonterminals:
+        prods = grammar[nt]
+        has_terminal_or_empty = False
+        for prod in prods:
+            if not prod or (len(prod) == 1 and prod[0] in terminals):
+                has_terminal_or_empty = True
+                break
+        if not has_terminal_or_empty:
+            # Add a terminal-only production for this nonterminal
+            grammar[nt].append([random.choice(terminals)])
     return grammar, nonterminals, terminals
 
 # ---------------------------
@@ -325,29 +336,5 @@ def gen(
 
     parser_code = generate_parser_code(grammar, nonterminals, start_symbol)
 
-    # Wrap nonterminals in angle brackets and post-process grammar to include epsilon for recursion
-    raw_grammar = grammar
-    raw_nts = nonterminals
-    # Bracketed nonterminal names
-    bracket_nts = [f'<{nt}>' for nt in raw_nts]
-    # Build bracketed grammar dict
-    bracket_grammar = {}
-    raw_nts_set = set(raw_nts)
-    for nt in raw_nts:
-        nt_br = f'<{nt}>'
-        prods = raw_grammar[nt]
-        br_prods = []
-        for prod in prods:
-            br_prod = []
-            for s in prod:
-                if s in raw_nts_set:
-                    br_prod.append(f'<{s}>')
-                else:
-                    br_prod.append(s)
-            br_prods.append(br_prod)
-        # Ensure epsilon production for recursive rules
-        if any((f'<{nt}>' in br_prod) for br_prod in br_prods) and [] not in br_prods:
-            br_prods.append([])
-        bracket_grammar[nt_br] = br_prods
-
-    return parser_code, set(examples), bracket_grammar, bracket_nts, terminals
+    # Return parser code, example derivations, and grammar without angle brackets
+    return parser_code, set(examples), grammar, nonterminals, terminals

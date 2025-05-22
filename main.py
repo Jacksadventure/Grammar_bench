@@ -32,10 +32,10 @@ MIN_TEST_CASES = 5         # minimum failing instances per case
 KEEP_TEST_CASES = 5        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-dims = range(21, 41)  
-recursion_probs = [0.1, 0.2,0.3]
-loop_probs = [0.1, 0.2,0.3]
-cases_per_setting = 3
+dims = range(1, 41)  
+recursion_probs = [0.1, 0.2,0.3,0.4,0.5]
+loop_probs = [0.1, 0.2,0.3,0.4,0.5]
+cases_per_setting = 1
 
 
 db_file = "parser_cases2.db"
@@ -79,7 +79,7 @@ def generate_case(num_terminals: int,
                 grammar=grammar,
                 symbol=new_nts[0],
                 path=[(nt, prod_idx)],  # bias toward the mutated rule
-                max_depth=get_max_depth(grammar, new_nts[0])*4,
+                max_depth=get_max_depth(grammar, new_nts[0])*5,
             )
             if not validation_check(s, parser_code=corrupted_code):
                 instances.append(s)

@@ -267,6 +267,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
     code_lines.append('')
     code_lines.append('def match(expected):')
     code_lines.append('    global pos, tokens')
+    # match expected token or error (including EOF)
     code_lines.append('    if pos < len(tokens) and tokens[pos].startswith(expected):')
     code_lines.append('        pos += 1')
     code_lines.append('    else:')

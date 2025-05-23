@@ -3,4 +3,5 @@ venv
 corrupted_generated_parser.py
 original_generated_parser.py
 repaired_generated_parser.py
+*.db
 *.pyc

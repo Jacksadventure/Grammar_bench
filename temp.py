@@ -9,47 +9,51 @@ def error(msg):
 
 def match(expected):
     global pos, tokens
-    if pos < len(tokens) and tokens[pos].startswith(expected):
+    # Accept prefixes: if no more tokens, consider match successful
+    if pos >= len(tokens):
+        return
+    if tokens[pos].startswith(expected):
         pos += 1
     else:
-        error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
+        # Only error on true mismatch
+        error("Expected " + expected + ", got " + tokens[pos])
 
 def parse_a():
     global pos, tokens
+    # If no more tokens, accept prefix and return
     if pos >= len(tokens):
-        error("Unexpected end of input in a")
+        return
     lookahead = tokens[pos]
-    if lookahead.startswith('W'):
-        match('W')
-        parse_c()
+    if lookahead.startswith('y'):
+        match('y')
         parse_b()
-    elif lookahead.startswith('W'):
-        match('W')
+        parse_b()
+        match('j')
+        match('j')
+        match('y')
+        match('y')
+    elif lookahead.startswith('y'):
+        match('y')
     else:
-        error("Unexpected token " + lookahead + " in a, expected one of: " + ", ".join(['W', 'W']))
+        error("Unexpected token " + lookahead + " in a, expected one of: " + ", ".join(['y', 'y']))
 
 def parse_b():
     global pos, tokens
-    while pos < len(tokens) and tokens[pos].startswith('}'):
-        match('}')
-        match('}')
-        match('3')
-        match('3')
-        match('3')
-        match('3')
-
-def parse_c():
-    global pos, tokens
+    # If no more tokens, accept prefix and return
     if pos >= len(tokens):
-        error("Unexpected end of input in c")
+        return
     lookahead = tokens[pos]
-    if lookahead.startswith('W'):
-        match('W')
-    elif lookahead.startswith('3'):
-        match('3')
-        match('3')
+    if lookahead.startswith('y'):
+        match('y')
+        match('y')
+        match('y')
+        match('j')
+        match('j')
+        match('j')
+    elif lookahead.startswith('j'):
+        match('j')
     else:
-        error("Unexpected token " + lookahead + " in c, expected one of: " + ", ".join(['W', '3']))
+        error("Unexpected token " + lookahead + " in b, expected one of: " + ", ".join(['y', 'j']))
 
 def parse_input(input_str):
     global tokens, pos

@@ -41,14 +41,16 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
         # Clear the path for this branch.
         next_path = []
     
-    result = []
+    result = ""
     for s in prod:
-        if s in grammar.keys():
-            # Correctly pass the 'shortcut' along with the decremented max_depth.
-            result.append(generate_biased_example(grammar, s, next_path, shortcut, max_depth-1))
+        if s in grammar:
+            out = generate_biased_example(grammar, s, next_path, shortcut, max_depth-1)
         else:
-            result.append(s)
-    return "".join(result)
+            out = s
+        result += out
+        if len(result) > MAX_TEMP:
+            return result
+    return result
 
 def generate_biased_example_wrapper(grammar, symbol, path, max_depth=60):
     """

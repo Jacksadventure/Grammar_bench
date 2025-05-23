@@ -5,20 +5,25 @@ import re
 import os
 from pathlib import Path
 def validation_check(input:str,parser_code:str)-> bool:
-    with open("temp.py", "w") as f:
-        f.write(parser_code)
-    # Execute the parser by feeding the input via stdin to avoid long argument lists
-    result = subprocess.run(
-        ['python3', 'temp.py'],
-        input=input,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
-    ).returncode
-    if(result == 0):
-        return True
-    else:
-        return False
+    import tempfile
+    # Write parser code to a unique temporary file to avoid conflicts across processes
+    fd, temp_path = tempfile.mkstemp(prefix="parser_temp_", suffix=".py", text=True)
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write(parser_code)
+        result = subprocess.run(
+            ["python3", temp_path],
+            input=input,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        ).returncode
+        return result == 0
+    finally:
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
 
 def levenshtein_distance(a: str, b: str) -> int:
     """Calculate the Levenshtein distance between two strings."""

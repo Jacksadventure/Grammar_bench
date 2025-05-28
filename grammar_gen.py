@@ -38,12 +38,16 @@ def compute_reachable(grammar, start):
 
 def generate_random_grammar(
     num_nonterminals=10,
+    num_terminals=None,
     max_productions=5,
     max_rhs_length=5,
     recursion_prob=0.5,
-    loop_prob=0.3,          # chance a non‑terminal becomes α Nt | ε
+    loop_prob=0.3,          # chance a non-terminal becomes α Nt | ε
 ):
     # ----------------- symbol pools -----------------
+    # default number of terminals to number of nonterminals if not provided
+    if num_terminals is None:
+        num_terminals = num_nonterminals
     max_productions = min(max_productions, num_terminals)
     if max_rhs_length < 2 and num_nonterminals > 1:
         raise ValueError("max_rhs_length must be ≥ 2 to keep all NTs reachable")
@@ -346,14 +350,17 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
 # Step 4: Main Generator Routine
 # ---------------------------
 def gen(
-    numterminals,
     numnonterminals,
     max_original_examples,
     recursion_prob,
+    numterminals=None,
     loop_prob=0.5,
     max_rhs_length=3,
     maxproductions=3
 ):
+    # number of terminals defaults to number of nonterminals if not specified
+    if numterminals is None:
+        numterminals = numnonterminals
     # 1. Generate a random LL(1) grammar with controlled recursion
     grammar, nonterminals, terminals = generate_random_grammar(
         num_nonterminals=numnonterminals,

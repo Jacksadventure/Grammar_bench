@@ -32,7 +32,7 @@ MIN_TEST_CASES = 1         # minimum failing instances per case
 KEEP_TEST_CASES = 1        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-dims = range(1,21)   
+dims = range(10,31)   
 nonterminal_probs = [0.2, 0.4, 0.6, 0.8]
 loop_probs = [0.2, 0.4, 0.6, 0.8]
 cases_per_setting = 2
@@ -158,6 +158,7 @@ def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length
             signal.alarm(0)
             signal.signal(signal.SIGALRM, orig_handler)
 
+    # Record number of nonterminals for DB insertion
     artefacts['num_nonterminals'] = num_nonterminals
     artefacts['max_productions'] = max_productions
     artefacts['max_rhs_length'] = max_rhs_length
@@ -171,12 +172,12 @@ def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length
 # --------------------------------------------------------------------------- #
 
 def init_db(cursor):
-    """Create table if it does not already exist."""
+    """Create table if it does not already exist, with 'num_nonterminals' column."""
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS cases (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            dim INTEGER,
+            num_nonterminals INTEGER,
             nonterminal_prob REAL,
             loop_prob REAL,
             mutation_depth INTEGER,
@@ -188,14 +189,20 @@ def init_db(cursor):
         )
         """
     )
+    # Migrate old schema: if 'dim' exists without 'num_nonterminals', add and populate it
+    cols = [row[1] for row in cursor.execute("PRAGMA table_info(cases)")]
+    if 'dim' in cols and 'num_nonterminals' not in cols:
+        cursor.execute("ALTER TABLE cases ADD COLUMN num_nonterminals INTEGER")
+        cursor.execute("UPDATE cases SET num_nonterminals = dim")
 
 def save_case(cursor, artefacts: dict):
     """Insert one case into the database, with fallback for oversized fields."""
     # Prepare SQL and parameters
+    # Insert one case into the database
     sql = (
         """
         INSERT INTO cases (
-            dim, nonterminal_prob, loop_prob, mutation_depth,
+            num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
             original_grammar, original_parser,
             corrupted_grammar, corrupted_parser,
             test_cases
@@ -203,7 +210,7 @@ def save_case(cursor, artefacts: dict):
         """
     )
     params = (
-        artefacts.get("dim"),
+        artefacts.get("num_nonterminals"),
         artefacts.get("nonterminal_prob"),
         artefacts.get("loop_prob"),
         artefacts.get("mutation_depth"),
@@ -231,6 +238,7 @@ def save_case(cursor, artefacts: dict):
                 truncated[name] = value
         # Retry with truncated parameters
         params_trunc = (
+            truncated.get("num_nonterminals"),
             truncated.get("nonterminal_prob"),
             truncated.get("loop_prob"),
             truncated.get("mutation_depth"),
@@ -278,9 +286,10 @@ def main():
     init_db(cur)
 
     # Resume capability: only generate tasks not already in DB
+    # Count existing cases grouped by grammar parameters
     cur.execute(
-        "SELECT nonterminals, nonterminal_prob, loop_prob, ,COUNT(*) FROM cases "
-        "GROUP BY nonterminals, nonterminal_prob, loop_prob"
+        "SELECT num_nonterminals, nonterminal_prob, loop_prob, COUNT(*) FROM cases "
+        "GROUP BY num_nonterminals, nonterminal_prob, loop_prob"
     )
     existing = {(row[0], row[1], row[2]): row[3] for row in cur.fetchall()}
 
@@ -343,16 +352,15 @@ def main():
             # Validate test cases: ensure original parser accepts and corrupted parser rejects
             cases = json.loads(artefacts['test_cases'])
             valid_cases = []
-            # for s in cases:
-            #     if validation_check(s, artefacts['original_parser']) and not validation_check(s, artefacts['corrupted_parser']):
-            #         valid_cases.append(s)
-            # if not valid_cases:
-            #     print(f"[!] No valid test cases for num_terminals={num_terms}, "
-            #           f"num_nonterminals={num_nonterms}, max_productions={max_prods}, "
-            #           f"max_rhs_length={max_rhs}, recursion_prob={rec_prob}, "
-            #           f"loop_prob={loop_prob}, skipping save.")
-            #     continue
-            valid_cases = cases  # Assume all cases are valid for now
+            for s in cases:
+                if validation_check(s, artefacts['original_parser']) and not validation_check(s, artefacts['corrupted_parser']):
+                    valid_cases.append(s)
+            if not valid_cases:
+                print(f"[!] No valid test cases for "
+                      f"num_nonterminals={num_nonterms}, max_productions={max_prods}, "
+                      f"max_rhs_length={max_rhs}, nonterminal_prob={nonterm_prob}, "
+                      f"loop_prob={loop_prob}, skipping save.")
+                continue
             artefacts['test_cases'] = json.dumps(valid_cases, ensure_ascii=False)
             save_case(cur, artefacts)
             conn.commit()

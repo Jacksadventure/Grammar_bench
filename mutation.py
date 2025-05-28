@@ -1,5 +1,6 @@
 import copy
 import random
+from ultility import get_path
 
 def mutate_grammar(grammar, nonterminals, terminals):
     """
@@ -43,12 +44,31 @@ def mutate_grammar(grammar, nonterminals, terminals):
             dfs(s)
         return depths
 
-    # assume first in nonterminals is the start symbol
+    # Choose a nonterminal to mutate: pick from those with the longest path from the start (deepest in the tree)
     start_nt = nonterminals[0] if nonterminals else next(iter(grammar))
-    depths = compute_depths(grammar, start_nt)
-    max_depth = max(depths.values()) if depths else 0
-    deepest = [nt for nt, d in depths.items() if d == max_depth]
-    nt = random.choice(deepest) if deepest else random.choice(list(mutated_grammar.keys()))
+    # Compute longest acyclic path lengths from start_nt to each reachable nonterminal
+    longest_dist = {}
+    def dfs(sym, dist, visited):
+        # Record only if this path is longer than any seen before
+        if dist > longest_dist.get(sym, -1):
+            longest_dist[sym] = dist
+        else:
+            return
+        for prod in mutated_grammar.get(sym, []):
+            for child in prod:
+                if child in mutated_grammar and child not in visited:
+                    visited.add(child)
+                    dfs(child, dist + 1, visited)
+                    visited.remove(child)
+    dfs(start_nt, 0, {start_nt})
+    # Select among nonterminals with maximal longest path distance
+    if longest_dist:
+        max_dist = max(longest_dist.values())
+        candidates = [nt for nt, d in longest_dist.items() if d == max_dist]
+        nt = random.choice(candidates)
+    else:
+        # Fallback: random nonterminal if no reachable distances
+        nt = random.choice(list(mutated_grammar.keys()))
     
     # Randomly select one production of that nonterminal, amd make sure that productions are not empty
     productions = mutated_grammar[nt]

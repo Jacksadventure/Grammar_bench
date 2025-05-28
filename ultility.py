@@ -225,14 +225,15 @@ def creat_repo(repo_name:str,code:str,issue:str):
 def grammar_printer(nonterminals, grammar):
     """
     Prints the grammar in a readable format.
+    Nonterminals are shown with their existing angle brackets;
+    terminals are printed without angle brackets.
     """
     for nt in nonterminals:
-        # wrap nonterminal in angle brackets
-        nt_repr = f"<{nt}>"
-        for prod in grammar[nt]:
-            # wrap each symbol (terminal or nonterminal) in angle brackets
-            prod_wrapped = ' '.join(f"<{s}>" for s in prod)
-            print(f"  {nt_repr} -> {prod_wrapped}")
+        # nt is a decorated nonterminal, e.g. '<A>'
+        for prod in grammar.get(nt, []):
+            # symbols in prod may be terminals or decorated nonterminals
+            prod_str = ' '.join(prod)
+            print(f"  {nt} -> {prod_str}")
 
 # Compute maximum grammar depth without recursion
 def get_max_depth(grammar: dict, start: str) -> int:

@@ -1,7 +1,7 @@
 import random
 from ultility import get_shortcut
 
-MAX_TEMP = 1000
+MAX_TEMP = 500
 
 def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
     """
@@ -36,10 +36,10 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
         # Pass the remainder of the path to the next call.
         next_path = path[1:]
     else:
-        # Not on the biased path; select a production randomly.
+        # Not at the biased symbol yet; select a production randomly.
         prod = random.choice(grammar[symbol])
-        # Clear the path for this branch.
-        next_path = []
+        # Keep the biasing path intact for deeper recursion until matched.
+        next_path = path
     
     result = ""
     for s in prod:

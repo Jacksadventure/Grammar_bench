@@ -38,9 +38,8 @@ def compute_reachable(grammar, start):
 
 def generate_random_grammar(
     num_nonterminals=10,
-    num_terminals=10,
-    max_productions=10,
-    max_rhs_length=3,
+    max_productions=5,
+    max_rhs_length=5,
     recursion_prob=0.5,
     loop_prob=0.3,          # chance a non‑terminal becomes α Nt | ε
 ):
@@ -65,14 +64,12 @@ def generate_random_grammar(
         return labels[:count]
     nonterminals = _generate_labels(ALPHABET_NT, num_nonterminals)
     # Terminal symbols: single-character tokens from allowed set
-    ALPHABET_T = string.ascii_letters + string.digits + string.punctuation
-    if num_terminals > len(ALPHABET_T):
-        raise ValueError(f"num_terminals={num_terminals} exceeds allowed terminal characters ({len(ALPHABET_T)})")
+    ALPHABET_T = string.ascii_letters + string.digits + "'!#$%&'()*+,-./:;<=>?@[]^_`{|}~'"
     # suffle the terminal symbols to randomize their order
     ALPHABET_T = list(ALPHABET_T)
     random.shuffle(ALPHABET_T)
-    terminals = list(ALPHABET_T[:num_terminals])
-    grammar      = {}
+    terminals = ALPHABET_T
+    grammar   = {}
 
     # ------------- generate productions -------------
     for nt in nonterminals:
@@ -351,17 +348,18 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
 def gen(
     numterminals,
     numnonterminals,
-    maxproductions,
     max_original_examples,
     recursion_prob,
     loop_prob=0.5,
+    max_rhs_length=3,
+    maxproductions=3
 ):
     # 1. Generate a random LL(1) grammar with controlled recursion
     grammar, nonterminals, terminals = generate_random_grammar(
         num_nonterminals=numnonterminals,
         num_terminals=numterminals,
         max_productions=maxproductions,
-        max_rhs_length=10,
+        max_rhs_length=max_rhs_length,
         recursion_prob=recursion_prob,
         loop_prob=loop_prob
     )

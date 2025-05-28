@@ -29,7 +29,7 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(
-        "SELECT id, dim, recursive_prob, loop_prob, original_grammar, original_parser,"
+        "SELECT id, dim, nonterminal_prob, loop_prob, mutation_depth, original_grammar, original_parser,"
         " corrupted_grammar, corrupted_parser, test_cases"
         " FROM cases"
     )
@@ -42,7 +42,7 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         CREATE TABLE IF NOT EXISTS repair_results (
             case_id INTEGER PRIMARY KEY,
             dim INTEGER,
-            recursive_prob REAL,
+            nonterminal_prob REAL,
             loop_prob REAL,
             total_tests INTEGER,
             passed_tests INTEGER,
@@ -54,13 +54,14 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     results_cursor.execute("SELECT case_id FROM repair_results")
     processed_cases = {r[0] for r in results_cursor.fetchall()}
     for row in rows:
-        case_id, dim, recursive_prob, loop_prob, orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json = row
+        # Unpack query results including mutation_depth
+        case_id, dim, nonterminal_prob, loop_prob, mutation_depth, orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json = row
         # Skip cases already recorded in results DB
         if case_id in processed_cases:
             print(f"Skipping case {case_id}: already processed")
             continue
         print(f"========Case {case_id}========")
-        print(f"dim: {dim}, recursive_prob: {recursive_prob}, loop_prob: {loop_prob}")
+        print(f"num_nonterminals: {dim}, nonterminal_prob: {nonterminal_prob}, loop_prob: {loop_prob}, mutation_depth: {mutation_depth}")
 
         # Load test cases
         try:
@@ -85,8 +86,8 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
             passed_tests = 0
             fix = 0
             results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
             )
             results_conn.commit()
             continue
@@ -96,8 +97,8 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
             passed_tests = 0
             fix = 0
             results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
             )
             results_conn.commit()
             continue
@@ -116,8 +117,8 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
             passed_tests = 0
             fix = 0
             results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
+                'INSERT OR REPLACE INTO repair_results(case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                (case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
             )
             results_conn.commit()
             continue
@@ -141,8 +142,8 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         print(f"Case {case_id}: {passed_tests}/{total_tests} tests passed after repair.")
         fix = 1 if passed_tests == total_tests else 0
         results_cursor.execute(
-            'INSERT OR REPLACE INTO repair_results(case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            (case_id, dim, recursive_prob, loop_prob, total_tests, passed_tests, fix)
+            'INSERT OR REPLACE INTO repair_results(case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            (case_id, dim, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
         )
         results_conn.commit()
         # Delete repaired parser file for this case

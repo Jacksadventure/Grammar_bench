@@ -60,7 +60,7 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
             print(f"Skipping case {case_id}: already processed")
             continue
         print(f"========Case {case_id}========")
-        print(f"num_nonterminals: {dim}, nonterminal_prob: {nonterminal_prob}, loop_prob: {loop_prob}, mutation_depth: {mutation_depth}")
+        print(f"num_nonterminals: {num_nonterminals}, nonterminal_prob: {nonterminal_prob}, loop_prob: {loop_prob}, mutation_depth: {mutation_depth}")
 
         # Load test cases
         try:

@@ -10,23 +10,31 @@ Please return result in this format:
 Please do not add markdown notation like ```json
 """
 
-program_localisation_prompt = """You are an localisation expert. Your task is to localize the corrupted function in the parser based on the original grammar. You should only return a function name.that caused the inconsistency between the code of parser and input, and also give a correct version of that function" \
-PLEASE DO NOT EXPLAIN,
-PLEASE DO NOT ADD OTHER FORMAT, 
-Please return result in this format:
-{
-    "function_name": "parse_A"
-    "correct_version": "def parse_A():\\n  ..."
-}
-Please do not add markdown notation like ```json!!!
-Plsease make sure the function name is correct and the function is complete, and the function should be a valid python code.
-Please make sure that responce is a valid json format, using \\n if necessary.
-Please make sure the field "function_name" is the function name that caused the inconsistency between the code of parser and input, and also give a correct version of that function.
-"""
-def localise_program_input(program,corrupted_text,backend,model):
-    ai  =  AIInterface(backend,model)
-    return ai.get_response(repair_prompt,"parser code:\n"+program+"corrupted_input:\n"+corrupted_text)
+program_localisation_prompt = """You are a patch generator. Given the corrupted parser code annotated with line numbers and the original grammar, output a unified diff patch to fix the parser so it matches the grammar. Only output the patch in standard unified diff format, without explanations or extra text.
 
-def localise_program(program,grammar,backend,model):
-    ai  =  AIInterface(backend,model)
-    return remove_markdown_tags(remove_think_tags(ai.get_response(program_localisation_prompt,"parser code:\n"+program+"grammar:\n"+grammar)))
+Example:
+@@ -12,7 +12,7 @@ def parse_X():
+-    old code line
++    new code line
+"""
+
+def localise_program_input(program, corrupted_text, backend, model):
+    ai = AIInterface(backend, model)
+    return ai.get_response(
+        repair_prompt,
+        "parser code:\n" + program + "\ncorrupted_input:\n" + corrupted_text
+    )
+
+def localise_program(program, grammar, backend, model):
+    ai = AIInterface(backend, model)
+    # Annotate parser code with line numbers for AI reference
+    annotated = [f"{i}: {line}" for i, line in enumerate(program.splitlines(), start=1)]
+    prompt_input = (
+        "parser code with line numbers:\n"
+        + "\n".join(annotated)
+        + "\ngrammar:\n"
+        + grammar
+    )
+    return remove_markdown_tags(
+        remove_think_tags(ai.get_response(program_localisation_prompt, prompt_input))
+    )

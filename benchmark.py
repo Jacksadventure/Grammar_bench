@@ -9,7 +9,6 @@ import subprocess
 import random
 import os
 import uuid
-from patch import replace_function_ast_in_file
 from mutation import mutate_grammar
 from file_diff import get_diff_function
 from testies import generate_biased_example_wrapper
@@ -77,41 +76,20 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         response = localise_program(corr_parser, orig_grammar, backend, model)
         print("Localization response:")
         print(response)
-        try:
-            response_json = json.loads(response)
-            suspicious_function = response_json.get("function_name")
-            correct_version = response_json.get("correct_version")
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse localization response: {e}")
-            passed_tests = 0
-            fix = 0
-            results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
-            )
-            results_conn.commit()
-            continue
-
-        if not correct_version or not suspicious_function:
-            print("Missing 'correct_version' or 'function_name'; skipping repair.")
-            passed_tests = 0
-            fix = 0
-            results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
-            )
-            results_conn.commit()
-            continue
-
-        # Write corrupted parser to file with unique suffix to avoid collisions
+        # The response is a unified diff patch; apply it to the corrupted parser
+        patch_text = response
         corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
         with open(corrupted_file, 'w', encoding='utf-8') as f:
             f.write(corr_parser)
-
-        # Apply repair patch, output to a uniquely named file
+        patch_file = f"case_{case_id}_patch_{run_id}.diff"
+        with open(patch_file, 'w', encoding='utf-8') as f:
+            f.write(patch_text)
         repaired_file = f"case_{case_id}_repaired_{run_id}.py"
         try:
-            replace_function_ast_in_file(corrupted_file, correct_version, suspicious_function, repaired_file)
+            subprocess.run(
+                ['patch', corrupted_file, patch_file, '-o', repaired_file],
+                check=True
+            )
         except Exception as e:
             print(f"Repair failed for case {case_id}: {e}")
             passed_tests = 0

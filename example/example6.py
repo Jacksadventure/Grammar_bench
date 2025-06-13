@@ -14,26 +14,139 @@ def match(expected):
     else:
         error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
 
-def parse_C():
+def parse_H():
     global pos, tokens
     if pos >= len(tokens):
-        error("Unexpected end of input in C")
+        error("Unexpected end of input in H")
     lookahead = tokens[pos]
-    if lookahead.startswith('#'):
-        match('#')
-        parse_C()
-        parse_C()
-        parse_C()
-    elif lookahead.startswith('I'):
-        match('I')
+    if lookahead.startswith('9'):
+        match('9')
+        match('x')
+        while pos < len(tokens) and tokens[pos].startswith('D'):
+            match('D')
+            parse_P()
+            parse_A()
+            parse_P()
+        if pos >= len(tokens):
+            error("Unexpected end of input in H")
+        lookahead = tokens[pos]
+        if lookahead.startswith('9'):
+            match('9')
+            match('x')
+            parse_A()
+            parse_H()
+            parse_H()
+        elif lookahead.startswith('o'):
+            match('o')
+            parse_L()
+        elif lookahead.startswith('5'):
+            match('5')
+        else:
+            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['9', 'o', '5']))
+        if pos >= len(tokens):
+            error("Unexpected end of input in H")
+        lookahead = tokens[pos]
+        if lookahead.startswith('9'):
+            match('9')
+            match('x')
+            parse_A()
+            parse_H()
+            parse_H()
+        elif lookahead.startswith('o'):
+            match('o')
+            parse_L()
+        elif lookahead.startswith('5'):
+            match('5')
+        else:
+            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['9', 'o', '5']))
+    elif lookahead.startswith('o'):
+        match('o')
+        if pos >= len(tokens):
+            error("Unexpected end of input in L")
+        lookahead = tokens[pos]
+        if lookahead.startswith('%'):
+            match('%')
+        elif lookahead.startswith("'"):
+            match("'")
+            parse_K()
+            parse_K()
+            parse_K()
+            parse_L()
+        elif lookahead.startswith('Z'):
+            match('Z')
+            parse_P()
+            match('G')
+            parse_P()
+            parse_Q()
+        else:
+            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['%', "'", 'Z']))
+    elif lookahead.startswith('5'):
+        match('5')
     else:
-        error("Unexpected token " + lookahead + " in C, expected one of: '#', 'I'")
+        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['9', 'o', '5']))
+
+def parse_K():
+    global pos, tokens
+    if pos >= len(tokens):
+        error("Unexpected end of input in K")
+    lookahead = tokens[pos]
+    if lookahead.startswith('u'):
+        match('u')
+    elif lookahead.startswith("'"):
+        match("'")
+        parse_Q()
+        parse_H()
+    elif lookahead.startswith('P'):
+        parse_P()
+        match('r')
+        match('.')
+        parse_Q()
+    elif lookahead.startswith("'"):
+        match("'")
+        parse_K()
+        parse_H()
+        match('6')
+    else:
+        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['u', "'", 'P', "'"]))
+
+def parse_Q():
+    global pos, tokens
+    while pos < len(tokens) and tokens[pos].startswith('o'):
+        match('o')
+
+def parse_P():
+    global pos, tokens
+    while pos < len(tokens) and tokens[pos].startswith('i'):
+        match('i')
+        match('Z')
+
+def parse_L():
+    global pos, tokens
+    if pos >= len(tokens):
+        error("Unexpected end of input in L")
+    lookahead = tokens[pos]
+    if lookahead.startswith('%'):
+        match('%')
+    elif lookahead.startswith("'"):
+        match("'")
+        parse_K()
+        parse_K()
+        parse_K()
+        parse_L()
+    elif lookahead.startswith('Z'):
+        match('Z')
+        parse_P()
+        match('G')
+        parse_P()
+        parse_Q()
+    else:
+        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['%', "'", 'Z']))
 
 def parse_input(input_str):
-    global pos, tokens
+    global tokens, pos
     tokens = list(input_str)
     pos = 0
-    parse_C()
+    parse_H()
     print("Input accepted.")
 
 def main():

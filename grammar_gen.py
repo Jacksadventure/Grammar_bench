@@ -55,7 +55,7 @@ def generate_random_grammar(
 
     # ----------------- symbol pools -----------------
     # Nonterminal symbols: allow letters (upper/lower), generate names of increasing length
-    ALPHABET_NT = list(string.uppercase)
+    ALPHABET_NT = list(string.ascii_uppercase)
     random.shuffle(ALPHABET_NT)  # shuffle to randomize order
     def _generate_labels(alphabet: str, count: int) -> list[str]:
         labels = []
@@ -330,39 +330,9 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                 lines.append((2, f'match({repr(s)})'))
         return lines
 
-    # Determine which nonterminals actually require their own parse_<nt>() function:
-    # start_symbol always needs a function; its direct children that are iterative
-    # get inlined (skip self-recursive tails), other nonterminals go to needed
-    needed = {start_symbol}
-    seen = {start_symbol}
-    stack = [start_symbol]
-    while stack:
-        nt0 = stack.pop()
-        inline_children = (nt0 == start_symbol)
-        iterative_nt0, _ = is_iterative_rule(nt0)
-        for prod in grammar[nt0]:
-            for sym in prod:
-                if sym not in nonterminals:
-                    continue
-                # skip the self-recursive tail when treating an iterative rule
-                if iterative_nt0 and prod and prod[-1] == nt0 and sym == nt0:
-                    continue
-                if inline_children:
-                    if sym not in seen:
-                        seen.add(sym)
-                        stack.append(sym)
-                else:
-                    if sym not in needed:
-                        needed.add(sym)
-                    if sym not in seen:
-                        seen.add(sym)
-                        stack.append(sym)
-
-    # For each nonterminal, generate a parse function only if needed;
-    # for the start symbol, inline one level of expansions
+    # Generate a parse_<nt>() function for each nonterminal;
+    # inline one level of expansions for the start symbol
     for nt in nonterminals:
-        if nt not in needed:
-            continue
         inline_children = (nt == start_symbol)
         iterative, base_prod = is_iterative_rule(nt)
         code_lines.append(f'def parse_{nt}():')
@@ -374,28 +344,6 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             for lvl, ln in gen_noniterative_body(nt, inline_children):
                 code_lines.append('    ' + '    '*(lvl-1) + ln)
         code_lines.append('')
-
-    # Prune any parse_<nt>() definitions that are never called in the inlined code
-    called = {start_symbol}
-    for line in code_lines:
-        for nt in nonterminals:
-            if nt != start_symbol and f'parse_{nt}()' in line:
-                called.add(nt)
-    new_lines = []
-    skipping = None
-    for line in code_lines:
-        if skipping:
-            # skip until end of unused function block (blank line)
-            if line.strip() == '':
-                skipping = None
-            continue
-        if line.startswith('def parse_'):
-            name = line[len('def parse_'):].split('(')[0]
-            if name not in called:
-                skipping = name
-                continue
-        new_lines.append(line)
-    code_lines = new_lines
 
     # Main parse function.
     code_lines.append('def parse_input(input_str):')
@@ -417,6 +365,30 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
     code_lines.append('')
     code_lines.append('if __name__ == "__main__":')
     code_lines.append('    main()')
+
+    # Prune any parse_<nt>() definitions that are never called in the inlined code
+    called = {start_symbol}
+    for line in code_lines:
+        for nt in nonterminals:
+            # detect actual calls to parse_<nt>() but ignore the function definition header
+            if nt != start_symbol and f'parse_{nt}()' in line and not line.strip().startswith(f'def parse_{nt}('):
+                called.add(nt)
+    new_lines = []
+    skipping = None
+    for line in code_lines:
+        if skipping:
+            # skip until end of unused function block (blank line)
+            if line.strip() == '':
+                skipping = None
+            continue
+        if line.startswith('def parse_'):
+            name = line[len('def parse_'):].split('(')[0]
+            if name in nonterminals and name not in called:
+                skipping = name
+                continue
+        new_lines.append(line)
+    code_lines = new_lines
+
     return "\n".join(code_lines)
 
 # ---------------------------

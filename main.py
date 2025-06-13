@@ -32,14 +32,14 @@ MIN_TEST_CASES = 1         # minimum failing instances per case
 KEEP_TEST_CASES = 1        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-dims = range(10,31)   
+dims = range(1,11)   
 nonterminal_probs = [0.2, 0.4, 0.6, 0.8]
 loop_probs = [0.2, 0.4, 0.6, 0.8]
 cases_per_setting = 2
 
 # Default parameters for grammar generation
-DEFAULT_MAX_PRODUCTIONS = 20  # default max number of productions per nonterminal
-DEFAULT_MAX_RHS_LENGTH = 20   # default maximum right-hand side length of productions
+DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal
+DEFAULT_MAX_RHS_LENGTH = 5   # default maximum right-hand side length of productions
 
 
 db_file = "targets4.db"

@@ -299,8 +299,13 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             lines.append((1, f'{cond} lookahead.startswith({repr(first_tok)}):'))
             for s in prod:
                 if s in nonterminals and inline_children:
-                    for lvl, ln in gen_noniterative_body(s, False):
-                        lines.append((lvl+1, ln))
+                    iterative_child, child_base = is_iterative_rule(s)
+                    if iterative_child:
+                        for lvl, ln in gen_iterative_body(s, child_base, False):
+                            lines.append((lvl+1, ln))
+                    else:
+                        for lvl, ln in gen_noniterative_body(s, False):
+                            lines.append((lvl+1, ln))
                 elif s in nonterminals:
                     lines.append((2, f'parse_{s}()'))
                 else:
@@ -326,26 +331,32 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
         return lines
 
     # Determine which nonterminals actually require their own parse_<nt>() function:
-    # start_symbol needs a function; its direct children are inlined, so only their descendants
+    # start_symbol always needs a function; its direct children that are iterative
+    # get inlined (skip self-recursive tails), other nonterminals go to needed
     needed = {start_symbol}
     seen = {start_symbol}
     stack = [start_symbol]
     while stack:
         nt0 = stack.pop()
         inline_children = (nt0 == start_symbol)
+        iterative_nt0, _ = is_iterative_rule(nt0)
         for prod in grammar[nt0]:
             for sym in prod:
-                if sym in nonterminals:
-                    if inline_children:
-                        if sym not in seen:
-                            seen.add(sym)
-                            stack.append(sym)
-                    else:
-                        if sym not in needed:
-                            needed.add(sym)
-                        if sym not in seen:
-                            seen.add(sym)
-                            stack.append(sym)
+                if sym not in nonterminals:
+                    continue
+                # skip the self-recursive tail when treating an iterative rule
+                if iterative_nt0 and prod and prod[-1] == nt0 and sym == nt0:
+                    continue
+                if inline_children:
+                    if sym not in seen:
+                        seen.add(sym)
+                        stack.append(sym)
+                else:
+                    if sym not in needed:
+                        needed.add(sym)
+                    if sym not in seen:
+                        seen.add(sym)
+                        stack.append(sym)
 
     # For each nonterminal, generate a parse function only if needed;
     # for the start symbol, inline one level of expansions
@@ -363,6 +374,28 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             for lvl, ln in gen_noniterative_body(nt, inline_children):
                 code_lines.append('    ' + '    '*(lvl-1) + ln)
         code_lines.append('')
+
+    # Prune any parse_<nt>() definitions that are never called in the inlined code
+    called = {start_symbol}
+    for line in code_lines:
+        for nt in nonterminals:
+            if nt != start_symbol and f'parse_{nt}()' in line:
+                called.add(nt)
+    new_lines = []
+    skipping = None
+    for line in code_lines:
+        if skipping:
+            # skip until end of unused function block (blank line)
+            if line.strip() == '':
+                skipping = None
+            continue
+        if line.startswith('def parse_'):
+            name = line[len('def parse_'):].split('(')[0]
+            if name not in called:
+                skipping = name
+                continue
+        new_lines.append(line)
+    code_lines = new_lines
 
     # Main parse function.
     code_lines.append('def parse_input(input_str):')

@@ -164,6 +164,7 @@ def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length
     artefacts['max_rhs_length'] = max_rhs_length
     artefacts['nonterminal_prob'] = nonterminal_prob
     artefacts['loop_prob'] = loop_prob
+    artefacts['parser_size'] = len(artefacts.get('corrupted_parser', ''))
     return artefacts
 
 
@@ -185,6 +186,7 @@ def init_db(cursor):
             original_parser TEXT,
             corrupted_grammar TEXT,
             corrupted_parser TEXT,
+            parser_size INTEGER,
             test_cases TEXT
         )
         """
@@ -194,6 +196,9 @@ def init_db(cursor):
     if 'dim' in cols and 'num_nonterminals' not in cols:
         cursor.execute("ALTER TABLE cases ADD COLUMN num_nonterminals INTEGER")
         cursor.execute("UPDATE cases SET num_nonterminals = dim")
+    if 'parser_size' not in cols:
+        cursor.execute("ALTER TABLE cases ADD COLUMN parser_size INTEGER")
+        cursor.execute("UPDATE cases SET parser_size = LENGTH(corrupted_parser)")
 
 def save_case(cursor, artefacts: dict):
     """Insert one case into the database, with fallback for oversized fields."""
@@ -204,9 +209,9 @@ def save_case(cursor, artefacts: dict):
         INSERT INTO cases (
             num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
             original_grammar, original_parser,
-            corrupted_grammar, corrupted_parser,
+            corrupted_grammar, corrupted_parser, parser_size,
             test_cases
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
     )
     params = (
@@ -218,6 +223,7 @@ def save_case(cursor, artefacts: dict):
         artefacts.get("original_parser"),
         artefacts.get("corrupted_grammar"),
         artefacts.get("corrupted_parser"),
+        artefacts.get("parser_size"),
         artefacts.get("test_cases"),
     )
     try:
@@ -246,6 +252,7 @@ def save_case(cursor, artefacts: dict):
             truncated.get("original_parser"),
             truncated.get("corrupted_grammar"),
             truncated.get("corrupted_parser"),
+            truncated.get("parser_size"),
             truncated.get("test_cases"),
         )
         print(f"[!] Retrying save_case with fields truncated to {max_len} chars each.")

@@ -2,6 +2,7 @@
 This generator (grammar_gen.py) produces a random LL(1) grammar with nonterminals wrapped in angle brackets (e.g., <X>)
 and outputs a standalone recursive descent parser in generated_parser.py.
 The generated grammar satisfies:
+  - No left recursion.
   - Each nonterminal has productions whose first symbol is a terminal.
   - For a given nonterminal, the alternatives use distinct starting terminals.
 Thus, the grammar is suitable for a recursive descent parser.
@@ -54,7 +55,8 @@ def generate_random_grammar(
 
     # ----------------- symbol pools -----------------
     # Nonterminal symbols: allow letters (upper/lower), generate names of increasing length
-    ALPHABET_NT = string.ascii_letters
+    ALPHABET_NT = list(string.uppercase)
+    random.shuffle(ALPHABET_NT)  # shuffle to randomize order
     def _generate_labels(alphabet: str, count: int) -> list[str]:
         labels = []
         length = 1
@@ -180,6 +182,11 @@ def generate_random_grammar(
                     decorated_prod.append(sym)
             decorated_prods.append(decorated_prod)
         decorated_grammar[decorated_nt] = decorated_prods
+    # Eliminate possible left recursion by prefixing any production starting with its nonterminal
+    for decorated_nt, prods in decorated_grammar.items():
+        for prod in prods:
+            if prod and prod[0] == decorated_nt:
+                prod.insert(0, random.choice(terminals))
     return decorated_grammar, decorated_nonterminals, terminals
 
 # ---------------------------
@@ -275,53 +282,86 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
     code_lines.append('        error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))')
     code_lines.append('')
 
-    # For each nonterminal, generate a parse function.
+    # Helpers to emit parse-code bodies; inline_children=True allows one-level expansion of nonterminals
+    def gen_noniterative_body(nt, inline_children):
+        lines = []
+        lines.append((1, f'if pos >= len(tokens):'))
+        lines.append((2, f'error("Unexpected end of input in {nt}")'))
+        lines.append((1, 'lookahead = tokens[pos]'))
+        first = True
+        expected = []
+        for prod in grammar[nt]:
+            first_tok = '' if not prod else prod[0]
+            expected.append(repr(first_tok))
+            if first_tok == '':
+                continue
+            cond = 'if' if first else 'elif'
+            lines.append((1, f'{cond} lookahead.startswith({repr(first_tok)}):'))
+            for s in prod:
+                if s in nonterminals and inline_children:
+                    for lvl, ln in gen_noniterative_body(s, False):
+                        lines.append((lvl+1, ln))
+                elif s in nonterminals:
+                    lines.append((2, f'parse_{s}()'))
+                else:
+                    lines.append((2, f'match({repr(s)})'))
+            first = False
+        exp_str = ", ".join(expected)
+        lines.append((1, 'else:'))
+        lines.append((2, f'error("Unexpected token " + lookahead + " in {nt}, expected one of: " + ", ".join([{exp_str}]))'))
+        return lines
+
+    def gen_iterative_body(nt, base_prod, inline_children):
+        lines = []
+        first_tok = base_prod[0]
+        lines.append((1, f'while pos < len(tokens) and tokens[pos].startswith({repr(first_tok)}):'))
+        for s in base_prod:
+            if s in nonterminals and inline_children:
+                for lvl, ln in gen_noniterative_body(s, False):
+                    lines.append((lvl+1, ln))
+            elif s in nonterminals:
+                lines.append((2, f'parse_{s}()'))
+            else:
+                lines.append((2, f'match({repr(s)})'))
+        return lines
+
+    # Determine which nonterminals actually require their own parse_<nt>() function:
+    # start_symbol needs a function; its direct children are inlined, so only their descendants
+    needed = {start_symbol}
+    seen = {start_symbol}
+    stack = [start_symbol]
+    while stack:
+        nt0 = stack.pop()
+        inline_children = (nt0 == start_symbol)
+        for prod in grammar[nt0]:
+            for sym in prod:
+                if sym in nonterminals:
+                    if inline_children:
+                        if sym not in seen:
+                            seen.add(sym)
+                            stack.append(sym)
+                    else:
+                        if sym not in needed:
+                            needed.add(sym)
+                        if sym not in seen:
+                            seen.add(sym)
+                            stack.append(sym)
+
+    # For each nonterminal, generate a parse function only if needed;
+    # for the start symbol, inline one level of expansions
     for nt in nonterminals:
-        func_name = f'parse_{nt}'
+        if nt not in needed:
+            continue
+        inline_children = (nt == start_symbol)
         iterative, base_prod = is_iterative_rule(nt)
-        code_lines.append(f'def {func_name}():')
+        code_lines.append(f'def parse_{nt}():')
         code_lines.append('    global pos, tokens')
         if iterative:
-            # Generate iterative (while loop) code.
-            # Assume that the base alternative (from <X><Xs>) starts with a terminal,
-            # which we use for the while loop test.
-            first_tok = base_prod[0]
-            code_lines.append(f'    while pos < len(tokens) and tokens[pos].startswith({repr(first_tok)}):')
-            # Generate code for the symbols in the base production.
-            for s in base_prod:
-                if s in nonterminals:
-                    code_lines.append(f'        parse_{s}()')
-                else:
-                    code_lines.append(f'        match({repr(s)})')
+            for lvl, ln in gen_iterative_body(nt, base_prod, inline_children):
+                code_lines.append('    ' + '    '*(lvl-1) + ln)
         else:
-            # Use the original recursive descent code generation.
-            prods = grammar[nt]
-            alternatives = []
-            for prod in prods:
-                first_tok = "" if not prod else prod[0]
-                alternatives.append((first_tok, prod))
-            code_lines.append('    if pos >= len(tokens):')
-            code_lines.append(f'        error("Unexpected end of input in {nt}")')
-            code_lines.append('    lookahead = tokens[pos]')
-            first_condition = True
-            # Create a list of expected tokens for error reporting.
-            expected_tokens = [repr(alt[0]) for alt in alternatives]
-            for first_tok, prod in alternatives:
-                if first_tok == "":
-                    continue
-                cond = 'if' if first_condition else 'elif'
-                code_lines.append(f'    {cond} lookahead.startswith({repr(first_tok)}):')
-                for s in prod:
-                    if s in nonterminals:
-                        code_lines.append(f'        parse_{s}()')
-                    else:
-                        code_lines.append(f'        match({repr(s)})')
-                first_condition = False
-            expected_tokens_str = ", ".join(expected_tokens)
-            error_line = ('    else:\n'
-                          '        error("Unexpected token " + lookahead + " in ' + nt +
-                          ', expected one of: " + ", ".join([' + expected_tokens_str + ']))')
-            code_lines.append(error_line)
+            for lvl, ln in gen_noniterative_body(nt, inline_children):
+                code_lines.append('    ' + '    '*(lvl-1) + ln)
         code_lines.append('')
 
     # Main parse function.

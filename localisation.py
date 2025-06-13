@@ -16,6 +16,8 @@ Example:
 @@ -12,7 +12,7 @@ def parse_X():
 -    old code line
 +    new code line
+
+PLEASE DO NOT ADD ```diff ``` IN YOUR RESPONSE.
 """
 
 def localise_program_input(program, corrupted_text, backend, model):

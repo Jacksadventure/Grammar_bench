@@ -113,6 +113,15 @@ def generate_case(num_nonterminals: int,
         mutation_depth = None
 
     # prepare JSON-serialisable artefacts
+    # Count unique symbols in the corrupted grammar (nonterminals + terminals)
+    nonterms = set(corrupted_grammar.keys())
+    terms = set()
+    for prods in corrupted_grammar.values():
+        for prod in prods:
+            for sym in prod:
+                if sym not in nonterms:
+                    terms.add(sym)
+    corrupted_symbol_count = len(nonterms) + len(terms)
     return {
         "nonterminal_prob": nonterminal_prob,
         "loop_prob": loop_prob,
@@ -123,6 +132,7 @@ def generate_case(num_nonterminals: int,
         # store compact JSON without extra indentation to reduce size
         "corrupted_grammar": json.dumps(corrupted_grammar, ensure_ascii=False),
         "corrupted_parser": corrupted_code,
+        "corrupted_symbol_count": corrupted_symbol_count,
         # keep only the first KEEP_TEST_CASES test cases in the database
         # keep test cases and store as compact JSON
         "test_cases": json.dumps(list(instances)[:KEEP_TEST_CASES], ensure_ascii=False),
@@ -186,6 +196,7 @@ def init_db(cursor):
             original_parser TEXT,
             corrupted_grammar TEXT,
             corrupted_parser TEXT,
+            corrupted_symbol_count INTEGER,
             parser_size INTEGER,
             test_cases TEXT
         )
@@ -199,6 +210,8 @@ def init_db(cursor):
     if 'parser_size' not in cols:
         cursor.execute("ALTER TABLE cases ADD COLUMN parser_size INTEGER")
         cursor.execute("UPDATE cases SET parser_size = LENGTH(corrupted_parser)")
+    if 'corrupted_symbol_count' not in cols:
+        cursor.execute("ALTER TABLE cases ADD COLUMN corrupted_symbol_count INTEGER")
 
 def save_case(cursor, artefacts: dict):
     """Insert one case into the database, with fallback for oversized fields."""
@@ -209,9 +222,9 @@ def save_case(cursor, artefacts: dict):
         INSERT INTO cases (
             num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
             original_grammar, original_parser,
-            corrupted_grammar, corrupted_parser, parser_size,
+            corrupted_grammar, corrupted_parser, corrupted_symbol_count, parser_size,
             test_cases
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """
     )
     params = (
@@ -223,6 +236,7 @@ def save_case(cursor, artefacts: dict):
         artefacts.get("original_parser"),
         artefacts.get("corrupted_grammar"),
         artefacts.get("corrupted_parser"),
+        artefacts.get("corrupted_symbol_count"),
         artefacts.get("parser_size"),
         artefacts.get("test_cases"),
     )
@@ -252,6 +266,7 @@ def save_case(cursor, artefacts: dict):
             truncated.get("original_parser"),
             truncated.get("corrupted_grammar"),
             truncated.get("corrupted_parser"),
+            truncated.get("corrupted_symbol_count"),
             truncated.get("parser_size"),
             truncated.get("test_cases"),
         )

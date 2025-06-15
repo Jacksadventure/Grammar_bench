@@ -1,0 +1,34 @@
+@@ -20,29 +20,4 @@ def parse_F():
+         match('o')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('H'):
+-            match('H')
+-            match('E')
+-            parse_F()
+-            parse_W()
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['H', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('R'):
+-            match('R')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['R']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('H'):
+-            match('H')
+-            match('E')
+-            parse_F()
+-            parse_W()
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['H', '']))
+-        match('e')
++        parse_W()
++        match('Q')
++        parse_W()
++        match('e')

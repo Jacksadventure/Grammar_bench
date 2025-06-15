@@ -1,0 +1,35 @@
+@@ -21,31 +21,10 @@ def parse_U():
+     lookahead = tokens[pos]
+     if lookahead.startswith('b'):
+         match('b')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('b'):
+-            match('b')
+-            parse_U()
+-            match('z')
+-            parse_U()
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['b', ',']))
+-        match('z')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('b'):
+-            match('b')
+-            parse_U()
+-            match('z')
+-            parse_U()
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['b', ',']))
++        parse_U()
++        match('&')
++        parse_U()
+     elif lookahead.startswith(','):
+         match(',')
+     else:

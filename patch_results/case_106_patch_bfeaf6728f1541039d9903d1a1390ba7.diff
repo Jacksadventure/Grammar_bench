@@ -1,0 +1,58 @@
+@@ -17,47 +17,9 @@ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('u'):
+-        match('u')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            parse_Y()
+-            parse_S()
+-        elif lookahead.startswith('*'):
+-            match('*')
+-            match('$')
+-            parse_Y()
+-            parse_Y()
+-        elif lookahead.startswith('-'):
+-            match('-')
+-        elif lookahead.startswith('t'):
+-            match('t')
+-            parse_G()
+-            parse_S()
+-            parse_Y()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['j', '*', '-', 't']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            parse_Y()
+-            parse_S()
+-        elif lookahead.startswith('*'):
+-            match('*')
+-            match('$')
+-            parse_Y()
+-            parse_Y()
+-        elif lookahead.startswith('-'):
+-            match('-')
+-        elif lookahead.startswith('t'):
+-            match('t')
+-            parse_G()
+-            parse_S()
+-            parse_Y()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['j', '*', '-', 't']))
+-        match('#')
++    while pos < len(tokens) and tokens[pos].startswith('u'):
++        match('u')
++        parse_R()
++        parse_R()
++        match('#')
+
+@@ -107,4 +107,4 @@ def parse_Y():
+         match(';')
+         match('p')
+-        match('z')
++        match('%')

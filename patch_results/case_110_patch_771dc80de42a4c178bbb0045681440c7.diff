@@ -1,0 +1,58 @@
+@@ -19,11 +19,9 @@
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
+-        match('+')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(']'):
+-            match(']')
+-            parse_R()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join([']', '']))
+-        match("'")
++    if pos < len(tokens) and tokens[pos].startswith('+'):
++        match('+')
++        parse_R()
++        match("'")
++        parse_I()
++    elif (pos < len(tokens) and tokens[pos].startswith('~')) or \
++         (pos < len(tokens) and tokens[pos].startswith('z')):
++        parse_R()
++        parse_W()
++    # else: Epsilon rule for <I> (<I> -> []), do nothing.
+@@ -53,3 +51,13 @@
+-    while pos < len(tokens) and tokens[pos].startswith(']'):
+-        match(']')
+-
++    if pos < len(tokens) and tokens[pos].startswith('~'):
++        match('~')
++        parse_R()
++    # else: Epsilon rule for <R> ([]), do nothing.
++
++def parse_W():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('z'):
++        match('z')
++        parse_R()
++        parse_H()
++        match('.')
++        parse_N()
++        parse_W()
++    # else: Epsilon rule for <W> ([]), do nothing.
+@@ -58,3 +66,3 @@
+-    while pos < len(tokens) and tokens[pos].startswith('_'):
+-        match('_')
+-
++    if pos < len(tokens) and tokens[pos].startswith('_'):
++        match('_')
++        parse_H()
+@@ -63,7 +71,7 @@
+-    while pos < len(tokens) and tokens[pos].startswith('Z'):
++    if pos < len(tokens) and tokens[pos].startswith('Z'):
+         match('Z')
+         parse_R()
+         parse_P()
+         match('b')
+         parse_H()
+-
++        parse_P()

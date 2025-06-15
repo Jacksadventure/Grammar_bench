@@ -1,0 +1,25 @@
+@@ -22,14 +22,7 @@ def parse_S():
+-    if lookahead.startswith('q'):
++    if lookahead == 'q':
+         match('q')
+-        match('n')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('q'):
+-            match('q')
+-            match('n')
+-            parse_S()
+-        elif lookahead.startswith('e'):
+-            match('e')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['q', 'e']))
++        parse_S()
++        parse_S()
+@@ -36,7 +29,7 @@ def parse_S():
+-    elif lookahead.startswith('e'):
++    elif lookahead == 'e':
+         match('e')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['q', 'e']))
++        error("Unexpected token " + lookahead + " in S, expected one of: q, e")

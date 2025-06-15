@@ -1,0 +1,38 @@
+@@ -47,8 +47,8 @@ def parse_U():
+         match('x')
+         if pos >= len(tokens):
+             error("Unexpected end of input in D")
+         lookahead = tokens[pos]
+-        if lookahead.startswith('|'):
+-            match('|')
++        if lookahead.startswith('y'):
++            match('y')
+             parse_U()
+             match('a')
+             match('8')
+         elif lookahead.startswith('H'):
+             match('H')
+@@ -59,7 +59,7 @@ def parse_U():
+             match('`')
+         elif lookahead.startswith('X'):
+             match('X')
+             match('5')
+         elif lookahead.startswith("'"):
+             match("'")
+         else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['|', 'H']))
++            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', 'H']))
+         match('z')
+@@
+-    if lookahead.startswith('|'):
+-        match('|')
++    if lookahead.startswith('y'):
++        match('y')
+         parse_U()
+         match('a')
+         match('8')
+     elif lookahead.startswith('H'):
+         match('H')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['|', 'H']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', 'H']))

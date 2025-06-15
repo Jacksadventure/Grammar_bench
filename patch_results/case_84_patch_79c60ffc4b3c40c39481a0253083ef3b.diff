@@ -1,0 +1,63 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,30 +17,37 @@
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('*'):
+-        match('*')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            parse_K()
+-        elif lookahead.startswith('l'):
+-            match('l')
+-            match('.')
+-            match('-')
+-        elif lookahead.startswith('p'):
+-            match('p')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['p', 'l', 'p']))
++    # <A> -> * <S> <A> | % <B> | epsilon
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('*'):
++            match('*')
++            parse_S()
++            parse_A()
++        elif lookahead.startswith('%'):
++            match('%')
++            parse_B()
+ 
++def parse_S():
++    global pos, tokens
++    # <S> -> p <K> | l . - | p
++    if pos >= len(tokens):
++        error("Unexpected end of input in S")
++    lookahead = tokens[pos]
++    if lookahead.startswith('p'):
++        match('p')
++        if pos < len(tokens) and tokens[pos].startswith('C'): # Check for FIRST(K)
++            parse_K()
++    elif lookahead.startswith('l'):
++        match('l')
++        match('.')
++        match('-')
++    else:
++        error("Unexpected token " + lookahead + " in S, expected one of: p, l")
++
+ def parse_K():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in K")
+-    lookahead = tokens[pos]
+     if lookahead.startswith('C'):
+         match('C')
+-        match('F')
+-    else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['C', '']))
++        parse_K()
+ 
+ def parse_B():
+     global pos, tokens

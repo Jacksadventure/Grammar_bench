@@ -1,0 +1,13 @@
+@@ -125,8 +125,8 @@ def parse_B():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('#'):
+-        match('#')
++    if lookahead.startswith("'"):
++        match("'")
+         match(']')
+         match('S')
+@@ -139,4 +139,4 @@ def parse_B():
+         match('F')
+     else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['#', '?', 'F']))
++        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join([\"'\", '?', 'F']))

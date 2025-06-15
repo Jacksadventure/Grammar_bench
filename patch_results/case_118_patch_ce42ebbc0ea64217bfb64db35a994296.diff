@@ -1,0 +1,13 @@
+@@ -117,7 +117,7 @@ def parse_C():
+     lookahead = tokens[pos]
+     if lookahead.startswith('D'):
+         match('D')
+     else:
+-        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['D']))
++        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['e']))
+@@ -116,3 +116,3 @@ def parse_C():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('D'):
+-        match('D')
++    if lookahead.startswith('e'):
++        match('e')

@@ -1,0 +1,81 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,64 +21,13 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('l'):
+         match('l')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('c'):
+-            match('c')
+-            match('/')
+-            match("'")
+-            match('G')
+-            parse_R()
+-        elif lookahead.startswith('b'):
+-            match('b')
+-            match('f')
+-            match('v')
+-            parse_E()
+-        elif lookahead.startswith('+'):
+-            match('+')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['c', 'b', '+']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('l'):
+-            match('l')
+-            match('e')
+-            parse_F()
+-            match('J')
+-            match('V')
+-        elif lookahead.startswith('M'):
+-            match('M')
+-            match('_')
+-            parse_L()
+-        elif lookahead.startswith('j'):
+-            match('j')
+-        elif lookahead.startswith('S'):
+-            match('S')
+-            match('9')
+-            match('s')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['l', 'M', 'j', 'S']))
++        parse_L()
++        parse_F()
+     elif lookahead.startswith('z'):
+         match('z')
+     elif lookahead.startswith('|'):
+         match('|')
+         match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('l'):
+-            match('l')
+-            parse_L()
+-            parse_F()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        elif lookahead.startswith('|'):
+-            match('|')
+-            match('|')
+-            parse_E()
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['l', 'z', '|']))
++        parse_E()
+     else:
+         error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['l', 'z', '|']))
+@@ -138,7 +87,7 @@
+         match('H')
+         match('=')
+         parse_E()
+-    elif lookahead.startswith('F'):
+-        parse_F()
++    elif lookahead.startswith('h'):
++        match('h')
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(["'", 'F']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(["'", 'h']))

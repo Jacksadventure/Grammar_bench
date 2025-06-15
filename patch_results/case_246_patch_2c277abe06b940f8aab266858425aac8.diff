@@ -1,0 +1,76 @@
+@@ -22,27 +22,10 @@
+     if lookahead.startswith('L'):
+         match('L')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            match('(')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            match('(')
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            parse_B()
+-            parse_M()
+-            match('r')
+-            parse_K()
+-            match('}')
+-        while pos < len(tokens) and tokens[pos].startswith('e'):
+-            match('e')
+-            parse_W()
+-            parse_W()
+-            parse_P()
++        parse_M()
++        parse_M()
++        parse_P()
++        parse_T()
+     elif lookahead.startswith('i'):
+         match('i')
+-        while pos < len(tokens) and tokens[pos].startswith('='):
+-            match('=')
+-            match('c')
+-            parse_M()
+-            parse_M()
++        parse_H()
+     elif lookahead.startswith('o'):
+@@ -55,5 +38,6 @@
+-    while pos < len(tokens) and tokens[pos].startswith('='):
++    if pos < len(tokens) and tokens[pos].startswith('='):
+         match('=')
+         match('c')
+         parse_M()
+         parse_M()
++        parse_H()
+@@ -84,3 +68,4 @@
+-    while pos < len(tokens) and tokens[pos].startswith('.'):
++    if pos < len(tokens) and tokens[pos].startswith('.'):
+         match('.')
+-        match('(')
++        parse_M()
++        parse_M()
+@@ -95,1 +80,1 @@
+-    elif lookahead.startswith('P'):
++    elif lookahead.startswith('N') or lookahead.startswith('0') or lookahead.startswith('$'):
+@@ -118,5 +103,6 @@
+-    while pos < len(tokens) and tokens[pos].startswith('e'):
++    if pos < len(tokens) and tokens[pos].startswith('e'):
+         match('e')
+         parse_W()
+         parse_W()
+         parse_P()
++        parse_T()
+@@ -126,6 +112,8 @@
+-    while pos < len(tokens) and tokens[pos].startswith('B'):
++    if pos < len(tokens) and \
++       (tokens[pos].startswith('N') or tokens[pos].startswith('0') or tokens[pos].startswith('$')):
+         parse_B()
+         parse_M()
+         match('r')
+         parse_K()
+         match('}')
++        parse_P()
+@@ -135,4 +123,5 @@
+-    while pos < len(tokens) and tokens[pos].startswith('R'):
++    if pos < len(tokens) and tokens[pos].startswith('R'):
+         match('R')
+         parse_B()
+         match('q')
++        parse_Z()

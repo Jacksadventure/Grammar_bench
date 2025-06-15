@@ -1,0 +1,40 @@
+@@ -25,11 +25,3 @@
+-        while pos < len(tokens) and tokens[pos].startswith('t'):
+-            match('t')
+-            parse_R()
+-            parse_Z()
+-            match('H')
+-            match('*')
+-        while pos < len(tokens) and tokens[pos].startswith('f'):
+-            match('f')
+-        while pos < len(tokens) and tokens[pos].startswith('Z'):
+-            parse_Z()
+-            match('V')
++        parse_O()
++        parse_A()
++        parse_G()
+@@ -40,1 +40,10 @@
+ 
++
++def parse_O():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('t'):
++        match('t')
++        parse_R()
++        parse_Z()
++        match('H')
++        match('*')
++
+ def parse_A():
+@@ -97,4 +106,4 @@
+ def parse_G():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('Z'):
++    while pos < len(tokens) and (tokens[pos].startswith("'") or tokens[pos].startswith("V")):
+         parse_Z()
+@@ -149,4 +158,4 @@
+     while pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+-        match('P')
++        parse_D()
+         match('{')

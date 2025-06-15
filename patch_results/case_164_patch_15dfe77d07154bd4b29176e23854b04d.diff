@@ -1,0 +1,84 @@
+@@
+-def parse_Q():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('<'):
+-        match('<')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-            match('=')
+-            match('P')
+-        elif lookahead.startswith('E'):
+-            match('E')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'E']))
+-        match('U')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('<'):
+-            match('<')
+-            parse_R()
+-            match('U')
+-            parse_Q()
+-            parse_R()
+-            parse_Q()
+-        elif lookahead.startswith('|'):
+-            match('|')
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['<', '', '|']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-            match('=')
+-            match('P')
+-        elif lookahead.startswith('E'):
+-            match('E')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'E']))
++def parse_Q():
++    global pos, tokens
++    # <Q> ::= '<' <R> 'U' <Q> <R> <Q>
++    #       | '|' <L>
++    #       | ε
++    if pos >= len(tokens):
++        return  # ε
++    lookahead = tokens[pos]
++    if lookahead == '<':
++        match('<')
++        parse_R()
++        match('U')
++        parse_Q()
++        parse_R()
++        parse_Q()
++    elif lookahead == '|':
++        match('|')
++        parse_L()
++    else:
++        # ε production
++        return
+@@
+-    if lookahead.startswith('e'):
++    if lookahead == 'e':
+         match('e')
+         match('=')
+         match('P')
+-    elif lookahead.startswith('E'):
+-        match('E')
++    elif lookahead == 'q':
++        match('q')
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'E']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'q']))
+@@
+-    parse_Q()
+-    print("Input accepted.")
++    parse_Q()
++    if pos != len(tokens):
++        error("Unexpected trailing input")
++    print("Input accepted.")

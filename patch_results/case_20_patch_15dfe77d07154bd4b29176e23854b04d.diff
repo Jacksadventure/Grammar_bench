@@ -1,0 +1,16 @@
+@@
+-    if lookahead.startswith('&'):
+-        match('&')
++    if lookahead.startswith('V'):
++        match('V')
+@@
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['&']))
++        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['V']))
+@@
+-    tokens = list(input_str)
++    tokens = list(input_str)
+     pos = 0
+     parse_A()
++    if pos != len(tokens):
++        error("Unexpected input after complete parse")
+     print("Input accepted.")

@@ -1,0 +1,108 @@
+@@ -17,77 +17,18 @@ def parse_N():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in N")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('#'):
+-        match('#')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
+-    elif lookahead.startswith('T'):
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
+-    elif lookahead.startswith('9'):
+-        match('9')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('#'):
+-            match('#')
+-            parse_T()
+-        elif lookahead.startswith('T'):
+-            parse_T()
+-            parse_T()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            parse_N()
+-            parse_F()
+-        elif lookahead.startswith('5'):
+-            match('5')
+-            parse_T()
+-            parse_O()
+-            parse_T()
+-        elif lookahead.startswith('e'):
+-            match('e')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['#', 'T', '9', '5', 'e']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('|'):
+-            match('|')
+-            match('j')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['|', '']))
+-    elif lookahead.startswith('5'):
+-        match('5')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
+-        while pos < len(tokens) and tokens[pos].startswith('+'):
+-            match('+')
+-            parse_F()
+-            parse_F()
+-            match('d')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
+-    elif lookahead.startswith('e'):
+-        match('e')
+-    else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['#', 'T', '9', '5', 'e']))
++    if tokens[pos] == '#':
++        match('#')
++        parse_T()
++    elif tokens[pos] == '5':
++        match('5')
++        parse_T()
++        parse_O()
++        parse_T()
++    elif tokens[pos] == '9':
++        match('9')
++        parse_N()
++        parse_F()
++    elif tokens[pos] == 'e':
++        match('e')
++    else:
++        parse_T()
++        parse_T()
+
+@@ -111,9 +111,4 @@ def parse_F():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in F")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('|'):
+-        match('|')
+-        match('j')
+-    else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['|', '']))
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos] == '|':
++        match('|')
++        parse_F()  

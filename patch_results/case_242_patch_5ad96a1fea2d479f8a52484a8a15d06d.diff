@@ -1,0 +1,54 @@
+@@ -22,31 +22,7 @@ def parse_Y():
+         match('4')
+         match('2')
+         match('*')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('k'):
+-            match('k')
+-            match('&')
+-            match('b')
+-            match('K')
+-        elif lookahead.startswith('M'):
+-            match('M')
+-            parse_A()
+-        elif lookahead.startswith('X'):
+-            match('X')
+-            parse_Y()
+-            parse_S()
+-            match('m')
+-        elif lookahead.startswith('1'):
+-            match('1')
+-            match('>')
+-            match('3')
+-        elif lookahead.startswith('o'):
+-            match('o')
+-            match('j')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['k', 'M', 'X', '1', 'o', 'd']))
++        parse_S()
+     elif lookahead.startswith('%'):
+         match('%')
+
+@@ -83,8 +83,8 @@ def parse_H():
+         match("'")
+-    elif lookahead.startswith('z'):
+-        match('z')
++    elif lookahead.startswith('s'):
++        match('s')
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 'z']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 's']))
+
+@@ -164,5 +164,6 @@ def parse_I():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('Z'):
+-        parse_Z()
+-        parse_W()
++    if lookahead.startswith('h') or lookahead.startswith("'"):
++        parse_Z()
++        parse_W()
+     elif lookahead.startswith('i'):

@@ -1,0 +1,37 @@
+@@ -67,25 +67,7 @@ def parse_V():
+     elif lookahead.startswith('^'):
+-        match('^')
+-        match('c')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('m'):
+-            match('m')
+-            parse_H()
+-        elif lookahead.startswith('4'):
+-            match('4')
+-            match('#')
+-            match('l')
+-            parse_A()
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            match('c')
+-            parse_V()
+-            parse_R()
+-        elif lookahead.startswith('l'):
+-            match('l')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['m', '4', '^', 'l']))
+-        while pos < len(tokens) and tokens[pos].startswith('O'):
+-            match('O')
++        match('^')
++        match('c')
++        parse_V()
++        parse_R()
+@@
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('O'):
+-        match('O')
++    while pos < len(tokens) and tokens[pos].startswith('5'):
++        match('5')

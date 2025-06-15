@@ -1,0 +1,18 @@
+@@ -140,7 +140,7 @@ def parse_V():
+         match('z')
+         parse_E()
+         match('%')
+         match('=')
+         match('%')
+     elif lookahead.startswith('}'):
+-        parse_E()
++        match('7')
+
+@@ -140,7 +140,7 @@ def parse_V():
+     if lookahead.startswith('z'):
+         match('z')
+-        parse_E()
++        match('7')
+         match('%')
+         match('=')
+         match('%')

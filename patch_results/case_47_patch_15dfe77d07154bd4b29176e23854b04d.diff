@@ -1,0 +1,56 @@
+@@ -21,33 +21,13 @@ def parse_J():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in J")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('X'):
+-        match('X')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('X'):
+-            match('X')
+-            parse_J()
+-        elif lookahead.startswith('$'):
+-            match('$')
+-            parse_A()
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['X', '$']))
+-    elif lookahead.startswith('$'):
+-        match('$')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('X'):
+-            match('X')
+-            parse_A()
+-            match('p')
+-            parse_A()
+-            match('&')
+-        elif lookahead.startswith('5'):
+-            match('5')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['X', '5']))
++    lookahead = tokens[pos]
++    if lookahead.startswith('X'):
++        match('X')
++        parse_J()
++    elif lookahead.startswith('$'):
++        match('$')
++        parse_A()
++    else:
++        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['X', '$']))
+ 
+@@
+-    if lookahead.startswith('X'):
+-        match('X')
+-        parse_A()
+-        match('p')
+-        parse_A()
+-        match('&')
++    if lookahead.startswith('X'):
++        match('X')
++        parse_A()
++        parse_J()
++        parse_A()
++        match('&')

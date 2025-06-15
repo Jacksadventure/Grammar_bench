@@ -1,0 +1,12 @@
+@@ -143,9 +143,9 @@ def parse_T():
+-    if lookahead.startswith('l'):
+-        match('l')
++    if lookahead.startswith('E'):
++        match('E')
+     elif lookahead.startswith('$'):
+         match('$')
+         match('M')
+-    else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['l', '$']))
++    else:
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['E', '$']))

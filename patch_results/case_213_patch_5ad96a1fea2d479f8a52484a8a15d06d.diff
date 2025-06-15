@@ -1,0 +1,30 @@
+--- parser.py
++++ parser.py
+@@ def parse_J():
+-    while pos < len(tokens) and tokens[pos].startswith('E'):
++    while pos < len(tokens) and tokens[pos] in ['q','?','x','Z']:
+         parse_E()
+@@ def parse_M():
+-    while pos < len(tokens) and tokens[pos].startswith('#'):
+-        match('#')
+-        match('U')
++    if pos < len(tokens) and tokens[pos].startswith('#'):
++        match('#')
++        match('U')
++        parse_M()
++    elif pos < len(tokens) and tokens[pos].startswith(('h','V',"'",'/')):
++        parse_B()
++        parse_R()
++    else:
++        return
+@@
++def parse_R():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith(('*','v','9','@')):
++        parse_X()
++        parse_E()
++        parse_J()
++        parse_T()
+@@ def parse_T():
+-        parse_E()
++        parse_B()  

@@ -1,0 +1,63 @@
+@@ -17,32 +17,16 @@
+ def parse_N():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in N")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith(')'):
+-        match(')')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(')'):
+-            match(')')
+-            parse_N()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            parse_J()
+-        elif lookahead.startswith(':'):
+-            match(':')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join([')', 'A', ':']))
+-    elif lookahead.startswith('A'):
+-        match('A')
+-        while pos < len(tokens) and tokens[pos].startswith('5'):
+-            match('5')
+-            parse_J()
+-            parse_N()
+-            match('P')
+-            match('A')
+-    elif lookahead.startswith(':'):
+-        match(':')
+-    else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join([')', 'A', ':']))
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in N")
++    lookahead = tokens[pos]
++    if lookahead == ')':
++        match(')')
++        parse_N()
++    elif lookahead == 'A':
++        match('A')
++        parse_J()
++    elif lookahead == ':':
++        match(':')
++    else:
++        error("Unexpected token " + lookahead + " in N, expected one of: ), A, :")
+@@ -50,8 +34,11 @@ def parse_J():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('5'):
+-        match('5')
+-        parse_J()
+-        parse_N()
+-        match('P')
+-        match('A')
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos] == '5':
++        match('5')
++        parse_J()
++        parse_N()
++        match('g')
++        match('A')
++        parse_J()

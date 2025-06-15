@@ -1,0 +1,60 @@
+--- parser.py
++++ parser.py
+@@ def parse_J():
+     if lookahead.startswith('p'):
+-        match('p')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            parse_J()
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            match('j')
+-            match('&')
+-            parse_Z()
+-        elif lookahead.startswith('3'):
+-            match('3')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['p', \"'\", '3']))
++        match('p')
++        parse_J()
+     elif lookahead.startswith("'"):
+         match("'")
+         match('j')
+         match('&')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('r'):
+-            match('r')
+-            match('^')
+-            match('{')
+-            match('b')
+-            match('|')
+-            match('<')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['r', '']))
++        parse_Z()
+@@ def parse_Z():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in Z")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('r'):
+-        match('r')
+-        match('^')
+-        match('{')
+-        match('b')
+-        match('|')
+-        match('<')
+-    else:
+-        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['r', '']))
++    if pos < len(tokens) and tokens[pos].startswith('r'):
++        match('r')
++        match('^')
++        match('{')
++        match('b')
++        match('|')
++        parse_Z()
++    # epsilon

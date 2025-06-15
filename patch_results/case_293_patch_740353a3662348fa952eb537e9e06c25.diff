@@ -1,0 +1,70 @@
+@@ -22,7 +22,8 @@ def parse_K():
+     if lookahead.startswith('E'):
+-        while pos < len(tokens) and tokens[pos].startswith('%'):
+-            match('%')
+-            match('7')
+-            match('b')
++        parse_E()
+         if pos >= len(tokens):
+             error("Unexpected end of input in C")
+         lookahead = tokens[pos]
+@@ -52,7 +53,7 @@ def parse_K():
+     elif lookahead.startswith('D'):
+         match('D')
+-        while pos < len(tokens) and tokens[pos].startswith('%'):
+-            match('%')
+-            match('7')
+-            match('b')
++        parse_E()
+         if pos >= len(tokens):
+             error("Unexpected end of input in W")
+         lookahead = tokens[pos]
+@@ -85,9 +86,11 @@ def parse_K():
+ def parse_E():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('%'):
+-        match('%')
+-        match('7')
+-        match('b')
++    if pos < len(tokens) and tokens[pos].startswith('%'):
++        match('%')
++        match('7')
++        match('b')
++        parse_E()
+ 
+ def parse_H():
+@@ -142,9 +145,11 @@ def parse_W():
+ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
+-        match('M')
+-        match('d')
++    if pos < len(tokens) and tokens[pos].startswith('M'):
++        match('M')
++        match('d')
++        parse_S()
+ 
+ def parse_A():
+@@ -165,9 +170,11 @@ def parse_A():
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('r'):
+-        match('r')
+-        match('w')
++    if pos < len(tokens) and tokens[pos].startswith('r'):
++        match('r')
++        match('w')
++        parse_Q()
+ 
+ def parse_F():
+@@ -177,6 +184,8 @@ def parse_F():
+     if lookahead.startswith('L'):
+         match('L')
+         match('d')
+         match('v')
+         match('0')
+-        match(';')
++        parse_F()
+     else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['L', '']))
++        pass

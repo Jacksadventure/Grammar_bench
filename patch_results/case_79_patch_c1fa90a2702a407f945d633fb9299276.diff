@@ -1,0 +1,10 @@
+@@ -39,7 +39,7 @@ def parse_F():
+         match('h')
+         match('Z')
+-        elif lookahead.startswith('{'):
+-            match('{')
++        elif lookahead.startswith('r'):
++            match('r')
+         else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['v', '{']))
++            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['v', 'r']))

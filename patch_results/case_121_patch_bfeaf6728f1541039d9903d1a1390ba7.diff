@@ -1,0 +1,49 @@
+@@ -21,26 +21,10 @@ def parse_L():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('p'):
+-        match('p')
+-        match('I')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            match('I')
+-            parse_L()
+-            match('~')
+-            parse_G()
+-        elif lookahead.startswith('J'):
+-            match('J')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['p', 'J']))
+-        match('~')
+-        while pos < len(tokens) and tokens[pos].startswith('('):
+-            match('(')
+-            parse_H()
+-            match('k')
+-    elif lookahead.startswith('J'):
+-        match('J')
+-    else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['p', 'J']))
++    if lookahead.startswith('p'):
++        match('p')
++        match('I')
++        parse_L()
++        match('~')
++        parse_G()
++    elif lookahead.startswith('J'):
++        match('J')
++    else:
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['p', 'J']))
+
+@@ -56,7 +56,7 @@ def parse_O():
+     if lookahead.startswith('+'):
+         match('+')
+         match('+')
+-    elif lookahead.startswith('C'):
+-        match('C')
++    elif lookahead.startswith('W'):
++        match('W')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['+', 'C']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['+', 'W']))

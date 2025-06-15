@@ -1,0 +1,49 @@
+--- a/parser.py
++++ b/parser.py
+@@ -22,36 +22,8 @@
+     if lookahead.startswith('L'):
+         match('L')
+         match('`')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('L'):
+-            match('L')
+-            match('`')
+-            parse_T()
+-            parse_T()
+-        elif lookahead.startswith('a'):
+-            match('a')
+-            parse_Q()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['L', 'a', '`']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('L'):
+-            match('L')
+-            match('`')
+-            parse_T()
+-            parse_T()
+-        elif lookahead.startswith('a'):
+-            match('a')
+-            parse_Q()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['L', 'a', '`']))
++        parse_T()
++        parse_T()
+     elif lookahead.startswith('a'):
+         match('a')
+         parse_Q()
+@@ -64,4 +36,5 @@
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('O'):
+-        match('O')
++    if pos < len(tokens) and tokens[pos].startswith('8'):
++        match('8')
++        parse_Q()

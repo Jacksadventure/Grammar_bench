@@ -1,0 +1,8 @@
+@@ -95,7 +95,7 @@ def parse_Z():
+         match('J')
+         match('0')
+-        match('t')
++        match('z')
+         match('8')
+     else:
+         error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['6', '4', '%', 'J']))

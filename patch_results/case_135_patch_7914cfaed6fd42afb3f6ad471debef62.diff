@@ -1,0 +1,31 @@
+Looking at the grammar and the parser code, I can see several issues:
+
+1. In `parse_B()`, the rule should be `["y", "<C>", "<T>", "<B>"]` but the code only handles `["y", "<C>", "<T>"]`
+2. In `parse_C()`, the rule should be `["y", "<C>", "<B>", "<C>"]` but the code has `["y", "<C>", "n"]`
+3. The `parse_N()` function has duplicate code blocks and incorrect handling of the second alternative
+
+@@ -101,7 +101,8 @@ def parse_N():
+         while pos < len(tokens) and tokens[pos].startswith('y'):
+             match('y')
+             parse_C()
+             parse_T()
++            parse_B()
+     elif lookahead.startswith('8'):
+         match('8')
+     else:
+@@ -147,7 +148,8 @@ def parse_B():
+     while pos < len(tokens) and tokens[pos].startswith('y'):
+         match('y')
+         parse_C()
+         parse_T()
++        parse_B()
+ 
+ def parse_G():
+     global pos, tokens
+@@ -179,5 +181,6 @@ def parse_C():
+     while pos < len(tokens) and tokens[pos].startswith('y'):
+         match('y')
+         parse_C()
+-        match('n')
++        parse_B()
++        parse_C()

@@ -1,0 +1,49 @@
+--- a/parser.py
++++ b/parser.py
+@@ -22,33 +22,9 @@
+     if lookahead.startswith('>'):
+         match('>')
+         match('m')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('B'):
+-            match('B')
+-            match('-')
+-            parse_L()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            parse_A()
+-            match('/')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('P')
+-            parse_H()
+-            parse_A()
+-        elif lookahead.startswith('!'):
+-            match('!')
+-            parse_I()
+-            match('>')
+-            match(',')
+-        elif lookahead.startswith('^'):
+-            match('^')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['B', '&', '_', '!', '^']))
++        parse_Y()
+     elif lookahead.startswith('W'):
+         match('W')
+     else:
+         error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['>', 'W']))
+-
+ def parse_N():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -94,7 +70,7 @@
+     elif lookahead.startswith('J'):
+         match('J')
+         match('0')
+-        match('t')
++        match('z')
+         match('8')
+     else:
+         error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['6', '4', '%', 'J']))

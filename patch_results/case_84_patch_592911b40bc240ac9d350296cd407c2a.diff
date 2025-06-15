@@ -1,0 +1,58 @@
+@@ -17,21 +17,33 @@ def parse_A():
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('*'):
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('*'):
+         match('*')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            parse_K()
+-        elif lookahead.startswith('l'):
+-            match('l')
+-            match('.')
+-            match('-')
+-        elif lookahead.startswith('p'):
+-            match('p')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['p', 'l', 'p']))
++        parse_S()
++        parse_A()
++    elif lookahead.startswith('%'):
++        match('%')
++        parse_B()
++    else:
++        return
++
++def parse_S():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in S")
++    lookahead = tokens[pos]
++    if lookahead.startswith('p'):
++        match('p')
++        parse_K()
++    elif lookahead.startswith('l'):
++        match('l')
++        match('.')
++        match('-')
++    else:
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['p', 'l']))
+ 
+ def parse_K():
+     global pos, tokens
+@@ -41,7 +53,8 @@ def parse_K():
+     if lookahead.startswith('C'):
+         match('C')
+-        match('F')
++        parse_K()
+     else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['C', '']))
++        return
+ 
+ def parse_B():

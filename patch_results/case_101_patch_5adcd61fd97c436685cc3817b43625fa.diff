@@ -1,0 +1,81 @@
+@@ -25,7 +25,7 @@ def parse_W():
+         match(',')
+         match('A')
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            match('B')
+-            parse_R()
+-            parse_W()
+-            parse_J()
+-            parse_V()
++        parse_H()
+     elif lookahead.startswith('{'):
+         match('{')
+     elif lookahead.startswith('O'):
+@@ -65,9 +65,17 @@ def parse_R():
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
+-        match('+')
+-        match('Y')
+-        parse_J()
+-        match('5')
+-        parse_H()
++    if pos >= len(tokens):
++        return  # epsilon production
++    lookahead = tokens[pos]
++    if lookahead.startswith('+'):
++        match('+')
++        match('Y')
++        parse_J()
++        match('5')
++        parse_H()
++        parse_V()
++    elif lookahead.startswith('#'):
++        match('#')
++        parse_X()
+ 
+ def parse_J():
+@@ -78,7 +86,7 @@ def parse_J():
+     lookahead = tokens[pos]
+     if lookahead.startswith('+'):
+         match('+')
+-    else:
+-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['+']))
++    elif lookahead.startswith('7'):
++        match('7')
++    else:
++        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['+', '7']))
+ 
+ def parse_H():
+@@ -90,6 +98,29 @@ def parse_H():
+         parse_J()
+         parse_V()
+ 
++def parse_X():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in X")
++    lookahead = tokens[pos]
++    if lookahead.startswith('-'):
++        match('-')
++        match('|')
++        parse_H()
++    elif lookahead.startswith('y'):
++        match('y')
++        parse_V()
++        match('r')
++        match('B')
++    elif lookahead.startswith('P'):
++        match('P')
++        match('e')
++        match('$')
++        match('b')
++    elif lookahead.startswith(','):
++        match(',')
++        match('(')
++    elif lookahead.startswith('['):
++        match('[')
++    else:
++        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['-', 'y', 'P', ',', '[']))
++
+ def parse_input(input_str):

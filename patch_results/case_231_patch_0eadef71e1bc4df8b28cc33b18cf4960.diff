@@ -1,0 +1,11 @@
+@@ -87,7 +87,9 @@ def parse_E():
+     if lookahead.startswith('L'):
+         match('L')
+         parse_E()
++        parse_E()
+         match('^')
++    elif True:  # epsilon production
++        pass
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['L', '']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['L']))

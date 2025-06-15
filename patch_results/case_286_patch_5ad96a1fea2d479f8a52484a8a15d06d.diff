@@ -1,0 +1,39 @@
+--- parser.py
++++ parser.py
+@@ -69,10 +69,10 @@ def parse_Z():
+     elif lookahead.startswith('2'):
+         match('2')
+-    elif lookahead.startswith('X'):
+-        parse_X()
+-        match('*')
+-        match(';')
+-        parse_Y()
+-        match('O')
++    elif lookahead.startswith('O'):
++        match('O')
++        match('*')
++        match(';')
++        parse_Y()
++        match('O')
+     else:
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['A', '2', 'X']))
++        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['A', '2', 'O']))
+
+@@ -168,10 +168,10 @@ def parse_Y():
+     elif lookahead.startswith('2'):
+         match('2')
+-    elif lookahead.startswith('X'):
+-        parse_X()
+-        match('*')
+-        match(';')
+-        parse_Y()
+-        match('O')
++    elif lookahead.startswith('O'):
++        match('O')
++        match('*')
++        match(';')
++        parse_Y()
++        match('O')
+     else:
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['A', '2', 'X']))
++        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['A', '2', 'O']))

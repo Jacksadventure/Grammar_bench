@@ -1,0 +1,43 @@
+Looking at the grammar and the parser code, I can see that the grammar defines:
+- `<O>` can be either `["$", "<O>", "<O>"]` or `["2"]`
+
+However, the parser code is incorrectly handling single quotes (`'`) instead of the literal `"2"`. The parser should recognize `"2"` as a terminal symbol, not `"'"`.
+
+@@ -22,7 +22,7 @@ def parse_O():
+     if lookahead.startswith('$'):
+         match('$')
+         if pos >= len(tokens):
+             error("Unexpected end of input in O")
+         lookahead = tokens[pos]
+         if lookahead.startswith('$'):
+             match('$')
+             parse_O()
+             parse_O()
+-        elif lookahead.startswith("'"):
+-            match("'")
++        elif lookahead.startswith("2"):
++            match("2")
+         else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "'"]))
++            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "2"]))
+         if pos >= len(tokens):
+             error("Unexpected end of input in O")
+         lookahead = tokens[pos]
+         if lookahead.startswith('$'):
+             match('$')
+             parse_O()
+             parse_O()
+-        elif lookahead.startswith("'"):
+-            match("'")
++        elif lookahead.startswith("2"):
++            match("2")
+         else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "'"]))
+-    elif lookahead.startswith("'"):
+-        match("'")
++            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "2"]))
++    elif lookahead.startswith("2"):
++        match("2")
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "'"]))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "2"]))

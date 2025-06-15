@@ -1,0 +1,81 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,29 +21,12 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('L'):
+         match('L')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            match('(')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            match('(')
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            parse_B()
+-            parse_M()
+-            match('r')
+-            parse_K()
+-            match('}')
+-        while pos < len(tokens) and tokens[pos].startswith('e'):
+-            match('e')
+-            parse_W()
+-            parse_W()
+-            parse_P()
++        parse_M()
++        parse_M()
++        parse_P()
++        parse_T()
+     elif lookahead.startswith('i'):
+         match('i')
+-        while pos < len(tokens) and tokens[pos].startswith('='):
+-            match('=')
+-            match('c')
+-            parse_M()
+-            parse_M()
++        parse_H()
+     elif lookahead.startswith('o'):
+         match('o')
+     else:
+@@ -81,9 +64,10 @@
+ 
+ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('.'):
++    if pos < len(tokens) and tokens[pos].startswith('.'):
+         match('.')
+-        match('(')
++        parse_M()
++        parse_M()
+ 
+ def parse_K():
+     global pos, tokens
+@@ -92,10 +76,10 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('g'):
+         match('g')
+-    elif lookahead.startswith('P'):
++    elif tokens[pos].startswith('N') or tokens[pos].startswith('0') or tokens[pos].startswith('$'):
+         parse_P()
+         parse_B()
+         parse_H()
+         parse_B()
+     elif lookahead.startswith('%'):
+         match('%')
+@@ -109,7 +93,7 @@
+         match("'")
+         parse_T()
+         parse_W()
+-    elif lookahead.startswith('M'):
++    elif tokens[pos].startswith('.'):
+         parse_M()
+     else:
+         error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['g', 'P', '%', 'v', 'M']))
+@@ -123,7 +107,7 @@
+ 
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('B'):
++    while pos < len(tokens) and (tokens[pos].startswith('N') or tokens[pos].startswith('0') or tokens[pos].startswith('$')):
+         parse_B()
+         parse_M()
+         match('r')

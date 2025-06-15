@@ -1,0 +1,54 @@
+@@ -23,26 +23,3 @@
+         match('5')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('_'):
+-            match('_')
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            match('%')
+-            match(']')
+-            parse_V()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            parse_C()
+-        elif lookahead.startswith('1'):
+-            match('1')
+-            match('w')
+-            match('{')
+-        elif lookahead.startswith(')'):
+-            match(')')
+-            parse_L()
+-            parse_G()
+-            match('N')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['_', '^', '&', '1', ')']))
++        parse_V()
+     elif lookahead.startswith('('):
+@@ -50,14 +27,3 @@
+         match('p')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('|'):
+-            match('|')
+-            match('S')
+-            parse_L()
+-            match('=')
+-        elif lookahead.startswith('!'):
+-            match('!')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['|', '!']))
++        parse_Z()
+         match('|')
+@@ -185,6 +151,6 @@
+         match('=')
+-    elif lookahead.startswith('V'):
+-        parse_V()
++    elif lookahead.startswith('U'):
++        match('U')
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'V']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'U']))
+ 

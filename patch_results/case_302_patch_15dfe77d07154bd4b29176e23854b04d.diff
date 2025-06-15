@@ -1,0 +1,16 @@
+@@ -100,9 +100,9 @@ def parse_V():
+     lookahead = tokens[pos]
+     if lookahead.startswith('6'):
+         match('6')
+-    elif lookahead.startswith('2'):
+-        match('2')
++    elif lookahead.startswith('t'):
++        match('t')
+         match('q')
+         parse_G()
+     elif lookahead.startswith('3'):
+@@ -115,7 +115,7 @@ def parse_V():
+         match("'")
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['6', '2', '3', '}']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['6', 't', '3', '}']))

@@ -1,0 +1,16 @@
+@@ -74,7 +74,7 @@ def parse_O():
+     elif lookahead.startswith('|'):
+         match('|')
+-        match('S')
++        match('7')
+     elif lookahead.startswith('*'):
+         match('*')
+     else:
+@@ -32,7 +32,7 @@ def parse_L():
+         elif lookahead.startswith('|'):
+             match('|')
+-            match('S')
++            match('7')
+         elif lookahead.startswith('*'):
+             match('*')
+         else:

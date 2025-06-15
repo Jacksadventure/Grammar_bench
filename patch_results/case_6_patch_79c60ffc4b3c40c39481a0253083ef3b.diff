@@ -1,0 +1,37 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,30 +21,10 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('T'):
+         match('T')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            parse_F()
+-            parse_F()
+-        elif lookahead.startswith('q'):
+-            match('q')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['T', 'q']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            parse_F()
+-            parse_F()
+-        elif lookahead.startswith('q'):
+-            match('q')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['T', 'q']))
+-    elif lookahead.startswith('q'):
+-        match('q')
++        parse_F()
++        parse_F()
++    elif lookahead.startswith(']'):
++        match(']')
+     else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['T', 'q']))
++        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['T', ']']))

@@ -1,0 +1,29 @@
+@@ -17,25 +17,14 @@ def parse_F():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in F")
+     lookahead = tokens[pos]
+     if lookahead.startswith('t'):
+         match('t')
+         match('$')
+         match('R')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('t'):
+-            match('t')
+-            match('$')
+-            match('R')
+-            parse_F()
+-        elif lookahead.startswith('M'):
+-            match('M')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['t', 'M']))
+-    elif lookahead.startswith('M'):
+-        match('M')
++        parse_F()
++    elif lookahead.startswith('k'):
++        match('k')
+     else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['t', 'M']))
++        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['t', 'k']))

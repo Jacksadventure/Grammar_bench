@@ -1,0 +1,18 @@
+@@ -22,7 +22,7 @@ def parse_W():
+-        while pos < len(tokens) and tokens[pos].startswith('u'):
+-            match('u')
+-            match('T')
+-            parse_O()
++        parse_O()
+@@
+ def parse_O():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('u'):
+-        match('u')
+-        match('T')
+-        parse_O()
++    if pos < len(tokens) and tokens[pos].startswith('u'):
++        match('u')
++        parse_O()
++        parse_O()
++        parse_O()

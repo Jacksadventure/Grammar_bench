@@ -1,0 +1,23 @@
+@@ -27,7 +27,7 @@ def parse_T():
+         if lookahead.startswith('-'):
+             match('-')
+             parse_T()
+         elif lookahead.startswith('G'):
+             match('G')
+             parse_U()
+             parse_S()
+@@ -46,7 +46,7 @@ def parse_T():
+         elif lookahead.startswith("'"):
+             match("'")
+         else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['?', "'"]))
++            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['?', '8']))
+         if pos >= len(tokens):
+             error("Unexpected end of input in S")
+         lookahead = tokens[pos]
+@@ -88,7 +88,7 @@ def parse_U():
+     elif lookahead.startswith("'"):
+         match("'")
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['?', "'"]))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['?', '8']))

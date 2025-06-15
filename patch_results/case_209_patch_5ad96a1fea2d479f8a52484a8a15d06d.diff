@@ -1,0 +1,95 @@
+--- a/parser.py
++++ b/parser.py
+@@ def parse_A():
+     if lookahead.startswith('J'):
+         match('J')
+-        while pos < len(tokens) and tokens[pos].startswith('6'):
+-            match('6')
+-            parse_L()
+-            match('7')
+-        match('V')
+-        match('u')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('D'):
+-            parse_D()
+-        elif lookahead.startswith('I'):
+-            match('I')
+-            parse_Y()
+-        elif lookahead.startswith('C'):
+-            match('C')
+-            parse_O()
+-            match('0')
+-        elif lookahead.startswith(':'):
+-            match(':')
+-            match('s')
+-            parse_O()
+-            parse_Y()
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            parse_A()
+-            match('J')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['D', 'I', 'C', ':', '_']))
++        parse_L()
++        match('V')
++        match('u')
++        parse_Y()
+@@ def parse_A():
+     elif lookahead.startswith('U'):
+-        match('U')
+-        match('?')
+-        while pos < len(tokens) and tokens[pos].startswith('>'):
+-            match('>')
+-            parse_L()
+-            match('B')
+-            match('b')
+-            match("'")
++        match('U')
++        if pos < len(tokens) and tokens[pos].startswith('?'):
++            match('?')
++            parse_W()
+@@ def parse_A():
+     elif lookahead.startswith('V'):
+-        match('V')
+-        match('H')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('J'):
+-            match('J')
+-            parse_L()
+-            match('V')
+-            match('u')
+-            parse_Y()
+-        elif lookahead.startswith('U'):
+-            match('U')
+-            match('?')
+-            parse_W()
+-        elif lookahead.startswith('V'):
+-            match('V')
+-            match('H')
+-            parse_A()
+-        elif lookahead.startswith('U'):
+-            match('U')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['J', 'U', 'V', 'U']))
++        match('V')
++        match('H')
++        parse_A()
+@@ def parse_A():
+-    else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['J', 'U', 'V', 'U']))
++    else:
++        error("Unexpected token " + lookahead + " in A, expected one of: J, U, V, U")
+@@ def parse_L():
+-    while pos < len(tokens) and tokens[pos].startswith('6'):
+-        match('6')
+-        parse_L()
+-        match('7')
++    while pos < len(tokens) and tokens[pos].startswith('6'):
++        match('6')
++        parse_L()
++        match('7')
++        parse_L()

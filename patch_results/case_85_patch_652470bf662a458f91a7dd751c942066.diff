@@ -1,0 +1,79 @@
+@@ -22,10 +22,7 @@ def parse_N():
+     if lookahead.startswith('#'):
+         match('#')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
++        parse_T()
+     elif lookahead.startswith('T'):
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
++        parse_T()
++        parse_T()
+     elif lookahead.startswith('9'):
+@@ -71,5 +68,3 @@ def parse_N():
+             error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['|', '']))
+     elif lookahead.startswith('5'):
+         match('5')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
+-        while pos < len(tokens) and tokens[pos].startswith('+'):
+-            match('+')
+-            parse_F()
+-            parse_F()
+-            match('d')
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('8')
+-            match('.')
+-            match('b')
++        parse_T()
++        parse_O()
++        parse_T()
+     elif lookahead.startswith('e'):
+@@ -94,6 +89,8 @@ def parse_N():
+ def parse_T():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('b'):
++    if pos < len(tokens) and tokens[pos].startswith('b'):
+         match('b')
+         match('8')
+         match('.')
+         match('b')
++        parse_T()
+@@ -102,6 +99,8 @@ def parse_T():
+ def parse_O():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
++    if pos < len(tokens) and tokens[pos].startswith('+'):
+         match('+')
+         parse_F()
+         parse_F()
+         match('d')
++        parse_O()
+@@ -110,10 +109,12 @@ def parse_O():
+ def parse_F():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in F")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('|'):
++    if pos < len(tokens) and tokens[pos].startswith('|'):
+         match('|')
+-        match('j')
+-    else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['|', '']))
++        parse_F()

@@ -1,0 +1,72 @@
+@@ -17,24 +17,46 @@ def parse_U():
+ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('m'):
+-        match('m')
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('m'):
++        match('m')
++        parse_Z()
++        parse_M()
++        parse_U()
++    elif lookahead.startswith('Y'):
++        parse_Y()
++        parse_G()
++        parse_V()
++
++@@ -50,8 +72,16 @@ def parse_G():
++ def parse_G():
++     global pos, tokens
++-    while pos < len(tokens) and tokens[pos].startswith('O'):
++-        match('O')
++-        parse_U()
++     if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('A'):
+-            match('A')
+-            match(',')
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['A', '']))
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('O'):
++        match('O')
++        parse_U()
++        parse_G()
++    elif lookahead.startswith('C'):
++        match('C')
++        parse_N()
++        parse_S()
++
++@@ -56,8 +86,12 @@ def parse_M():
++ def parse_M():
++     global pos, tokens
++-    while pos < len(tokens) and tokens[pos].startswith('-'):
++-        match('-')
++     if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('-'):
++        match('-')
++        parse_M()
++    elif lookahead.startswith('y'):
++        match('y')
++        parse_Y()
++
++@@ -111,6 +145,6 @@ def parse_Z():
++ def parse_Z():
++     global pos, tokens
++-    while pos < len(tokens) and tokens[pos].startswith('A'):
++-        match('A')
++-        match(',')
++     if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('^'):
++        match('^')
++        match(',')
+         parse_Z()

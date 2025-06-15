@@ -1,0 +1,9 @@
+@@ -134,7 +134,7 @@
+     if lookahead.startswith('~'):
+         match('~')
+         match('M')
+-        match('l')
++        parse_H()
+         parse_Y()
+     elif lookahead.startswith('K'):
+         match('K')

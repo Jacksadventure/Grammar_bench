@@ -1,0 +1,71 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,39 +19,7 @@
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
+-        match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-            parse_L()
+-            parse_U()
+-            parse_V()
+-            parse_L()
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(["'", '']))
+-        match('~')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('o'):
+-            match('o')
+-            parse_Q()
+-            parse_L()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            match('E')
+-            parse_V()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-            parse_Q()
+-            parse_L()
+-        elif lookahead.startswith('L'):
+-            parse_L()
+-            match('n')
+-            match('^')
+-        elif lookahead.startswith('-'):
+-            match('-')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['o', '&', '2', 'L', '-']))
+-        match('t')
++    if pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
++        parse_L()
++        match('~')
++        parse_U()
++        match('t')
++        parse_V()
+@@ -61,6 +29,8 @@
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         parse_L()
+         parse_U()
+         parse_V()
+         parse_L()
++        parse_L()
+@@ -74,2 +42,2 @@
+         match('h')
+-        match("'")
++        match('Z')
+     elif lookahead.startswith('u'):
+@@ -106,2 +74,2 @@
+-    elif lookahead.startswith('L'):
+-        parse_L()
++    elif pos < len(tokens) and (tokens[pos].startswith("'") or tokens[pos].startswith('n')):
++        parse_L()
+@@ -113,1 +81,1 @@
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['o', '&', '2', 'L', '-']))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['o', '&', '2', "'", 'n', '-']))

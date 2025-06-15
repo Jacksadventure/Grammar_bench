@@ -1,0 +1,45 @@
+@@ -19,20 +19,11 @@ def parse_V():
+     while pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-            parse_L()
+-            parse_U()
+-            parse_V()
+-            parse_L()
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(["'", '']))
++        parse_L()
+         match('~')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
++        parse_U()
++        match('t')
++        parse_V()
++    if pos >= len(tokens):
++        error("Unexpected end of input in U")
+         lookahead = tokens[pos]
+@@ -55,4 +46,0 @@ def parse_V():
+             match('-')
+         else:
+             error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['o', '&', '2', 'L', '-']))
+-        match('t')
+
+@@ -61,6 +48,8 @@ def parse_L():
+     while pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         parse_L()
+         parse_U()
+         parse_V()
+         parse_L()
++        parse_L()
+
+@@ -73,2 +62,2 @@ def parse_Q():
+     if lookahead.startswith('h'):
+         match('h')
+-        match("'")
++        match('Z')

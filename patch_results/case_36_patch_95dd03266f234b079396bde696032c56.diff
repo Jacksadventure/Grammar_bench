@@ -1,0 +1,69 @@
+--- parser.py
++++ parser.py
+@@ -21,40 +21,12 @@ def parse_Z():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('N'):
+-        match('N')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('N'):
+-            match('N')
+-            parse_Z()
+-            match('4')
+-            match('g')
+-            parse_U()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['N', 'z']))
+-        match('4')
+-        match('g')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('B'):
+-            match('B')
+-            match('w')
+-            match('9')
+-            match('<')
+-        elif lookahead.startswith('?'):
+-            match('?')
+-            match('3')
+-            match('s')
+-            match('z')
+-            match('c')
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', ',']))
+-    elif lookahead.startswith('z'):
+-        match('z')
+-    else:
+-        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['N', 'z']))
++    if lookahead.startswith('N'):
++        match('N')
++        parse_Z()
++        match('4')
++        match('g')
++        parse_U()
++    elif lookahead.startswith('z'):
++        match('z')
++    else:
++        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['N', 'z']))
+
+@@ -77,9 +77,9 @@ def parse_U():
+     elif lookahead.startswith('?'):
+         match('?')
+         match('3')
+         match('s')
+         match('z')
+         match('c')
+-    elif lookahead.startswith(','):
+-        match(',')
+-    else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', ',']))
++    elif lookahead.startswith('g'):
++        match('g')
++    else:
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', 'g']))

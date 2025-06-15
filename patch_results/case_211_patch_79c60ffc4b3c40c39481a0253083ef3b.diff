@@ -1,0 +1,78 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,34 +19,5 @@
+-    while pos < len(tokens) and tokens[pos].startswith('l'):
+-        match('l')
+-        match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('{'):
+-            match('{')
+-            parse_L()
+-            parse_G()
+-            match('{')
+-            parse_I()
+-        elif lookahead.startswith(']'):
+-            match(']')
+-            match("'")
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            parse_B()
+-            parse_L()
+-        elif lookahead.startswith('e'):
+-            match('e')
+-            parse_G()
+-            match(':')
+-            match('(')
+-            match('8')
+-        elif lookahead.startswith('|'):
+-            match('|')
+-            parse_W()
+-            parse_B()
+-        elif lookahead.startswith('l'):
+-            match('l')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['{', ']', '<', 'e', '|', 'l']))
+-        match('h')
++    if pos < len(tokens) and tokens[pos].startswith('l'):
++        match('l')
++        match('|')
++        parse_W()
++        match('h')
++        parse_C()
+@@ -56,4 +27,5 @@
+-    while pos < len(tokens) and tokens[pos].startswith('q'):
++    if pos < len(tokens) and tokens[pos].startswith('q'):
+         match('q')
+-        match('(')
++        match('v')
++        parse_G()
+@@ -63,2 +35,3 @@
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
++    if pos < len(tokens) and tokens[pos].startswith('!'):
+         match('!')
++        parse_S()
+@@ -68,4 +41,5 @@
+-    while pos < len(tokens) and tokens[pos].startswith('%'):
++    if pos < len(tokens) and tokens[pos].startswith('%'):
+         match('%')
+         parse_G()
+         match('U')
++        parse_T()
+@@ -75,2 +50,3 @@
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
++        parse_O()
+@@ -132,2 +112,3 @@
+-    while pos < len(tokens) and tokens[pos].startswith('T'):
++    if pos < len(tokens) and tokens[pos].startswith('%'):
+         parse_T()
++        parse_L()
+@@ -138,3 +119,4 @@
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
++    if pos < len(tokens) and tokens[pos].startswith('^'):
+         match('^')
+         match('b')
++        parse_I()

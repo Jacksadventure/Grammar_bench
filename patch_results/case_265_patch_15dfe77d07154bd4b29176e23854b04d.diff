@@ -1,0 +1,66 @@
+--- parser.py
++++ parser.py
+@@ -17,37 +17,9 @@
+ def parse_E():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('Y'):
+-        match('Y')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('8'):
+-            match('8')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['8', '*']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('4'):
+-            match('4')
+-            parse_W()
+-            match(',')
+-            match('%')
+-            parse_J()
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['4', '']))
+-        match('x')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('i'):
+-            match('i')
+-            parse_O()
+-            parse_L()
+-        elif lookahead.startswith('?'):
+-            match('?')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['i', '?']))
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('Y'):
++        match('Y')
++        parse_V()
++        parse_J()
++        match('x')
++        parse_W()
+@@ -59,7 +31,7 @@ def parse_V():
+-    elif lookahead.startswith('*'):
+-        match('*')
++    elif lookahead.startswith(']'):
++        match(']')
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['8', '*']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['8', ']']))
+@@ -132,6 +104,9 @@ def parse_O():
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
+-        match('&')
+-        parse_V()
+-        parse_N()
++    while pos < len(tokens) and tokens[pos].startswith('&'):
++        match('&')
++        parse_V()
++        parse_N()
++    if pos < len(tokens) and tokens[pos].startswith('.'):
++        match('.')
++        parse_S()

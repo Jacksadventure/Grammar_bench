@@ -1,0 +1,42 @@
+@@ -17,16 +17,16 @@ def parse_O():
+ def parse_O():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('@'):
++    if pos < len(tokens) and tokens[pos].startswith('@'):
+         match('@')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('a'):
+-            match('a')
+-            match('}')
+-            parse_V()
+-        elif lookahead.startswith(':'):
+-            match(':')
+-            parse_Y()
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['a', '', ':']))
++        parse_V()
++        parse_O()
+ 
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('a'):
++    if pos < len(tokens) and tokens[pos].startswith('a'):
+         match('a')
+         match('}')
++        parse_V()
++    elif pos < len(tokens) and tokens[pos].startswith(':'):
++        match(':')
++        parse_Y()
+ 
+ def parse_Y():
+     global pos, tokens
+@@ -45,6 +45,7 @@ def parse_Y():
+     if lookahead.startswith('i'):
+         match('i')
+-        match('|')
++        parse_Y()
+     elif lookahead.startswith('*'):
+         match('*')
+         match('-')

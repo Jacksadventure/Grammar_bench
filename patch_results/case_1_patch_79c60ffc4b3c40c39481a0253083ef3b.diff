@@ -1,0 +1,24 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -22,19 +22,7 @@
+     if lookahead.startswith('w'):
+         match('w')
+         match('4')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('w'):
+-            match('w')
+-            match('4')
+-            parse_H()
+-            match('5')
+-            match('0')
+-        elif lookahead.startswith('='):
+-            match('=')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['w', '=']))
+-        match('5')
++        parse_H()
++        match('+')
+         match('0')
+     elif lookahead.startswith('='):

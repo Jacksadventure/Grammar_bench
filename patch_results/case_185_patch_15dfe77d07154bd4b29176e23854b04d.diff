@@ -1,0 +1,53 @@
+@@ -17,15 +17,17 @@ def parse_H():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
+-        match('?')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('^'):
+-            match('^')
+-            match('=')
+-            match('4')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['^', '']))
+-        match('b')
++    global pos, tokens
++    # Handle zero or more occurrences of '?' <X> 'b'
++    while pos < len(tokens) and tokens[pos].startswith('?'):
++        match('?')
++        parse_X()
++        match('b')
++    # Optional 'P' <Y> production
++    if pos < len(tokens) and tokens[pos].startswith('P'):
++        match('P')
++        parse_Y()
++    # Else epsilon (do nothing)
+ 
+@@ -95,11 +97,11 @@ def parse_X():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in X")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('^'):
+-        match('^')
+-        match('=')
+-        match('4')
+-    else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['^', '']))
++    global pos, tokens
++    # Production: '^' '=' <X> | ε
++    if pos < len(tokens) and tokens[pos].startswith('^'):
++        match('^')
++        match('=')
++        parse_X()
++    # else epsilon (do nothing)
+ 
+@@ -114,6 +116,8 @@ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)
+     pos = 0
+     parse_H()
++    if pos != len(tokens):
++        error("Unexpected trailing input")
+     print("Input accepted.")

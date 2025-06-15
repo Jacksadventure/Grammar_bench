@@ -1,0 +1,8 @@
+@@ -94,7 +94,7 @@ def parse_D():
+     elif lookahead.startswith('e'):
+         match('e')
+-        match('t')
++        parse_S()
+         parse_D()
+         match('_')
+         parse_O()

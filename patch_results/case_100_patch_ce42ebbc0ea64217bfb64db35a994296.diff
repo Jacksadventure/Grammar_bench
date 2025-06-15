@@ -1,0 +1,8 @@
+@@ -101,7 +101,7 @@ def parse_X():
+     lookahead = tokens[pos]
+     if lookahead.startswith("'"):
+-        match("'")
++        match("[")
+         match('x')
+     elif lookahead.startswith('<'):
+         match('<')

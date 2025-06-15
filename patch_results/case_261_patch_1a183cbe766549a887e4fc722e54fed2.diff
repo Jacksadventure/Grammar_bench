@@ -1,0 +1,22 @@
+@@ -39,7 +39,7 @@ def parse_N():
+         if pos >= len(tokens):
+-            error("Unexpected end of input in X")
++            error("Unexpected end of input in N")
+         lookahead = tokens[pos]
+         if lookahead.startswith('i'):
+-            match('i')
+-            match('o')
++            parse_X()
+         else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['i', '']))
++            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['i']))
+@@ -56,8 +56,10 @@ def parse_X():
+     lookahead = tokens[pos]
+     if lookahead.startswith('i'):
+         match('i')
+-        match('o')
++        parse_X()
+     else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['i', '']))
++        # epsilon production - do nothing
++        pass

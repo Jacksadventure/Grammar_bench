@@ -1,0 +1,70 @@
+--- parser.py
++++ parser.py
+@@ -17,36 +17,13 @@ def parse_O():
+-    while pos < len(tokens) and tokens[pos].startswith('*'):
+-        match('*')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            match('N')
+-            match('^')
+-            parse_F()
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['T', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            parse_P()
+-            parse_D()
+-        elif lookahead.startswith('6'):
+-            match('6')
+-            parse_F()
+-            match('2')
+-            match('N')
+-        elif lookahead.startswith('-'):
+-            match('-')
+-            match('V')
+-            match('8')
+-        elif lookahead.startswith('G'):
+-            parse_G()
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['p', '6', '-', 'G']))
+-        match('1')
++    if pos < len(tokens) and tokens[pos] == 's':
++        match('s')
++        parse_H()
++    elif pos < len(tokens) and tokens[pos].startswith('*'):
++        match('*')
++        parse_F()
++        parse_W()
++        match('1')
++        parse_O()
++    else:
++        return
+@@ -52,0 +54,15 @@
++def parse_W():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in W")
++    lookahead = tokens[pos]
++    if lookahead.startswith('p'):
++        match('p')
++        parse_P()
++        parse_D()
++    elif lookahead.startswith('6'):
++        match('6')
++        parse_F()
++        match('2')
++        match('N')
++    elif lookahead.startswith('-'):
++        match('-')
++        match('V')
++        match('8')
++    elif lookahead.startswith('G'):
++        parse_G()
++    else:
++        error("Unexpected token " + lookahead + " in W, expected one of: p, 6, -, G")

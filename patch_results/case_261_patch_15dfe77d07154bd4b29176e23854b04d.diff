@@ -1,0 +1,72 @@
+@@ -19,33 +19,17 @@ def parse_N():
+-    if pos >= len(tokens):
+-         error("Unexpected end of input in N")
+-     lookahead = tokens[pos]
+-     if lookahead.startswith('L'):
+-         match('L')
+-         if pos >= len(tokens):
+-             error("Unexpected end of input in N")
+-         lookahead = tokens[pos]
+-         if lookahead.startswith('L'):
+-             match('L')
+-             parse_N()
+-         elif lookahead.startswith('l'):
+-             match('l')
+-             parse_X()
+-         elif lookahead.startswith(';'):
+-             match(';')
+-         else:
+-             error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['L', 'l', ';']))
+-     elif lookahead.startswith('l'):
+-         match('l')
+-         if pos >= len(tokens):
+-             error("Unexpected end of input in X")
+-         lookahead = tokens[pos]
+-         if lookahead.startswith('i'):
+-             match('i')
+-             match('o')
+-         else:
+-             error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['i', '']))
+-     elif lookahead.startswith(';'):
+-         match(';')
+-     else:
+-         error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['L', 'l', ';']))
++    if pos >= len(tokens):
++        error("Unexpected end of input in N")
++    lookahead = tokens[pos]
++    if lookahead.startswith('L'):
++        match('L')
++        parse_N()
++    elif lookahead.startswith('l'):
++        match('l')
++        parse_X()
++    elif lookahead.startswith(';'):
++        match(';')
++    else:
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['L', 'l', ';']))
+@@
+-def parse_X():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in X")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('i'):
+-        match('i')
+-        match('o')
+-    else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['i', '']))
++def parse_X():
++    global pos, tokens
++    # ε-production: do nothing if no 'i' present
++    if pos < len(tokens) and tokens[pos].startswith('i'):
++        match('i')
++        parse_X()
+@@
+-    pos = 0
+-    parse_N()
+-    print("Input accepted.")
++    pos = 0
++    parse_N()
++    if pos != len(tokens):
++        error("Unexpected input after position " + str(pos))
++    print("Input accepted.")

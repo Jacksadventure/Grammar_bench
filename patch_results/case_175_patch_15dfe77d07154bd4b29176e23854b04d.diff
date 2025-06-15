@@ -1,0 +1,55 @@
+@@ -18,31 +18,15 @@ def parse_N():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('b'):
+-        match('b')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
++    global pos, tokens
++    # Grammar:
++    # N -> 'b' Y Y Y Y N | ε
++    if pos < len(tokens) and tokens[pos].startswith('b'):
++        match('b')
++        for _ in range(4):
++            parse_Y()
++        parse_N()
++
++def parse_Y():
++    # Y -> 'q'
++    match('q')
+@@
+-    tokens = list(input_str)
++    # Tokenize the input as non-whitespace characters
++    tokens = [ch for ch in input_str if not ch.isspace()]
+     pos = 0
+-    parse_N()
+-    print("Input accepted.")
++    parse_N()
++    if pos != len(tokens):
++        error("Extra input after parsing")
++    print("Input accepted.")

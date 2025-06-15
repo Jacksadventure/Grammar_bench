@@ -1,0 +1,93 @@
+--- parser.py
++++ parser.py
+@@ -23,31 +23,6 @@ def parse_W():
+     if lookahead.startswith('6'):
+         match('6')
+-    elif lookahead.startswith('1'):
+-        match('1')
+-        while pos < len(tokens) and tokens[pos].startswith('/'):
+-            match('/')
+-            match('6')
+-            match('w')
+-            match('r')
+-            parse_J()
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('6'):
+-            match('6')
+-        elif lookahead.startswith('1'):
+-            match('1')
+-            parse_N()
+-            parse_W()
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            parse_B()
+-        elif lookahead.startswith('b'):
+-            match('b')
+-            parse_U()
+-            parse_I()
+-        elif lookahead.startswith('H'):
+-            match('H')
+-            match('=')
+-            match('&')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['6', '1', '^', 'b', 'H']))
++    elif lookahead.startswith('1'):
++        match('1')
++        parse_N()
++        parse_W()
+
+@@ -55,17 +30,4 @@ def parse_W():
+-    elif lookahead.startswith('^'):
+-        match('^')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('J'):
+-            parse_J()
+-            parse_J()
+-            parse_B()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            match('{')
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            match('{')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['J', '&', '&']))
++    elif lookahead.startswith('^'):
++        match('^')
++        parse_B()
+
+@@ -91,11 +65,10 @@ def parse_B():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in B")
+-    lookahead = tokens[pos]
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
+@@ -101,11 +74,8 @@ def parse_B():
+     if lookahead.startswith('J'):
+         parse_J()
+         parse_J()
+         parse_B()
+-    elif lookahead.startswith('&'):
+-        match('&')
+-        match('{')
+-    elif lookahead.startswith('&'):
+-        match('&')
+-        match('{')
++    elif lookahead.startswith('&'):
++        match('&')
++        parse_K()
+-    else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['J', '&', '&']))
+@@ -161,4 +131,5 @@ def parse_A():
+-    while pos < len(tokens) and tokens[pos].startswith('N'):
+-        parse_N()
+-        parse_K()
+-        parse_A()
++    while pos < len(tokens) and tokens[pos].startswith('/'):
++        parse_N()
++        parse_K()

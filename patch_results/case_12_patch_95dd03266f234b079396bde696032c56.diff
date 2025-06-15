@@ -1,0 +1,15 @@
+@@ -21,8 +21,8 @@ def parse_E():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('S'):
+-        match('S')
+-        match('o')
+-    elif lookahead.startswith('M'):
++    if lookahead == 'e':
++        match('e')
++        match('o')
++    elif lookahead == 'M':
+     match('M')
+-    else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['S', 'M']))
++    else:
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['e', 'M']))

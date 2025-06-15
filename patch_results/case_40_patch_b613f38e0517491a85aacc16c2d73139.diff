@@ -1,0 +1,9 @@
+@@ -21,7 +21,7 @@ def parse_H():
+     lookahead = tokens[pos]
+     if lookahead.startswith('['):
+         match('[')
+-        match('8')
++        parse_H()
+     elif lookahead.startswith('p'):
+         match('p')
+     else:

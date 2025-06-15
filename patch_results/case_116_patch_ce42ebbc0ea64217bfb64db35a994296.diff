@@ -1,0 +1,71 @@
+@@ -121,6 +121,8 @@ def parse_A():
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('6'):
++    if pos < len(tokens) and tokens[pos].startswith('6'):
+         match('6')
+         parse_W()
++        parse_W()
++    elif pos < len(tokens) and tokens[pos].startswith('g'):
++        match('g')
++        parse_F()
++        parse_E()
++        parse_V()
++
++def parse_V():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in V")
++    lookahead = tokens[pos]
++    if lookahead.startswith('X'):
++        match('X')
++    elif lookahead.startswith('3'):
++        match('3')
++        parse_Y()
++        match('l')
++        match('p')
++        match('-')
++    elif lookahead.startswith('u'):
++        match('u')
++        match('c')
++    elif lookahead.startswith('f') or lookahead.startswith('n') or lookahead.startswith('@') or lookahead.startswith('g'):
++        parse_Y()
++        match('|')
++        match('p')
++        match('&')
++        match('[')
++    else:
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['X', '3', 'u', 'f', 'n', '@', 'g']))
++
++def parse_F():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('!'):
++        match('!')
++        parse_W()
++        parse_F()
++
++def parse_E():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in E")
++    lookahead = tokens[pos]
++    if lookahead.startswith('m'):
++        match('m')
++        match("'")
++    elif lookahead.startswith('!'):
++        match('!')
++        match('%')
++        match(',')
++        parse_G()
++    elif lookahead.startswith('6'):
++        match('6')
++    else:
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['m', '!', '6']))
+@@ -146,6 +186,6 @@ def parse_G():
+     elif lookahead.startswith('c'):
+         match('c')
+-        match('^')
++        match('I')
+         match('x')
+         match("'")
+         match('h')

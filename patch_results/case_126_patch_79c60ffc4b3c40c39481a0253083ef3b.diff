@@ -1,0 +1,62 @@
+--- a/parser.py
++++ b/parser.py
+@@ -16,23 +16,20 @@
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
+-        match('?')
+-        match('h')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in P")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            match('h')
+-            parse_P()
+-            match('W')
+-            parse_P()
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            parse_C()
+-            parse_J()
+-        else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['?', '', 'd']))
+-        match('W')
++    if pos >= len(tokens):
++        return
++
++    lookahead = tokens[pos]
++
++    if lookahead.startswith('?'):
++        match('?')
++        match('h')
++        parse_P()
++        match('W')
++        parse_P()
++    elif lookahead.startswith('d'):
++        match('d')
++        parse_C()
++        parse_J()
++    else:
++        pass
+ 
+ def parse_C():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('x'):
++    if pos < len(tokens) and tokens[pos].startswith('x'):
+         match('x')
+-        match('G')
++        match('N')
++        parse_C()
+ 
+ def parse_J():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('k'):
++    if pos < len(tokens) and tokens[pos].startswith('k'):
+         match('k')
+         match('!')
+         match('[')
++        parse_J()
+ 
+ def parse_input(input_str):
+     global tokens, pos

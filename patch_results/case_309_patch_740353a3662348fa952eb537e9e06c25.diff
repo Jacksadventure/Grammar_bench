@@ -1,0 +1,62 @@
+@@ -29,7 +29,7 @@ def parse_W():
+         match('V')
+     elif lookahead.startswith('M'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('='):
+-            match('=')
+-        elif lookahead.startswith('2'):
+-            match('2')
+-            match('N')
+-        elif lookahead.startswith('5'):
+-            match('5')
+-            match('>')
+-            match('z')
+-            match('h')
+-        elif lookahead.startswith('4'):
+-            match('4')
+-            match('/')
+-            match('B')
+-            match('g')
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['=', '2', '5', '4']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('='):
+-            match('=')
+-        elif lookahead.startswith('2'):
+-            match('2')
+-            match('N')
+-        elif lookahead.startswith('5'):
+-            match('5')
+-            match('>')
+-            match('z')
+-            match('h')
+-        elif lookahead.startswith('4'):
+-            match('4')
+-            match('/')
+-            match('B')
+-            match('g')
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['=', '2', '5', '4']))
++        parse_M()
++        parse_M()
+         match('a')
+-        while pos < len(tokens) and tokens[pos].startswith('n'):
+-            match('n')
+-            parse_W()
+-            parse_D()
+-            parse_I()
++        parse_D()
+     elif lookahead.startswith('P'):
+@@ -263,5 +237,5 @@ def parse_M():
+     if lookahead.startswith('='):
+-        match('=')
++        match(':')
+     elif lookahead.startswith('2'):
+@@ -279,5 +253,5 @@ def parse_M():
+     else:
+-        error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['=', '2', '5', '4']))
++        error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join([':', '2', '5', '4']))

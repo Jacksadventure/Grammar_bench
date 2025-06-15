@@ -1,0 +1,62 @@
+@@ -33,13 +33,6 @@ def parse_G():
+         else:
+             error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['A', '', '/']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('>'):
+-            match('>')
+-            parse_Q()
+-        elif lookahead.startswith('/'):
+-            match('/')
+-            parse_B()
+-            parse_V()
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['>', '', '/']))
+ 
+ def parse_V():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('o'):
+         match('o')
+         parse_V()
+         parse_G()
+         match('~')
+         match('A')
++        parse_V()
+ 
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
+-        match('>')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('>'):
++            match('>')
++            parse_Q()
++        elif lookahead.startswith('/'):
++            match('/')
++            parse_B()
++            parse_V()
+ 
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('G'):
+-        parse_G()
+-        parse_G()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('A') or lookahead.startswith('/'):
++            parse_G()
++            parse_G()
++            parse_Z()
+ 
+ def parse_B():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith(';'):
+         match(';')
+         match(';')
+-        match('D')
++        match('|')
+         match('F')
+         match('e')
++        parse_B()

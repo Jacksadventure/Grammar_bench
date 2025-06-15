@@ -1,0 +1,90 @@
+@@ -17,35 +17,9 @@ def parse_A():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
+-        match('+')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_P()
+-            match('s')
+-            parse_Z()
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            parse_A()
+-            parse_Q()
+-            parse_Z()
+-        elif lookahead.startswith('S'):
+-            parse_S()
+-            match('B')
+-            parse_Z()
+-        elif lookahead.startswith(':'):
+-            match(':')
+-            match(':')
+-            match(';')
+-            parse_A()
+-            parse_Q()
+-        elif lookahead.startswith('K'):
+-            match('K')
+-            match('q')
+-        elif lookahead.startswith('7'):
+-            match('7')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['-', '<', 'S', ':', 'K', '7']))
+-        match(';')
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('+'):
++        match('+')
++        parse_T()
++        match(';')
+ 
+@@ -62,7 +62,15 @@ def parse_N():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('@'):
+-        match('@')
+-        parse_Q()
+-        parse_P()
+-        parse_J()
++    global pos, tokens
++    while True:
++        if pos < len(tokens) and tokens[pos].startswith('@'):
++            match('@')
++            parse_Q()
++            parse_P()
++            parse_J()
++        elif pos < len(tokens) and tokens[pos].startswith('p'):
++            match('p')
++            parse_S()
++        else:
++            break
+ 
+@@ -129,7 +137,8 @@ def parse_S():
+-    while pos < len(tokens) and tokens[pos].startswith('q'):
+-        match('q')
+-        match('Y')
+-        parse_N()
+-        parse_S()
++    while pos < len(tokens) and tokens[pos].startswith('q'):
++        match('q')
++        match('Y')
++        parse_N()
++        parse_S()
++        parse_S()
+ 
+@@ -138,7 +147,7 @@ def parse_Q():
+-    while pos < len(tokens) and tokens[pos].startswith('g'):
+-        match('g')
++    while pos < len(tokens) and tokens[pos].startswith('f'):
++        match('f')
+         match(']')
+         match('c')
+         match('g')
+ 
+@@ -145,6 +154,8 @@ def parse_input(input_str):
+-    parse_A()
+-    print("Input accepted.")
++    parse_A()
++    if pos != len(tokens):
++        error("Extra input after parsing")
++    print("Input accepted.")

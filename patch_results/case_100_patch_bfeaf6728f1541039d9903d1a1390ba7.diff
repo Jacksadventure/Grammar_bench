@@ -1,0 +1,17 @@
+@@ -35,7 +35,7 @@ def parse_L():
+-        elif lookahead.startswith('L'):
++        elif lookahead in ('l', '[', 'B', '~'):
+             parse_L()
+             match('*')
+@@ -101,7 +101,7 @@ def parse_X():
+-    if lookahead.startswith("'"):
++    if lookahead.startswith('['):
+         match("'")
+         match('x')
+@@ -102,7 +102,7 @@ def parse_X():
+-        match("'")
++        match('[')
+         match('x')
+@@ -112,7 +112,7 @@ def parse_X():
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(["'", '<', 'm', 'g']))
++        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['[', '<', 'm', 'g']))

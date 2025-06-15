@@ -1,0 +1,8 @@
+@@ -204,7 +204,7 @@ def parse_V():
+     elif lookahead.startswith('W'):
+         match('W')
+-        parse_S()
++        parse_R()
+         parse_V()
+     elif lookahead.startswith('G'):
+         match('G')

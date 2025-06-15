@@ -1,0 +1,9 @@
+@@ -140,7 +140,7 @@ def parse_M():
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('C'):
+-        match('C')
++    while pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
++        parse_K()
++        break

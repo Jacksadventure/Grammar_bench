@@ -1,0 +1,9 @@
+@@ -65,7 +65,7 @@ def parse_X():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('w'):
+         match('w')
+-        match('?')
++        parse_X()
+         parse_X()
+         match('O')
+         match('j')

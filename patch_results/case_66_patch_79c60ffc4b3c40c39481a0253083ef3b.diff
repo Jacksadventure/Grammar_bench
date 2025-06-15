@@ -1,0 +1,62 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -21,29 +21,9 @@
+     if lookahead.startswith('d'):
+         match('d')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            parse_O()
+-            match('B')
+-            match('A')
+-            match('U')
+-        elif lookahead.startswith('e'):
+-            match('e')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['j', 'e']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            parse_O()
+-            match('B')
+-            match('A')
+-            match('U')
+-        elif lookahead.startswith('e'):
+-            match('e')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['j', 'e']))
++        parse_I()
++        parse_I()
+     elif lookahead.startswith('o'):
+         match('o')
+         match('|')
+@@ -100,10 +80,10 @@
+ def parse_S():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in S")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('O'):
++    if lookahead.startswith('6') or lookahead.startswith('j'):
+         parse_O()
+         parse_O()
+         match(',')
+         match('Q')
+     elif lookahead.startswith('_'):
+@@ -117,8 +97,8 @@
+         match('J')
+         match('|')
+         match('1')
+-    elif lookahead.startswith('m'):
+-        match('m')
++    elif lookahead.startswith('2'):
++        match('2')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['O', '_', ',', 'E', 'm']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['6', 'j', '_', ',', 'E', '2']))
+ 
+ def parse_input(input_str):

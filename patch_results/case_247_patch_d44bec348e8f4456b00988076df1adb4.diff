@@ -1,0 +1,9 @@
+@@ -113,7 +113,7 @@ def parse_L():
+         parse_L()
+     elif lookahead.startswith('W'):
+         match('W')
++    elif lookahead.startswith('w'):
++        match('w')
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'W']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'w']))

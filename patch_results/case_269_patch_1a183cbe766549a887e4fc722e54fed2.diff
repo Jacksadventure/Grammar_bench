@@ -1,0 +1,81 @@
+@@ -20,7 +20,9 @@ def parse_P():
+         error("Unexpected end of input in P")
+     lookahead = tokens[pos]
+     if lookahead.startswith('T'):
+         match('T')
++        parse_Q()
++        parse_U()
++    elif lookahead.startswith('o'):
+-        while pos < len(tokens) and tokens[pos].startswith('('):
+-            match('(')
+-            match("'")
+-            match('z')
+-        while pos < len(tokens) and tokens[pos].startswith('0'):
+-            match('0')
+-            match('K')
+-            parse_O()
+-            parse_N()
+-            parse_W()
+-    elif lookahead.startswith('o'):
+@@ -53,9 +55,15 @@ def parse_W():
+         match('F')
+         parse_B()
+         match('o')
++        parse_W()
+ 
+ def parse_Y():
+     global pos, tokens
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('+'):
++        match('+')
++        parse_G()
+     while pos < len(tokens) and tokens[pos].startswith('n'):
+         match('n')
+         match('J')
+@@ -96,9 +104,14 @@ def parse_B():
+         error("Unexpected end of input in O")
+     lookahead = tokens[pos]
+     if lookahead.startswith('q'):
+         match('q')
+         match('@')
+         match('q')
+-        match('t')
++        parse_O()
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['q', '']))
++        return
++
++def parse_G():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('*'):
++        match('*')
++        parse_G()
+ 
+ def parse_Z():
+     global pos, tokens
+@@ -134,6 +147,7 @@ def parse_Z():
+         parse_O()
+         parse_O()
+         match(':')
++        parse_Z()
+ 
+ def parse_U():
+     global pos, tokens
+@@ -143,6 +157,7 @@ def parse_U():
+         parse_O()
+         parse_N()
+         parse_W()
++        parse_U()
+ 
+ def parse_Q():
+     global pos, tokens
+@@ -150,6 +165,7 @@ def parse_Q():
+         match('(')
+         match("'")
+         match('z')
++        parse_Q()
+ 
+ def parse_input(input_str):
+     global tokens, pos

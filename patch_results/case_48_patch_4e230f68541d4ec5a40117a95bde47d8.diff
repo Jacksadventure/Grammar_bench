@@ -1,0 +1,54 @@
+@@ -21,37 +21,13 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('}'):
+         match('}')
+         match('~')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(','):
+-            match(',')
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join([',', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('}'):
+-            match('}')
+-            match('~')
+-            parse_Y()
+-            parse_E()
+-            parse_Y()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['}', 'A']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(','):
+-            match(',')
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join([',', '']))
++        parse_Y()
++        parse_E()
++        parse_Y()
+     elif lookahead.startswith('A'):
+         match('A')
+     else:
+         error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['}', 'A']))
+@@ -60,9 +36,4 @@
+ def parse_Y():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in Y")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith(','):
++    if pos < len(tokens) and tokens[pos].startswith(','):
+         match(',')
+-        match('d')
+-    else:
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join([',', '']))
++        parse_Y()

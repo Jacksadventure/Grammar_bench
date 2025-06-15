@@ -1,0 +1,45 @@
+@@ -14,27 +14,34 @@
+     else:
+         error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
+ 
++def parse_G():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('8'):
++        match('8')
++        match('X')
++        match('s')
++        parse_G()
++        parse_O()
++        parse_G()
++
+ def parse_O():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in O")
+     lookahead = tokens[pos]
+     if lookahead.startswith(']'):
+         match(']')
+-        while pos < len(tokens) and tokens[pos].startswith('8'):
+-            match('8')
+-            match('X')
+-            match('s')
+-            match('p')
+-            parse_O()
++        parse_G()
+     elif lookahead.startswith('4'):
+         match('4')
+     else:
+         error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join([']', '4']))
+ 
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)
+     pos = 0
+     parse_O()
+-    print("Input accepted.")
++    if pos != len(tokens):
++        error("Extra characters at end of input: " + "".join(tokens[pos:]))
++    print("Input accepted.")
+ 
+ def main():
+     import sys

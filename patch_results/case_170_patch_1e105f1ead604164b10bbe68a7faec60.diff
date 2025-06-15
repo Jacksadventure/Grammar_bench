@@ -1,0 +1,84 @@
+Looking at the grammar and the parser code, I can see several issues:
+
+1. The grammar shows `<L>` should have productions `["'", "<L>"]` and `[]` (empty), but the parser implements `<L>` as a loop over `<S>` productions.
+2. The parser has repetitive code for parsing three `<S>` productions after `u B`, but it should parse them sequentially, not with repetitive lookahead checks.
+3. The `~` production in `<S>` should parse `<L>`, not loop over `<S>` productions.
+4. The `<L>` production should handle `'` (apostrophe) tokens followed by more `<L>`, or be empty.
+
+@@ -22,58 +22,13 @@ def parse_S():
+     if lookahead.startswith('u'):
+         match('u')
+         match('B')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            match('B')
+-            parse_S()
+-            parse_S()
+-            parse_S()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_L()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['u', '~', 'n']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            match('B')
+-            parse_S()
+-            parse_S()
+-            parse_S()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_L()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['u', '~', 'n']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            match('B')
+-            parse_S()
+-            parse_S()
+-            parse_S()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_L()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['u', '~', 'n']))
++        parse_S()
++        parse_S()
++        parse_S()
+     elif lookahead.startswith('~'):
+         match('~')
+-        while pos < len(tokens) and tokens[pos].startswith('S'):
+-            parse_S()
++        parse_L()
+     elif lookahead.startswith('n'):
+         match('n')
+     else:
+@@ -82,8 +37,12 @@ def parse_S():
+ def parse_L():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('S'):
+-        parse_S()
++    if pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
++        parse_L()
++    else:
++        # Empty production - do nothing
++        pass
+ 
+ def parse_input(input_str):
+     global tokens, pos

@@ -1,0 +1,54 @@
+@@ -53,7 +53,9 @@ def parse_K():
+         if lookahead.startswith('#'):
+             match('#')
+-            match('8')
++            parse_S()
+         else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['#', '']))
++            # Empty production for S
++            pass
+         match('B')
+         match('r')
+@@ -70,7 +72,9 @@ def parse_S():
+     if lookahead.startswith('#'):
+         match('#')
+-        match('8')
++        parse_S()
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['#', '']))
++        # Empty production for S
++        pass
+ 
+ def parse_T():
+@@ -107,8 +111,14 @@ def parse_M():
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
+-        match('^')
+-        parse_W()
+-        match('*')
++    if pos < len(tokens) and tokens[pos].startswith('^'):
++        match('^')
++        parse_W()
++        match('*')
++        parse_W()
++    elif pos < len(tokens) and tokens[pos].startswith('Y'):
++        match('Y')
++        parse_O()
++    # else: empty production
+ 
+ def parse_O():
+@@ -130,7 +140,7 @@ def parse_O():
+     elif lookahead.startswith('#'):
+         match('#')
+-    elif lookahead.startswith('T'):
++    elif lookahead.startswith('d'):
+         parse_T()
+         parse_K()
+     elif lookahead.startswith('c'):
+@@ -140,5 +150,5 @@ def parse_O():
+         match('v')
+         match('A')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['X', 'x', '#', 'T', 'c']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['X', 'x', '#', 'd', 'c']))

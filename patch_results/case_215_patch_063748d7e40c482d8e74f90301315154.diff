@@ -1,0 +1,4 @@
+@@ -175,2 +175,2 @@ def parse_Y():
+     while pos < len(tokens) and tokens[pos].startswith('p'):
+-        match('p')
++        match('|')

@@ -1,0 +1,108 @@
+```
+@@ -23,22 +23,7 @@
+         match('P')
+         match('w')
+         match('u')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('+'):
+-            match('+')
+-            match(']')
+-            match('q')
+-            match('i')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-        elif lookahead.startswith('s'):
+-            match('s')
+-            match('!')
+-            parse_J()
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['+', "'", 's']))
++        parse_B()
+         match('I')
+     elif lookahead.startswith('S'):
+         match('S')
+@@ -47,20 +32,20 @@
+         error("Unexpected end of input in V")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('J'):
++    if lookahead.startswith('P') or lookahead.startswith('S') or lookahead.startswith('<') or lookahead.startswith('f'):
+         parse_J()
+         parse_J()
+         match("'")
+         parse_V()
+         match('~')
+     elif lookahead.startswith('5'):
+         match('5')
+         match('i')
+         parse_B()
+         match('8')
+     elif lookahead.startswith('2'):
+         match('2')
+         match('`')
+         match('d')
+         match('+')
+     elif lookahead.startswith('s'):
+         match('s')
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['J', '5', '2', 's']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['P', 'S', '<', 'f', '5', '2', 's']))
+ elif lookahead.startswith('<'):
+     match('<')
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in B")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('+'):
+-        match('+')
+-        match(']')
+-        match('q')
+-        match('i')
+-    elif lookahead.startswith("'"):
+-        match("'")
+-    elif lookahead.startswith('s'):
+-        match('s')
+-        match('!')
+-        parse_J()
+-    else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['+', "'", 's']))
++    parse_B()
+     if pos >= len(tokens):
+         error("Unexpected end of input in J")
+     lookahead = tokens[pos]
+@@ -87,7 +72,7 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in V")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('J'):
++    if lookahead.startswith('P') or lookahead.startswith('S') or lookahead.startswith('<') or lookahead.startswith('f'):
+         parse_J()
+         parse_J()
+         match("'")
+@@ -105,7 +90,7 @@
+         match('s')
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['J', '5', '2', 's']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['P', 'S', '<', 'f', '5', '2', 's']))
+ 
+ def parse_B():
+     global pos, tokens
+@@ -118,14 +103,14 @@
+         match(']')
+         match('q')
+         match('i')
+-    elif lookahead.startswith("'"):
+-        match("'")
++    elif lookahead.startswith(','):
++        match(',')
+     elif lookahead.startswith('s'):
+         match('s')
+         match('!')
+         parse_J()
+     else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['+', "'", 's']))
++        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['+', ",", 's']))
+ 
+ def parse_input(input_str):
+     global tokens, pos
+```

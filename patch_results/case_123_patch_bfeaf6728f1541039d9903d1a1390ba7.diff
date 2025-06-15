@@ -1,0 +1,49 @@
+@@ -67,1 +67,1 @@
+-            match('t')
++            parse_S()
+@@ -105,7 +105,14 @@ def parse_O():
+-    while pos < len(tokens) and tokens[pos].startswith('X'):
+-        match('X')
+-        parse_O()
+-        match('Y')
+-        parse_P()
+-        match('V')
++    # Production: X O Y P V O
++    if pos < len(tokens) and tokens[pos].startswith('X'):
++        match('X')
++        parse_O()
++        match('Y')
++        parse_P()
++        match('V')
++        parse_O()
++    # Production: v W
++    elif pos < len(tokens) and tokens[pos].startswith('v'):
++        match('v')
++        parse_W()
++    # else: empty
+@@ -119,3 +126,20 @@ def parse_Z():
+     while pos < len(tokens) and tokens[pos].startswith('o'):
+         match('o')
+         parse_S()
++
++def parse_W():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in W")
++    lookahead = tokens[pos]
++    if lookahead.startswith('s'):
++        match('s')
++        match('%')
++        parse_Z()
++    elif lookahead.startswith('r'):
++        match('r')
++        match('L')
++        match(']')
++        match('k')
++    elif lookahead.startswith('/'):
++        match('/')
++        if pos < len(tokens) and tokens[pos].startswith(('o','e','h')):
++            parse_D()
++            match('}')
++    else:
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['s', 'r', '/']))

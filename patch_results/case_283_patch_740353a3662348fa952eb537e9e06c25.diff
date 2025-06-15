@@ -1,0 +1,33 @@
+@@ -103,7 +103,7 @@ def parse_Y():
+     elif lookahead.startswith('G'):
+-        parse_G()
++        match('G')
+     else:
+         error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['z', 'G']))
+
+@@ -115,6 +115,11 @@ def parse_J():
+     while pos < len(tokens) and tokens[pos].startswith(';'):
+         match(';')
+         match('K')
+         parse_U()
+         match('m')
+         match('p')
++    if pos < len(tokens) and tokens[pos].startswith('w'):
++        match('w')
++        parse_Z()
+
+@@ -122,6 +127,18 @@ def parse_J():
+ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('y'):
+-        match('y')
++    while pos < len(tokens) and tokens[pos].startswith('_'):
++        match('_')
+         match('.')
++
++def parse_Z():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('A'):
++        match('A')
++        match("'")
++        parse_Z()

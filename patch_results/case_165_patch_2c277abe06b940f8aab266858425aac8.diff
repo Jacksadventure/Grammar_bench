@@ -1,0 +1,76 @@
+@@ -21,16 +21,7 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('1'):
+         match('1')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            match('#')
+-        elif lookahead.startswith('3'):
+-            match('3')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['j', '3']))
++        parse_A()
+         match('v')
+     elif lookahead.startswith('#'):
+         match('#')
+@@ -34,38 +25,8 @@
+         match('v')
+     elif lookahead.startswith('#'):
+         match('#')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('t'):
+-            match('t')
+-            match('=')
+-            parse_L()
+-        elif lookahead.startswith('o'):
+-            match('o')
+-        elif lookahead.startswith('G'):
+-            match('G')
+-            match('j')
+-            parse_L()
+-            match('d')
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['t', 'o', 'G']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('1'):
+-            match('1')
+-            parse_A()
+-            match('v')
+-        elif lookahead.startswith('#'):
+-            match('#')
+-            parse_T()
+-            parse_L()
+-        elif lookahead.startswith('}'):
+-            match('}')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['1', '#', '}']))
++        parse_T()
++        parse_L()
+     elif lookahead.startswith('}'):
+         match('}')
+     else:
+@@ -76,17 +37,17 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in A")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('j'):
+-        match('j')
++    if lookahead.startswith('u'):
++        match('u')
+         match('#')
+     elif lookahead.startswith('3'):
+         match('3')
+     else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['j', '3']))
++        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['u', '3']))
+ 
+ def parse_T():
+     global pos, tokens

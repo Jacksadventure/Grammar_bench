@@ -1,0 +1,125 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -19,16 +19,10 @@
+-    while pos < len(tokens) and tokens[pos].startswith('1'):
+-        match('1')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(')'):
+-            match(')')
+-            match('m')
+-            parse_X()
+-            parse_T()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-            parse_M()
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join([')', '', 'N']))
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('1'):
++            match('1')
++            parse_T()
++            parse_Q()
++        elif lookahead.startswith('#'):
++            match('#')
++            parse_Q()
++            parse_K()
+ 
+@@ -36,7 +30,13 @@
+-    while pos < len(tokens) and tokens[pos].startswith(')'):
+-        match(')')
+-        match('m')
+-        parse_X()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith(')'):
++            match(')')
++            match('m')
++            parse_X()
++            parse_T()
++        elif lookahead.startswith('N'):
++            match('N')
++            parse_M()
++            parse_Z()
+ 
+@@ -46,9 +46,10 @@
+-    while pos < len(tokens) and tokens[pos].startswith('g'):
++    if pos < len(tokens) and tokens[pos].startswith('g'):
+         match('g')
+-        match(';')
++        match('+')
+         match('x')
++        parse_C()
+ 
+ def parse_M():
+     global pos, tokens
+@@ -68,4 +69,5 @@
+-    while pos < len(tokens) and tokens[pos].startswith('K'):
++    # First(<K>): '+' or 'i'
++    if pos < len(tokens) and (tokens[pos].startswith('+') or tokens[pos].startswith('i')):
+         parse_K()
+         match('~')
+         parse_R()
++        parse_X()
+ 
+@@ -75,8 +77,9 @@
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
++    if pos < len(tokens) and tokens[pos].startswith('&'):
+         match('&')
+         parse_Z()
+         match('|')
+         match('V')
++        parse_Z()
+ 
++def parse_L():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('g'):
++        match('g')
++        match('G')
++        parse_L()
++
++def parse_Y():
++    global pos, tokens
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('&'):
++            parse_Z()
++            match('c')
++            parse_C()
++            match(']')
++            parse_Y()
++        elif lookahead.startswith('W'):
++            match('W')
++            parse_L()
++
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('+'):
+         match('+')
+         match('}')
+         match('y')
+         match('y')
+         match('0')
++            parse_K()
++        elif lookahead.startswith('i'):
++            match('i')
++            parse_Y()
+ 
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         match('B')
+         match('/')
+         match('s')
++        parse_R()
+ 
+ def parse_input(input_str):
+     global tokens, pos

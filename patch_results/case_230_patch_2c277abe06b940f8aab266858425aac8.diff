@@ -1,0 +1,83 @@
+@@ -25,51 +25,3 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            parse_F()
+-            match('}')
+-            match('H')
+-            match('d')
+-        elif lookahead.startswith('2'):
+-            match('2')
+-            match('D')
+-            parse_Y()
+-        elif lookahead.startswith('+'):
+-            match('+')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['p', '2', '+']))
+-        match(',')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('8'):
+-            match('8')
+-            parse_Y()
+-            match('~')
+-            match('~')
+-        elif lookahead.startswith('i'):
+-            match('i')
+-            match('[')
+-            parse_A()
+-            match('.')
+-            parse_R()
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            match('&')
+-            parse_Y()
+-            match('`')
+-        elif lookahead.startswith('.'):
+-            match('.')
+-            match('j')
+-            match('9')
+-        elif lookahead.startswith('}'):
+-            match('}')
+-            match('f')
+-            match('X')
+-            match('p')
+-            match('e')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['8', 'i', '^', '.', '}', "'"]))
++        parse_C()
++        match(',')
++        parse_R()
+@@ -80,1 +32,21 @@
+- 
++
++def parse_C():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in C")
++    lookahead = tokens[pos]
++    if lookahead.startswith('p'):
++        match('p')
++        parse_F()
++        match('}')
++        match('H')
++        match('d')
++    elif lookahead.startswith('2'):
++        match('2')
++        match('D')
++        parse_Y()
++    elif lookahead.startswith('+'):
++        match('+')
++    else:
++        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['p', '2', '+']))
++ 
+@@ -88,3 +60,3 @@
+         match("'")
+-        parse_E()
++        match(']')
+         match('p')

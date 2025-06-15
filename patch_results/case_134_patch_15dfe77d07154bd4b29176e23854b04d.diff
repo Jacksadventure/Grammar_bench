@@ -1,0 +1,26 @@
+@@ -103,8 +103,8 @@
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('C'):
+-        match('C')
+-        match('A')
++    while pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        match('A')
+ 
+ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
+-        match('>')
+-        match('8')
+-        parse_J()
++    # Parse zero or more occurrences of "> 8 <J>"
++    while pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        match('8')
++        parse_J()
++    # Handle the "U <F>" alternative
++    if pos < len(tokens) and tokens[pos].startswith('U'):
++        match('U')
++        parse_F()
+@@

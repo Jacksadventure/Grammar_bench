@@ -1,0 +1,110 @@
+@@ -17,65 +17,29 @@ def parse_M():
+ def parse_M():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in M")
+     lookahead = tokens[pos]
+     if lookahead.startswith('+'):
+         match('+')
+-        while pos < len(tokens) and tokens[pos].startswith('m'):
+-            match('m')
+-            match('3')
+-        while pos < len(tokens) and tokens[pos].startswith('l'):
+-            match('l')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('+'):
+-            match('+')
+-            parse_V()
+-            parse_A()
+-            parse_M()
+-            parse_I()
+-        elif lookahead.startswith('{'):
+-            match('{')
+-            parse_F()
+-            parse_Z()
+-            match('~')
+-            parse_F()
+-        elif lookahead.startswith('o'):
+-            match('o')
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['+', '{', 'o']))
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            parse_V()
++        parse_V()
++        parse_A()
++        parse_M()
++        parse_I()
+     elif lookahead.startswith('{'):
+         match('{')
+-        while pos < len(tokens) and tokens[pos].startswith('a'):
+-            match('a')
+-            parse_Z()
+-            match('=')
+-            match("'")
+-            match('2')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            match(':')
+-            match('w')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['T', '']))
++        parse_F()
++        parse_Z()
+         match('~')
+-        while pos < len(tokens) and tokens[pos].startswith('a'):
+-            match('a')
+-            parse_Z()
+-            match('=')
+-            match("'")
+-            match('2')
++        parse_F()
+     elif lookahead.startswith('o'):
+         match('o')
+     else:
+         error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['+', '{', 'o']))
+ 
+ def parse_I():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('b'):
++    if pos < len(tokens) and tokens[pos].startswith('b'):
+         match('b')
+         parse_V()
++        parse_I()
+ 
+ def parse_V():
+@@ -116,8 +80,17 @@ def parse_A():
+ 
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('l'):
+-        match('l')
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('l'):
++        match('l')
++        parse_A()
++    elif lookahead.startswith('m') or lookahead.startswith('&') or lookahead.startswith('D'):
++        parse_V()
++        parse_P()
++    else:
++        return
+ 
+ def parse_Z():
+     global pos, tokens
+@@ -126,7 +99,8 @@ def parse_Z():
+     lookahead = tokens[pos]
+     if lookahead.startswith('T'):
+         match('T')
+         match(':')
+-        match('w')
++        parse_Z()
+     else:
+-        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['T', '']))
++        return

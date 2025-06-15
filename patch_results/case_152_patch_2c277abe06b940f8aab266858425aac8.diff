@@ -1,0 +1,43 @@
+```diff
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -21,25 +21,7 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('H'):
+         match('H')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('#'):
+-            match('#')
+-            match('0')
+-            parse_K()
+-        elif lookahead.startswith('o'):
+-            match('o')
+-            match('4')
+-            match('b')
+-        elif lookahead.startswith('7'):
+-            match('7')
+-            parse_S()
+-            match('v')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['#', 'o', '7', 'd']))
++        parse_S()
+     elif lookahead.startswith('_'):
+         match('_')
+     else:
+@@ -205,7 +187,7 @@
+         match('e')
+         match('}')
+         parse_R()
+-    elif lookahead.startswith('g'):
+-        match('g')
++    elif lookahead.startswith('J'):
++        match('J')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['k', '!', 'e', 'g']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['k', '!', 'e', 'J']))
+
+```

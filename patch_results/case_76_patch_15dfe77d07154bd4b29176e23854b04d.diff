@@ -1,0 +1,19 @@
+@@ -127,10 +127,14 @@ def parse_F():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in F")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('>'):
+-        match('>')
+-        match('~')
+-    else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['>', '']))
++    # According to the grammar, F ::= ">" F | ε
++    # This means F can consist of zero or more consecutive '>' tokens.
++    # If there are no '>' tokens, F simply derives ε and we return.
++    while pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        # Continue consuming any additional '>' tokens as part of the recursive rule.
++    # When the while loop exits (either because we've reached the end of input
++    # or the next token is not '>'), F derives ε, so there's nothing else to do.
++    return

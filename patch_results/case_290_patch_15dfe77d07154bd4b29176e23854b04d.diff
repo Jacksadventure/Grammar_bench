@@ -1,0 +1,9 @@
+@@ -82,8 +82,8 @@ def parse_V():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('w'):
+-        match('w')
++    if lookahead.startswith('!'):
++        match('!')
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['w']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['!']))

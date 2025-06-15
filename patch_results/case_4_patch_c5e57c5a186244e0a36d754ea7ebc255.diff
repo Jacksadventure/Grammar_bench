@@ -1,0 +1,25 @@
+```diff
+@@ -21,17 +21,8 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('g'):
+         match('g')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('g'):
+-            match('g')
+-            parse_M()
+-        elif lookahead.startswith('='):
+-            match('=')
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['g', '=']))
+-    elif lookahead.startswith('='):
+-        match('=')
++        parse_M()
++    elif lookahead.startswith('8'):
++        match('8')
+     else:
+-        error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['g', '=']))
++        error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['g', '8']))
+
+```

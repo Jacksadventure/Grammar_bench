@@ -1,0 +1,78 @@
+--- a/parser.py
++++ b/parser.py
+@@ -34,36 +34,13 @@
+     elif lookahead.startswith(':'):
+         match(':')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            match('G')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('{')
+-            match('R')
+-            match('n')
+-            match(']')
+-        elif lookahead.startswith('`'):
+-            match('`')
+-            match('q')
+-            parse_J()
+-            parse_O()
+-        elif lookahead.startswith('1'):
+-            match('1')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['?', '_', '`', '1']))
++        parse_T()
+         match('U')
+-        while pos < len(tokens) and tokens[pos].startswith('('):
+-            match('(')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('W'):
+-            match('W')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['W']))
++        parse_N()
++        parse_I()
+     elif lookahead.startswith("'"):
+         match("'")
+     else:
+         error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['~', 'f', ':', "'"]))
+ 
+ def parse_T():
+@@ -114,7 +91,7 @@
+         parse_T()
+         parse_A()
+     elif lookahead.startswith('3'):
+         match('3')
+-        parse_A()
++        match('1')
+         match('*')
+     elif lookahead.startswith('['):
+         match('[')
+@@ -122,3 +99,21 @@
+     else:
+         error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['H', '/', '3', '[']))
+ 
++def parse_N():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('('):
++        match('(')
++        parse_N()
++
++def parse_I():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in I")
++    lookahead = tokens[pos]
++    if lookahead.startswith('W'):
++        match('W')
++    else:
++        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['W']))
++
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)

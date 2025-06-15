@@ -1,0 +1,48 @@
+@@ -116,11 +116,11 @@ def parse_D():
+         while pos < len(tokens) and tokens[pos].startswith('%'):
+             match('%')
+             match('t')
+             match('3')
+             match('G')
+             parse_E()
+-        while pos < len(tokens) and tokens[pos].startswith('+'):
++            parse_R()
++        while pos < len(tokens) and tokens[pos].startswith('+'):
+             match('+')
+             parse_E()
++            parse_U()
+     elif lookahead.startswith('a'):
+         match('a')
+         match('L')
+@@ -174,8 +174,12 @@ def parse_F():
+ def parse_R():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('%'):
+         match('%')
+         match('t')
+         match('3')
+         match('G')
+         parse_E()
++        parse_R()
++
++def parse_U():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('+'):
++        match('+')
++        parse_E()
++        parse_U()
+ 
+ def parse_S():
+     global pos, tokens
+@@ -229,6 +233,9 @@ def parse_Y():
+ def parse_E():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('B'):
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('z'):
++        match('z')
++        parse_E()
++        parse_C()
++        parse_E()

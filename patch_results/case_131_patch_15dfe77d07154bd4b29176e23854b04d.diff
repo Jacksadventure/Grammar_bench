@@ -1,0 +1,73 @@
+@@ -17,47 +17,21 @@
+ def parse_K():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in K")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('8'):
+-        match('8')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('8'):
+-            match('8')
+-            parse_K()
+-            match("'")
+-            parse_C()
+-        elif lookahead.startswith('D'):
+-            match('D')
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['8', 'D']))
+-        match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('@'):
+-            match('@')
+-            match('!')
+-        elif lookahead.startswith('o'):
+-            match('o')
+-            match('m')
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            match('i')
+-            parse_B()
+-            match('u')
+-        elif lookahead.startswith(':'):
+-            match(':')
+-            match("'")
+-            match('M')
+-        elif lookahead.startswith('6'):
+-            match('6')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['@', 'o', '^', ':', '6']))
+-    elif lookahead.startswith('D'):
+-        match('D')
+-    else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['8', 'D']))
++    if lookahead.startswith('8'):
++        match('8')
++        parse_K()
++        match("'")
++        parse_C()
++    elif lookahead.startswith('D'):
++        match('D')
++    else:
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['8', 'D']))
+@@ -147,9 +121,9 @@ def parse_Q():
+         match('4')
+         match('4')
+         parse_F()
+-    elif lookahead.startswith('f'):
+-        match('f')
++    elif lookahead.startswith('t'):
++        match('t')
+     elif lookahead.startswith('m'):
+         match('m')
+         match('o')
+     elif lookahead.startswith('R'):
+         match('R')
+         parse_C()
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['j', 'f', 'm', 'R']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['j', 't', 'm', 'R']))

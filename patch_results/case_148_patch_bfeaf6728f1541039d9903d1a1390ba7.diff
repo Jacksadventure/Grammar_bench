@@ -1,0 +1,58 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,17 +17,10 @@ def parse_G():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('#'):
+-        match('#')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('#'):
+-            match('#')
+-            parse_G()
+-            parse_G()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            parse_B()
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['#', '', '9']))
++    global pos, tokens
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('#'):
++            match('#')
++            parse_G()
++            parse_G()
++        elif lookahead.startswith('9'):
++            match('9')
++            parse_B()
+ 
+ def parse_W():
+@@ -45,6 +38,7 @@ def parse_C():
+         parse_G()
+         match('+')
+         parse_C()
+         match('*')
++        parse_C()
+ 
+ def parse_L():
+     global pos, tokens
+@@ -91,7 +85,13 @@ def parse_D():
+-    while pos < len(tokens) and tokens[pos].startswith('*'):
+-        match('*')
++    while pos < len(tokens) and tokens[pos].startswith('4'):
++        match('4')
++
++def parse_I():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos] in ['{','Z',',','a','$']:
++        parse_B()
++
+ def parse_B():
+     global pos, tokens
+ 
+@@ -84,6 +94,9 @@ def parse_J():
+         parse_G()
++    if pos < len(tokens) and tokens[pos].startswith('2'):
++        match('2')
++        parse_I()

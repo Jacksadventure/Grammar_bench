@@ -1,0 +1,59 @@
+@@ -20,31 +20,14 @@ def parse_W():
+     lookahead = tokens[pos]
+     if lookahead.startswith('L'):
+-        match('L')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            match('(')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            match('(')
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            parse_B()
+-            parse_M()
+-            match('r')
+-            parse_K()
+-            match('}')
+-        while pos < len(tokens) and tokens[pos].startswith('e'):
+-            match('e')
+-            parse_W()
+-            parse_W()
+-            parse_P()
++        match('L')
++        parse_M()
++        parse_M()
++        parse_P()
++        parse_T()
+     elif lookahead.startswith('i'):
+-        match('i')
+-        while pos < len(tokens) and tokens[pos].startswith('='):
+-            match('=')
+-            match('c')
+-            parse_M()
+-            parse_M()
++        match('i')
++        parse_H()
+     elif lookahead.startswith('o'):
+         match('o')
+     else:
+@@
+ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('.'):
+-        match('.')
+-        match('(')
++    if pos < len(tokens) and tokens[pos].startswith('.'):
++        match('.')
++        parse_M()
++        parse_M()
+ 
+@@
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('B'):
++    while pos < len(tokens) and tokens[pos].startswith(('N', '0', '$')):
+         parse_B()
+         parse_M()
+         match('r')
+         parse_K()
+         match('}')

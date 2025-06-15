@@ -1,0 +1,73 @@
+--- parser.py
++++ parser.py
+@@ -45,7 +45,7 @@ def parse_N():
+             error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['v', 'j', 't', 'J']))
+-        while pos < len(tokens) and tokens[pos].startswith('a'):
+-            match('a')
+-            match('`')
+-            match(':')
++        parse_K()
+@@ -50,18 +50,5 @@ def parse_N():
+-    elif lookahead.startswith("'"):
+-        match("'")
+-        match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('N'):
+-            parse_N()
+-            match('q')
+-        elif lookahead.startswith('k'):
+-            match('k')
+-            match('=')
+-            match(']')
+-            match('=')
+-        elif lookahead.startswith('G'):
+-            match('G')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['N', 'k', 'G']))
++    elif lookahead.startswith("'"):
++        match("'")
++        match('|')
++        parse_S()
+@@ -89,7 +89,7 @@ def parse_S():
+     elif lookahead.startswith('k'):
+         match('k')
+         match('=')
+         match(']')
+         match('=')
+-    elif lookahead.startswith('G'):
+-        match('G')
++    elif lookahead.startswith('7'):
++        match('7')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['N', 'k', 'G']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['N', 'k', '7']))
+@@ -168,7 +168,14 @@ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('a'):
+-        match('a')
+-        match('`')
+-        match(':')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('a'):
++            match('a')
++            match('`')
++            match(':')
++            parse_K()
++        elif lookahead.startswith('i'):
++            match('i')
++            parse_E()
+     # empty production
+ 
+@@ -176,7 +176,7 @@ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('8'):
++    if pos < len(tokens) and tokens[pos].startswith('8'):
+         match('8')
+         parse_W()
+         parse_K()
+         parse_R()
+         parse_S()
+         parse_R()

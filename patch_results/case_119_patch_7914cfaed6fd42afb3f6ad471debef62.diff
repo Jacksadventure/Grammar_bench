@@ -1,0 +1,8 @@
+@@ -181,2 +181,2 @@ def parse_B():
+     elif lookahead.startswith('y'):
+         match('y')
++    elif lookahead.startswith('6'):
++        match('6')
+     else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['f', 'y']))
++        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['f', '6']))

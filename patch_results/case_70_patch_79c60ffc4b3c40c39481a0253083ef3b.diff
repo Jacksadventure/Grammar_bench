@@ -1,0 +1,57 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -19,22 +19,15 @@
+-    while pos < len(tokens) and tokens[pos].startswith('H'):
+-        match('H')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('z'):
+-            match('z')
+-            parse_B()
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['z', '']))
+-        match('w')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-            parse_O()
+-        elif lookahead.startswith('P'):
+-            match('P')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['.', 'P']))
++    if pos < len(tokens) and tokens[pos].startswith('H'):
++        match('H')
++        parse_B()
++        match('w')
++        if pos >= len(tokens):
++            error("Unexpected end of input in I")
++        lookahead_I = tokens[pos]
++        if lookahead_I.startswith('.'):
++            match('.')
++            parse_O()
++        elif lookahead_I.startswith('P'):
++            match('P')
++        else:
++            error("Unexpected token " + lookahead_I + " in I, expected one of: " + ", ".join(['.', 'P']))
++        parse_F()
+@@ -43,3 +36,3 @@
+-    while pos < len(tokens) and tokens[pos].startswith('z'):
+-        match('z')
++    if pos < len(tokens) and tokens[pos].startswith('z'):
++        match('z')
++        parse_B()
+@@ -48,5 +41,6 @@
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
+-        match('&')
+-        match('X')
+-        match('n')
+-        parse_O()
++    if pos < len(tokens) and tokens[pos].startswith('&'):
++        match('&')
++        match('X')
++        match(',')
++        parse_O()
++        parse_O()

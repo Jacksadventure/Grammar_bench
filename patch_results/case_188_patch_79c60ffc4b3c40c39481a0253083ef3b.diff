@@ -1,0 +1,182 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -19,99 +19,46 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in Z")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('F'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('&'):
+-            match('&')
+-            parse_O()
+-            match('y')
+-            match('U')
+-            parse_O()
+-        elif lookahead.startswith('6'):
+-            match('6')
+-            match('I')
+-            match('I')
+-            match('x')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['&', '6', 'd']))
+-    elif lookahead.startswith('S'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('n'):
+-            match('n')
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['n', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('`'):
+-            match('`')
+-            parse_X()
+-            parse_L()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-        elif lookahead.startswith(')'):
+-            match(')')
+-        elif lookahead.startswith('e'):
+-            match('e')
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['`', '&', ')', 'e']))
+-        while pos < len(tokens) and tokens[pos].startswith('5'):
+-            match('5')
+-            match('I')
+-            parse_F()
+-            match('|')
+-        match(']')
+-    elif lookahead.startswith('C'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('t'):
+-            match('t')
+-            parse_Z()
+-            parse_D()
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['t', ',']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('&'):
+-            match('&')
+-            parse_O()
+-            match('y')
+-            match('U')
+-            parse_O()
+-        elif lookahead.startswith('6'):
+-            match('6')
+-            match('I')
+-            match('I')
+-            match('x')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['&', '6', 'd']))
++    # Z -> <F>
++    # First(<F>) = {'&', '6', 'd'}
++    if lookahead.startswith('&') or lookahead.startswith('6') or lookahead.startswith('d'):
++        parse_F()
++    # Z -> <S> <O> <Y> ]
++    # First(<S> <O> <Y> ]) = First(<S>) U First(<O>) if S empty U First(<Y>) if O empty U ']' if Y empty
++    # First(<S>) = {'n'}
++    # First(<O>) = {'`', '&', ')', 'e'}
++    # First(<Y>) = {'5'}
++    # Combined firsts: {'n', '`', '&', ')', 'e', '5', ']'}
++    # Note: '&' is covered by the first branch for <F>, so this branch will not be taken if lookahead is '&'.
++    elif lookahead.startswith('n') or lookahead.startswith('`') or \
++         lookahead.startswith(')') or lookahead.startswith('e') or \
++         lookahead.startswith('5') or lookahead.startswith(']'):
++        parse_S()
++        parse_O()
++        parse_Y()
++        match(']')
++    # Z -> <C> <F>
++    # First(<C>) = {'t', ','}
++    # This branch takes precedence for 't' due to its order in the grammar.
++    elif lookahead.startswith('t') or lookahead.startswith(','):
++        parse_C()
++        parse_F()
++    # Z -> t & U I
++    # First(t & U I) = {'t'}
++    # This branch is reached for 't' only if the <C> <F> branch did not consume 't'.
++    # Given that parse_C() consumes 't' if it's the start of a valid C production,
++    # this explicit 't & U I' rule might be unreachable if the grammar is strictly LL(1).
++    # However, to match the grammar as written, this branch remains.
+     elif lookahead.startswith('t'):
+         match('t')
+         match('&')
+         match('U')
+         match('I')
+-    elif lookahead.startswith('P'):
+-        match('P')
+-        match('u')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('`'):
+-            match('`')
+-            parse_X()
+-            parse_L()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-        elif lookahead.startswith(')'):
+-            match(')')
+-        elif lookahead.startswith('e'):
+-            match('e')
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['`', '&', ')', 'e']))
+-        match(':')
+-        while pos < len(tokens) and tokens[pos].startswith('5'):
+-            match('5')
+-            match('I')
+-            parse_F()
+-            match('|')
++    # Z -> P u <O> : <Y>
++    # First(P u <O> : <Y>) = {'P'}
++    elif lookahead.startswith('P'):
++        match('P')
++        match('u')
++        parse_O()
++        match(':')
++        parse_Y()
+     else:
+         error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['F', 'S', 'C', 't', 'P']))
+ 
+@@ -187,10 +134,9 @@
+ def parse_S():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in S")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('n'):
++        return # S can be empty, so EOF is valid for empty production
++    if tokens[pos].startswith('n'): # Check current token only if not EOF
+         match('n')
+-        parse_L()
+-    else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['n', '']))
++        parse_S() # S -> n S (recursive call)
++    # else: empty production, do nothing, just return
+ 
+ def parse_F():
+     global pos, tokens
+@@ -240,7 +186,7 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in X")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('L'):
++    if lookahead.startswith('q') or lookahead.startswith('m') or lookahead.startswith('3'): # First(<L>) = {'q', 'm', '3'}
+         parse_L()
+         match('#')
+         parse_O()

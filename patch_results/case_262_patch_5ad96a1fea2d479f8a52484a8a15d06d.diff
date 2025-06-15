@@ -1,0 +1,92 @@
+@@ -26,21 +26,5 @@ def parse_L():
+     elif lookahead.startswith('t'):
+         match('t')
+         match('T')
+         match('p')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Y'):
+-            match('Y')
+-        elif lookahead.startswith('7'):
+-            match('7')
+-        elif lookahead.startswith(';'):
+-            match(';')
+-            parse_R()
+-        elif lookahead.startswith(']'):
+-            match(']')
+-            match('_')
+-            match('%')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['Y', '7', ';', ']']))
++        parse_S()
+         match('2')
+
+@@ -49,51 +33,7 @@ def parse_L():
+     elif lookahead.startswith('%'):
+         match('%')
+-    elif lookahead.startswith('('):
+-        match('(')
+-        match('y')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('I'):
+-            match('I')
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            match(')')
+-            match('Q')
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['I', '9']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            match('C')
+-            match(';')
+-            match('g')
+-        elif lookahead.startswith('H'):
+-            match('H')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['?', 'H']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('4'):
+-            match('4')
+-            match('/')
+-            match('4')
+-        elif lookahead.startswith('t'):
+-            match('t')
+-            match('T')
+-            match('p')
+-            parse_S()
+-            match('2')
+-        elif lookahead.startswith('%'):
+-            match('%')
+-        elif lookahead.startswith('('):
+-            match('(')
+-            match('y')
+-            parse_M()
+-            parse_E()
+-            parse_L()
+-        elif lookahead.startswith('-'):
+-            match('-')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['4', 't', '%', '(', '-']))
++    elif lookahead.startswith('('):
++        match('(')
++        match('y')
++        parse_M()
++        parse_E()
++        parse_L()
+     elif lookahead.startswith('-'):
+         match('-')
+@@ -142,2 +126,2 @@ def parse_K():
+-    while pos < len(tokens) and tokens[pos].startswith('C'):
+-        match('C')
++    while pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")

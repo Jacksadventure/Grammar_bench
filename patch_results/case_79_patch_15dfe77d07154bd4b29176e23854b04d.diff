@@ -1,0 +1,62 @@
+@@ -22,25 +22,8 @@ def parse_F():
+     if lookahead.startswith('P'):
+         match('P')
+         match('j')
+         match('c')
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
+-            match('%')
+-            match('(')
+-            parse_B()
+-            match('A')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('v'):
+-            match('v')
+-            match('c')
+-            match('`')
+-            match('h')
+-            match('Z')
+-        elif lookahead.startswith('{'):
+-            match('{')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['v', '{']))
++        parse_B()
++        parse_I()
+     elif lookahead.startswith('4'):
+         match('4')
+     else:
+         error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['P', '4']))
+@@ -50,8 +33,25 @@ def parse_B():
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
+-        match("'")
+-        match('%')
+-        match('(')
+-        parse_B()
+-        match('A')
++    if pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
++        match('%')
++        match('(')
++        parse_B()
++        match('A')
++        parse_B()
+ 
++def parse_I():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in I")
++    lookahead = tokens[pos]
++    if lookahead.startswith('v'):
++        match('v')
++        match('c')
++        match('`')
++        match('h')
++        match('Z')
++    elif lookahead.startswith('r'):
++        match('r')
++    else:
++        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['v', 'r']))
++
+@@

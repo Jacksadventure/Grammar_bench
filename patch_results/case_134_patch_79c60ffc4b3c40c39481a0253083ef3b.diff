@@ -1,0 +1,62 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -35,11 +35,8 @@
+         elif lookahead.startswith('H'):
+             match('H')
+         else:
+             error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['w', 'H']))
+-        while pos < len(tokens) and tokens[pos].startswith('>'):
+-            match('>')
+-            match('8')
+-            parse_J()
++        parse_S()
+     elif lookahead.startswith('['):
+         match('[')
+-        while pos < len(tokens) and tokens[pos].startswith('W'):
+-            match('W')
++        parse_P()
+     elif lookahead.startswith('v'):
+         match('v')
+         match(';')
+@@ -61,9 +58,7 @@
+             error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['w', 'H']))
+         match('W')
+     elif lookahead.startswith('B'):
+         match('B')
+-        while pos < len(tokens) and tokens[pos].startswith('W'):
+-            match('W')
++        parse_P()
+     elif lookahead.startswith('k'):
+         match('k')
+     else:
+@@ -102,9 +97,10 @@
+ 
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('C'):
+-        match('C')
++    if pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
+         match('A')
++        parse_Q()
+ 
+ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
+-        match('>')
+-        match('8')
+-        parse_J()
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('>'):
++        match('>')
++        match('8')
++        parse_J()
++        parse_S()
++    elif lookahead.startswith('U'):
++        match('U')
++        parse_F()
+ 
+ def parse_P():
+     global pos, tokens

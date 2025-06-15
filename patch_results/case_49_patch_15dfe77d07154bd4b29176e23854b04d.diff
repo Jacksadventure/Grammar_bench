@@ -1,0 +1,45 @@
+@@ -21,17 +21,13 @@ def parse_I():
+     if pos >= len(tokens):
+         error("Unexpected end of input in I")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('P'):
++    if lookahead == 'P':
+         match('P')
+         match('!')
+-        while pos < len(tokens) and tokens[pos].startswith('L'):
+-            match('L')
+-            match('`')
+-            match('^')
+-            parse_K()
+-    elif lookahead.startswith('Q'):
++        parse_K()
++    elif lookahead == 'Q':
+         match('Q')
+     else:
+         error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['P', 'Q']))
+ 
+@@ -35,8 +31,15 @@ def parse_K():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('L'):
+-        match('L')
+-        match('`')
+-        match('^')
+-        parse_K()
++    global pos, tokens
++    # <K> ::= L <I> ^ <K> <K> | ε
++    if pos < len(tokens) and tokens[pos] == 'L':
++        match('L')
++        parse_I()
++        match('^')
++        parse_K()
++        parse_K()
++    # ε-production: do nothing when the next token is not 'L'
+ 
+@@ -45,3 +48,6 @@ def parse_input(input_str):
+     tokens = list(input_str)
+     pos = 0
+     parse_I()
++    # Ensure that the entire input has been consumed
++    if pos != len(tokens):
++        error("Extra input after valid parse")
+     print("Input accepted.")

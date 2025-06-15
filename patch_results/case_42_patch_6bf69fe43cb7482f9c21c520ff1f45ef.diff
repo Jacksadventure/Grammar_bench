@@ -1,0 +1,19 @@
+@@ -24,9 +24,9 @@ def parse_W():
+         match('Q')
+-        while pos < len(tokens) and tokens[pos].startswith('u'):
+-            match('u')
+-            match('T')
+-            parse_O()
++        parse_O()
+     elif lookahead.startswith('X'):
+         match('X')
+     else:
+@@ -34,7 +34,9 @@ def parse_O():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('u'):
++    if pos < len(tokens) and tokens[pos].startswith('u'):
+         match('u')
+-        match('T')
+         parse_O()
++        parse_O()
++        parse_O()

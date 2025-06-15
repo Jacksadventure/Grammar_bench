@@ -1,0 +1,69 @@
+@@ -117,15 +117,13 @@ def parse_B():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('['):
+-        match('[')
+-        parse_L()
+-        match('C')
+-    elif lookahead.startswith('$'):
+-        match('$')
+-        match('|')
+-        match('!')
+-    elif lookahead.startswith('A'):
+-        parse_A()
+-    elif lookahead.startswith('g'):
+-        match('g')
+-    elif lookahead.startswith('.'):
+-        match('.')
+-    else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['[', '$', 'A', 'g', '.']))
++    if lookahead.startswith('['):
++        match('[')
++        parse_L()
++        match('C')
++    elif lookahead.startswith('$'):
++        match('$')
++        match('|')
++        match('`')
++    elif lookahead.startswith('g'):
++        match('g')
++    elif lookahead.startswith('.'):
++        match('.')
++    else:
++        parse_A()
+
+@@ -185,9 +185,6 @@ def parse_A():
+-    if lookahead.startswith('B'):
+-        parse_B()
+-    elif lookahead.startswith(','):
+-        match(',')
+-        match('/')
+-    else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['B', ',']))
++    if lookahead.startswith(','):
++        match(',')
++        match('/')
++    else:
++        parse_B()
+
+@@ -65,7 +65,7 @@ def parse_L():
+-        elif lookahead.startswith('J'):
++        elif lookahead.startswith(('+', 's', 'p', 'o')):
+             parse_J()
+
+@@ -201,7 +201,7 @@ def parse_E():
+-    elif lookahead.startswith('J'):
++    elif lookahead.startswith(('+', 's', 'p', 'o')):
+         parse_J()
+
+@@ -270,7 +270,10 @@ def parse_G():
+-    elif lookahead.startswith('?'):
+-        match('?')
+-        match('W')
+-    elif lookahead.startswith('?'):
+-        match('?')
++    elif lookahead.startswith('?'):
++        match('?')
++        if pos < len(tokens) and tokens[pos].startswith('W'):
++            match('W')
+     else:
+         error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['W', '?', '?']))

@@ -1,0 +1,63 @@
+@@ -22,7 +22,8 @@ def parse_K():
+-    if lookahead.startswith(')'):
+-        match(')')
+-        while pos < len(tokens) and tokens[pos].startswith(';'):
+-            match(';')
+-            match('J')
+-            parse_Y()
++    if lookahead.startswith(')'):
++        match(')')
++        # According to the grammar, after ')' we should parse a <B>
++        parse_B()
+@@
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(';'):
+-        match(';')
+-        match('J')
+-        parse_Y()
++    # Handle zero or more ';' J <Y> sequences
++    while pos < len(tokens) and tokens[pos].startswith(';'):
++        match(';')
++        match('J')
++        parse_Y()
++    # Handle 'U' <T> alternative
++    if pos < len(tokens) and tokens[pos].startswith('U'):
++        match('U')
++        parse_T()
++
++    # ε-production handled implicitly when none of the above matches
+@@
+-    elif lookahead.startswith("'"):
+-        match("'")
++    elif lookahead.startswith('{'):
++        match('{')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['0', '$', "'"]))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['0', '$', '{']))
+@@
+ def parse_H():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('b'):
+-        match('b')
++    while pos < len(tokens) and tokens[pos].startswith('b'):
++        match('b')
++    if pos < len(tokens) and tokens[pos].startswith('='):
++        match('=')
++        parse_Z()
++
++def parse_Z():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in Z")
++    lookahead = tokens[pos]
++    if lookahead.startswith('j'):
++        match('j')
++        parse_M()
++    elif lookahead.startswith('0') or lookahead.startswith('$') or lookahead.startswith('{'):
++        parse_O()
++    elif lookahead.startswith('S'):
++        match('S')
++        parse_F()
++    else:
++        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['j', '0', '$', '{', 'S']))

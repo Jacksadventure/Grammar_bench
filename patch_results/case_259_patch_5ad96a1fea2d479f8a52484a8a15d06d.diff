@@ -1,0 +1,38 @@
+--- parser.py
++++ parser.py
+@@ -23,7 +23,2 @@ def parse_G():
+         match('y')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            parse_L()
+-            parse_O()
+-            parse_D()
+-            parse_O()
++        parse_O()
+@@ -41,6 +36,5 @@ def parse_D():
+-    if lookahead.startswith('+'):
+-        match('+')
+-        match('W')
+-    else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['+', '']))
++    if lookahead.startswith('+'):
++        match('+')
++        parse_D()
+@@ -49,6 +44,12 @@ def parse_O():
+-    while pos < len(tokens) and tokens[pos].startswith('.'):
+-        match('.')
+-        parse_L()
+-        parse_O()
+-        parse_D()
+-        parse_O()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('.'):
++            match('.')
++            parse_L()
++            parse_O()
++            parse_D()
++            parse_O()
++        elif lookahead.startswith('s'):
++            match('s')
++            parse_V()

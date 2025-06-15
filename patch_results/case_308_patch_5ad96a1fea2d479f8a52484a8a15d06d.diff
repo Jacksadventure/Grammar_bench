@@ -1,0 +1,97 @@
+--- a/parser.py
++++ b/parser.py
+@@ -142,6 +142,10 @@ def parse_H():
+     while pos < len(tokens) and tokens[pos].startswith('B'):
+-        match('B')
+-        match('T')
+-        match('r')
+-        parse_H()
++        match('B')
++        match('t')
++        match('r')
++        parse_H()
++        parse_H()
+ 
+ 
+@@ -21,9 +21,8 @@ def parse_M():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('W'):
+-        match('W')
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            match('B')
+-            match('T')
+-            match('r')
+-            parse_H()
++    if lookahead.startswith('W'):
++        match('W')
++        parse_H()
+     elif lookahead.startswith('-'):
+         match('-')
+         if pos >= len(tokens):
+@@ -53,11 +52,9 @@ def parse_M():
+     elif lookahead.startswith('d'):
+         match('d')
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            match('B')
+-            match('T')
+-            match('r')
+-            parse_H()
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            match('B')
+-            match('T')
+-            match('r')
+-            parse_H()
++        parse_H()
++        parse_H()
+ 
+     elif lookahead.startswith('H'):
+         while pos < len(tokens) and tokens[pos].startswith('B'):
+@@ -44,7 +44,7 @@ def parse_M():
+         elif lookahead.startswith('d'):
+             match('d')
+             parse_H()
+-        elif lookahead.startswith('H'):
++        elif lookahead.startswith('B'):
+             parse_H()
+             parse_J()
+             parse_A()
+             parse_Q()
+@@ -65,33 +61,7 @@ def parse_M():
+-    elif lookahead.startswith('H'):
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            match('B')
+-            match('T')
+-            match('r')
+-            parse_H()
+-        while pos < len(tokens) and tokens[pos].startswith('r'):
+-            match('r')
+-            match('z')
+-            match('%')
+-            match('!')
+-            parse_Q()
+-        while pos < len(tokens) and tokens[pos].startswith('x'):
+-            match('x')
+-            match('n')
+-            match(':')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('1'):
+-            match('1')
+-            parse_L()
+-            parse_L()
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            match('^')
+-            parse_Q()
+-            parse_L()
+-            parse_L()
+-        elif lookahead.startswith('!'):
+-            match('!')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['1', "'", '!']))
++    elif lookahead.startswith('B'):
++        parse_H()
++        parse_J()
++        parse_A()
++        parse_Q()

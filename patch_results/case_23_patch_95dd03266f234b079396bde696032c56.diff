@@ -1,0 +1,42 @@
+```diff
+*** Begin Patch
+*** Update File: parser.py
+@@ def parse_O():
+-    if lookahead.startswith('$'):
+-        match('$')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('$'):
+-            match('$')
+-            parse_O()
+-            parse_O()
+-        elif lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('$'):
+-            match('$')
+-            parse_O()
+-            parse_O()
+-        elif lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "'"]))
+-    elif lookahead.startswith("'"):
+-        match("'")
+-    else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', "'"]))
++    if lookahead == '$':
++        match('$')
++        parse_O()
++        parse_O()
++    elif lookahead == '2':
++        match('2')
++    else:
++        error("Unexpected token " + lookahead + " in O, expected one of: '$', '2'")
+*** End Patch
+```

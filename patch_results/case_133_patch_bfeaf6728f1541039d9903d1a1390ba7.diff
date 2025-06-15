@@ -1,0 +1,38 @@
+--- a/parser.py
++++ b/parser.py
+@@ -139,14 +139,12 @@ def parse_I():
+     if lookahead.startswith('n'):
+         match('n')
+         parse_H()
+         parse_C()
+-    elif lookahead.startswith('+'):
+-        match('+')
++    elif lookahead.startswith('*'):
++        match('*')
+     else:
+-        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['n', '+']))
++        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['n', '*']))
+
+ def parse_J():
+@@ -153,7 +151,10 @@ def parse_J():
+-    if lookahead.startswith('O'):
++    if lookahead.startswith('O') and pos+1 < len(tokens) and (tokens[pos+1].startswith('E') or tokens[pos+1].startswith('4')):
+         match('O')
+         parse_R()
+         parse_I()
+         match(')')
++    elif lookahead.startswith('O'):
++        match('O')
+     elif lookahead.startswith('L'):
+         match('L')
+@@ -174,5 +175,3 @@ def parse_J():
+     elif lookahead.startswith('w'):
+         match('w')
+         match('l')
+         match('[')
+         match(']')
+-    elif lookahead.startswith('O'):
+-        match('O')
+     else:
+-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['O', 'L', 'r', 'i', 'w', 'O']))
++        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['O', 'L', 'r', 'i', 'w']))

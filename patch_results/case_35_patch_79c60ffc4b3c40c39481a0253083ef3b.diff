@@ -1,0 +1,16 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -31,9 +31,9 @@
+         elif lookahead.startswith('M'):
+             match('M')
+             match('~')
+-        elif lookahead.startswith('>'):
+-            match('>')
++        elif lookahead.startswith('8'):
++            match('8')
+         else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['!', 'M', '>']))
++            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['!', 'M', '8']))
+     elif lookahead.startswith('a'):
+         match('a')
+     else:

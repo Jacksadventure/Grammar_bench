@@ -1,0 +1,61 @@
+--- parser.py
++++ parser.py
+@@ def parse_D():
+-        match('S')
+-        match('i')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('+'):
+-            match('+')
+-            match('f')
+-            match('~')
+-        elif lookahead.startswith('E'):
+-            match('E')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('r')
+-            match(':')
+-            match("'")
+-        elif lookahead.startswith('j'):
+-            match('j')
+-            parse_A()
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['+', 'E', '_', 'j']))
+-        while pos < len(tokens) and tokens[pos].startswith('d'):
+-            match('d')
+-            parse_H()
++        match('S')
++        match('i')
++        parse_H()
++        parse_X()
+@@ def parse_H():
+     else:
+         error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['+', 'E', '_', 'j']))
++
++def parse_X():
++    global pos, tokens
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('d'):
++            match('d')
++            parse_H()
++            parse_X()
++        elif lookahead.startswith('z'):
++            match('z')
++            parse_Y()
+@@ def parse_P():
+-        match('I')
+-        match('*')
++        match('I')
++        match('R')
+@@ def parse_L():
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
+-        match('c')
+-        parse_L()
++    if pos < len(tokens) and tokens[pos].startswith('!'):
++        match('!')
++        match('c')
++        parse_L()
++        parse_L()

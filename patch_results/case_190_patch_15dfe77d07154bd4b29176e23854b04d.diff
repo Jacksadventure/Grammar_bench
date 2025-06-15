@@ -1,0 +1,27 @@
+@@ -28,7 +28,7 @@ def parse_J():
+             parse_Z()
+             match('H')
+             match('*')
+         while pos < len(tokens) and tokens[pos].startswith('f'):
+             match('f')
+-        while pos < len(tokens) and tokens[pos].startswith('Z'):
++        while pos < len(tokens) and tokens[pos].startswith("'"):
+             parse_Z()
+             match('V')
+     elif lookahead.startswith('f'):
+         match('f')
+@@ -97,7 +97,7 @@ def parse_G():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('Z'):
++    while pos < len(tokens) and tokens[pos].startswith("'"):
+         parse_Z()
+         match('V')
+ 
+ def parse_Q():
+@@ -147,8 +147,8 @@ def parse_Z():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+-        match('P')
++        parse_D()
+         match('{')

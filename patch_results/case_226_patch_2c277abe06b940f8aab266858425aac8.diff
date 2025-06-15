@@ -1,0 +1,74 @@
+@@ -28,33 +28,4 @@
+     elif lookahead.startswith('C'):
+         match('C')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('S'):
+-            parse_S()
+-            parse_S()
+-            match('k')
+-        elif lookahead.startswith('s'):
+-            match('s')
+-            match(']')
+-            parse_D()
+-            match('^')
+-        elif lookahead.startswith('R'):
+-            match('R')
+-        elif lookahead.startswith('6'):
+-            match('6')
+-            parse_S()
+-            match('`')
+-        else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['S', 's', 'R', '6']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('>'):
+-            match('>')
+-            parse_O()
+-            parse_O()
+-        elif lookahead.startswith('M'):
+-            match('M')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['>', 'M']))
++        parse_D()
++        parse_X()
+         match('v')
+@@ -71,5 +41,5 @@
+     lookahead = tokens[pos]
+-    if lookahead.startswith('S'):
++    if lookahead.startswith(':') or lookahead.startswith('k'):
+         parse_S()
+         parse_S()
+         match('k')
+@@ -88,3 +58,16 @@
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['S', 's', 'R', '6']))
+-
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join([':', 'k', 's', 'R', '6']))
++
++def parse_X():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in X")
++    lookahead = tokens[pos]
++    if lookahead.startswith('>'):
++        match('>')
++        parse_O()
++        parse_O()
++    elif lookahead.startswith('M'):
++        match('M')
++    else:
++        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['>', 'M']))
+ def parse_S():
+@@ -91,9 +74,8 @@
+ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('5'):
+-        match('5')
++    if pos < len(tokens) and tokens[pos].startswith(':'):
++        match(':')
+         parse_S()
+         match("'")
+-
++        parse_S()

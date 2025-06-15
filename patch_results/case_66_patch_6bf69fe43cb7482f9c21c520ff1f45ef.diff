@@ -1,0 +1,16 @@
+@@ -99,7 +99,7 @@ def parse_S():
+     lookahead = tokens[pos]
+     if lookahead.startswith('O'):
+-        parse_O()
++        match('O')
+         parse_O()
+         match(',')
+         match('Q')
+@@ -119,7 +119,9 @@ def parse_S():
+     elif lookahead.startswith('m'):
+         match('m')
++    elif lookahead.startswith('2'):
++        match('2')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['O', '_', ',', 'E', 'm']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['O', '_', ',', 'E', 'm', '2']))

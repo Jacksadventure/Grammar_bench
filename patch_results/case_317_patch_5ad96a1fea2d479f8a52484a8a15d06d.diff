@@ -1,0 +1,45 @@
+@@ -17,35 +17,7 @@ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('n'):
+-        match('n')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_H()
+-            match('7')
+-            match('[')
+-            parse_H()
+-        elif lookahead.startswith('('):
+-            match('(')
+-            parse_N()
+-            parse_S()
+-            match('n')
+-            parse_Y()
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['9', '(', ',']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('h'):
+-            match('h')
+-            parse_G()
+-            match('*')
+-            match(',')
+-            match('9')
+-            parse_X()
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['h', '']))
++    while pos < len(tokens) and tokens[pos].startswith('n'):
++        match('n')
++        parse_H()
++        parse_X()
+
+@@ -92,4 +92,4 @@ def parse_S():
+     while pos < len(tokens) and tokens[pos].startswith('^'):
+         match('^')
+-        parse_S()
++        match('|')

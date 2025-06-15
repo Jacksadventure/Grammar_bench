@@ -1,0 +1,79 @@
+@@ -18,22 +18,7 @@
+ def parse_R():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('>'):
+         match('>')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('}'):
+-            match('}')
+-            parse_D()
+-            parse_P()
+-            parse_V()
+-            parse_M()
+-        elif lookahead.startswith('M'):
+-            parse_M()
+-            match('o')
+-        elif lookahead.startswith('7'):
+-            match('7')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['}', 'M', '7']))
++        parse_S()
+ 
+ def parse_D():
+     global pos, tokens
+@@ -53,10 +53,15 @@
+ 
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('J'):
+-        match('J')
+-        parse_Z()
+-        parse_Z()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('J'):
++            match('J')
++            parse_Z()
++            parse_Z()
++            parse_V()
++        elif lookahead.startswith('4'):
++            match('4')
++            parse_Q()
+ 
+ def parse_S():
+     global pos, tokens
+@@ -69,13 +69,13 @@
+         parse_P()
+         parse_V()
+         parse_M()
+-    elif lookahead.startswith('M'):
++    elif lookahead.startswith('W') or lookahead.startswith('o'):
+         parse_M()
+         match('o')
+     elif lookahead.startswith('7'):
+         match('7')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['}', 'M', '7']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['}', 'W', 'o', '7']))
+ 
+ def parse_L():
+     global pos, tokens
+@@ -106,14 +106,8 @@
+ 
+ def parse_P():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in P")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('o'):
+-        match('o')
+-        match('|')
+-    else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['o', '']))
++    while pos < len(tokens) and tokens[pos].startswith('o'):
++        match('o')
+ 
+ def parse_input(input_str):
+     global tokens, pos

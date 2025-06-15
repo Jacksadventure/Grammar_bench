@@ -1,0 +1,68 @@
+@@ -21,33 +21,8 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('f'):
+         match('f')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('d'):
+-            match('d')
+-            parse_Q()
+-            parse_Q()
+-        elif lookahead.startswith('='):
+-            match('=')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('f'):
+-            match('f')
+-            parse_T()
+-            parse_Q()
+-            match('4')
+-            match('e')
+-        elif lookahead.startswith('z'):
+-            match('z')
+-            parse_T()
+-        elif lookahead.startswith('@'):
+-            match('@')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['f', 'z', '@']))
++        parse_T()
++        parse_Q()
+         match('4')
+         match('e')
+     elif lookahead.startswith('z'):
+@@ -52,17 +27,7 @@
+         match('e')
+     elif lookahead.startswith('z'):
+         match('z')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('d'):
+-            match('d')
+-            parse_Q()
+-            parse_Q()
+-        elif lookahead.startswith('='):
+-            match('=')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++        parse_T()
+     elif lookahead.startswith('@'):
+         match('@')
+     else:
+@@ -77,10 +42,10 @@
+         match('d')
+         parse_Q()
+         parse_Q()
+-    elif lookahead.startswith('='):
+-        match('=')
++    elif lookahead.startswith('<'):
++        match('<')
+     else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '<']))
+ 
+ def parse_input(input_str):

@@ -1,0 +1,63 @@
+@@ -21,38 +21,19 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('E'):
+         match('E')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('E'):
+-            match('E')
+-            parse_H()
+-        elif lookahead.startswith('s'):
+-            match('s')
+-            parse_N()
+-        elif lookahead.startswith('s'):
+-            match('s')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['E', 's', 's']))
++        parse_H() # Rule H -> E H
+     elif lookahead.startswith('s'):
+         match('s')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('F'):
+-            match('F')
+-            match(']')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-            match('`')
+-            match('3')
+-            match('L')
+-        elif lookahead.startswith('+'):
+-            match('+')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['F', '*', '+']))
+-    elif lookahead.startswith('s'):
+-        match('s')
++        # Decide between H -> s N and H -> s
++        # Check FIRST(N) = {F, *, B}
++        if pos < len(tokens): # Check if there are more tokens
++            next_lookahead = tokens[pos]
++            if next_lookahead.startswith('F') or \
++               next_lookahead.startswith('*') or \
++               next_lookahead.startswith('B'):
++                parse_N()
++            # else: H -> s, 's' already matched.
++        # else: H -> s, 's' already matched (EOF after 's').
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['E', 's', 's']))
++        error("Unexpected token " + lookahead + " in H, expected 'E' or 's'")
+ 
+@@ -69,8 +50,8 @@
+         match('`')
+         match('3')
+         match('L')
+-    elif lookahead.startswith('+'):
+-        match('+')
++    elif lookahead.startswith('B'): # Rule N -> B
++        match('B')
+     else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['F', '*', '+']))
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['F', '*', 'B']))
+ 

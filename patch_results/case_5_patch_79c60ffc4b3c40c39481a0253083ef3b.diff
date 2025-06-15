@@ -1,0 +1,13 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,7 +19,7 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in A")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('!'):
+-        match('!')
++    if lookahead.startswith('Z'):
++        match('Z')
+     else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['!']))
++        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['Z']))

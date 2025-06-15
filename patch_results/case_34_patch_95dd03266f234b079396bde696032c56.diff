@@ -1,0 +1,17 @@
+@@ -25,9 +25,3 @@ def parse_K():
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('M'):
+-            match('M')
+-            match('l')
+-            match('.')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['M', '']))
++        parse_F()
+@@ 40,0 +41,5 @@
++def parse_F():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('M'):
++        match('M')
++        match('l')

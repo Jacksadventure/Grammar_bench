@@ -1,0 +1,127 @@
+@@ -22,51 +22,16 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('@'):
+         match('@')
+         match('y')
+         match('B')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('5'):
+-            match('5')
+-            parse_I()
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            match('o')
+-            parse_P()
+-            match('0')
+-        elif lookahead.startswith('o'):
+-            match('o')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['5', "'", 'o']))
+-    elif lookahead.startswith('G'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('R'):
+-            match('R')
+-            match('1')
+-            match('1')
+-        elif lookahead.startswith('F'):
+-            parse_F()
+-            match('H')
+-        elif lookahead.startswith('I'):
+-            parse_I()
+-            match('s')
+-            match('-')
+-        elif lookahead.startswith('['):
+-            match('[')
+-            match(')')
+-            match('+')
+-            match('x')
+-            match('7')
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_I()
+-            match('C')
+-            match('c')
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['R', 'F', 'I', '[', '~', 'Q']))
++        parse_F()
++    elif lookahead.startswith('R') or \
++         lookahead.startswith('5') or \
++         lookahead.startswith("'") or \
++         lookahead.startswith('o') or \
++         lookahead.startswith('[') or \
++         lookahead.startswith('~') or \
++         lookahead.startswith('Q'):
++        parse_G()
+     else:
+-        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['@', 'G']))
++        expected_tokens = ['@', 'R', '5', "'", 'o', '[', '~', 'Q']
++        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(expected_tokens))
+@@ -100,20 +65,23 @@
+     if lookahead.startswith('R'):
+         match('R')
+         match('1')
+         match('1')
+-    elif lookahead.startswith('F'):
++    elif lookahead.startswith('5') or \
++         lookahead.startswith("'") or \
++         lookahead.startswith('o'):
+         parse_F()
+         match('H')
+-    elif lookahead.startswith('I'):
++    elif lookahead.startswith('@'): # FIRST(I) after accounting for other specific G rules
+         parse_I()
+         match('s')
+         match('-')
+     elif lookahead.startswith('['):
+         match('[')
+         match(')')
+         match('+')
+         match('x')
+         match('7')
+     elif lookahead.startswith('~'):
+         match('~')
+         parse_I()
+         match('C')
+         match('c')
+     elif lookahead.startswith('Q'):
+         match('Q')
+     else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['R', 'F', 'I', '[', '~', 'Q']))
++        expected_tokens = ['R', '5', "'", 'o', '@', '[', '~', 'Q'] # Corrected expected tokens
++        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(expected_tokens))
+@@ -130,9 +98,10 @@
+     if lookahead.startswith('R'):
+         match('R')
+         match('f')
+         parse_D()
+-    elif lookahead.startswith('D'):
++    elif lookahead.startswith('7') or \
++         lookahead.startswith('l'): # FIRST(D)
+         parse_D()
+         match('v')
+         match('k')
+@@ -143,8 +112,9 @@
+         match('A')
+     elif lookahead.startswith('O'):
+         match('O')
+     else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['R', 'D', 'm', 'O']))
++        expected_tokens = ['R', '7', 'l', 'm', 'O'] # Corrected expected tokens
++        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(expected_tokens))
+@@ -157,10 +127,10 @@
+         parse_P()
+         match(':')
+         match('Y')
+-    elif lookahead.startswith("'"):
+-        match("'")
++    elif lookahead.startswith('l'):
++        match('l')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['7', "'"]))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['7', 'l']))

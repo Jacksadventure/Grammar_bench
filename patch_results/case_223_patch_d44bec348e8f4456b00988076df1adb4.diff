@@ -1,0 +1,40 @@
+@@ -136,7 +136,7 @@ def parse_V():
+     elif lookahead.startswith('^'):
+         match('^')
++    elif lookahead.startswith('v'):
++        match('v')
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['4', '^']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['4', 'v']))
+
+@@ -141,8 +144,14 @@ def parse_E():
+ def parse_E():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('['):
+-        match('[')
+-        parse_V()
++    while pos < len(tokens) and (tokens[pos].startswith('[') or tokens[pos].startswith('a')):
++        if tokens[pos].startswith('['):
++            match('[')
++            parse_V()
++        elif tokens[pos].startswith('a'):
++            match('a')
++            parse_T()
++
++def parse_T():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('^'):
++        match('^')
+
+@@ -147,8 +156,14 @@ def parse_P():
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('e'):
+-        match('e')
++    while pos < len(tokens) and (tokens[pos].startswith('e') or tokens[pos].startswith('j')):
++        if tokens[pos].startswith('e'):
++            match('e')
++        elif tokens[pos].startswith('j'):
++            match('j')
++            parse_A()
++            break

@@ -1,0 +1,25 @@
+--- a/parser.py
++++ b/parser.py
+@@ -41,7 +41,7 @@ def parse_Y():
+             else:
+                 error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['L', \"'\", '`', 'k']))
+-            while pos < len(tokens) and tokens[pos].startswith('8'):
+-                match('8')
+-                match('z')
+-                parse_T()
++            parse_B()
+     elif lookahead.startswith('k'):
+         match('k')
+         match('{')
+@@ -152,7 +152,11 @@ def parse_B():
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('8'):
+-        match('8')
+-        match('z')
+-        parse_T()
++    if pos < len(tokens) and tokens[pos].startswith('8'):
++        match('8')
++        parse_B()
++        parse_T()
++        parse_B()

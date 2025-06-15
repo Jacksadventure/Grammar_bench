@@ -1,0 +1,130 @@
+--- a/parser.py
++++ b/parser.py
+@@ -22,27 +22,9 @@
+         lookahead = tokens[pos]
+         if lookahead.startswith('o'):
+             match('o')
+             match('F')
+-            if pos >= len(tokens):
+-                error("Unexpected end of input in Y")
+-            lookahead = tokens[pos]
+-            if lookahead.startswith('j'):
+-                match('j')
+-                match('|')
+-            elif lookahead.startswith('0'):
+-                match('0')
+-                parse_C()
+-                match('Q')
+-                match('U')
+-            elif lookahead.startswith('n'):
+-                match('n')
+-            else:
+-                error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['j', '0', 'n']))
+-            while pos < len(tokens) and tokens[pos].startswith('/'):
+-                match('/')
+-                match('9')
+-                match("'")
+-                parse_Y()
+-            while pos < len(tokens) and tokens[pos].startswith('}'):
+-                match('}')
+-                match('4')
+-                match('y')
++            parse_Y()
++            parse_N()
++            parse_R()
+         elif lookahead.startswith('X'):
+             match('X')
+             match('B')
+@@ -52,34 +34,10 @@
+         elif lookahead.startswith('4'):
+             match('4')
+             match('f')
+-            while pos < len(tokens) and tokens[pos].startswith('/'):
+-                match('/')
+-                match('9')
+-                match("'")
+-                parse_Y()
+-            if pos >= len(tokens):
+-                error("Unexpected end of input in C")
+-            lookahead = tokens[pos]
+-            if lookahead.startswith('o'):
+-                match('o')
+-                match('F')
+-                parse_Y()
+-                parse_N()
+-                parse_R()
+-            elif lookahead.startswith('X'):
+-                match('X')
+-                match('B')
+-            elif lookahead.startswith('4'):
+-                match('4')
+-                match('f')
+-                parse_N()
+-                parse_C()
+-            elif lookahead.startswith('^'):
+-                match('^')
+-                parse_C()
+-                parse_R()
+-                match('4')
+-            elif lookahead.startswith('k'):
+-                match('k')
+-            else:
+-                error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['o', 'X', '4', '^', 'k']))
++            parse_N()
++            parse_C()
+         elif lookahead.startswith('^'):
+             match('^')
+@@ -88,32 +46,10 @@
+         elif lookahead.startswith('^'):
+             match('^')
+-            if pos >= len(tokens):
+-                error("Unexpected end of input in C")
+-            lookahead = tokens[pos]
+-            if lookahead.startswith('o'):
+-                match('o')
+-                match('F')
+-                parse_Y()
+-                parse_N()
+-                parse_R()
+-            elif lookahead.startswith('X'):
+-                match('X')
+-                match('B')
+-            elif lookahead.startswith('4'):
+-                match('4')
+-                match('f')
+-                parse_N()
+-                parse_C()
+-            elif lookahead.startswith('^'):
+-                match('^')
+-                parse_C()
+-                parse_R()
+-                match('4')
+-            elif lookahead.startswith('k'):
+-                match('k')
+-            else:
+-                error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['o', 'X', '4', '^', 'k']))
+-            while pos < len(tokens) and tokens[pos].startswith('}'):
+-                match('}')
+-                match('4')
+-                match('y')
++            parse_C()
++            parse_R()
+             match('4')
+         elif lookahead.startswith('k'):
+             match('k')
+     else:
+         error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['o', 'X', '4', '^', 'k']))
+@@ -141,8 +97,8 @@
+         parse_C()
+         match('Q')
+         match('U')
+-    elif lookahead.startswith('n'):
+-        match('n')
++    elif lookahead.startswith('f'):
++        match('f')
+     else:
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['j', '0', 'n']))
++        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['j', '0', 'f']))
+ 
+ def parse_N():
+     global pos, tokens

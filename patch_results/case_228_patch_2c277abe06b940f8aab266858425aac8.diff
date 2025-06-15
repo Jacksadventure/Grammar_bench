@@ -1,0 +1,94 @@
+@@ -81,13 +81,6 @@
+             match('N')
+         else:
+             error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['(', '^', '+', 'N']))
+-        while pos < len(tokens) and tokens[pos].startswith('l'):
+-            match('l')
+-            match('{')
+-            match('h')
+-            match('u')
+-        while pos < len(tokens) and tokens[pos].startswith(','):
+-            match(',')
+-            parse_A()
+-            parse_D()
++        parse_A()
++        parse_C()
+     elif lookahead.startswith('+'):
+@@ -124,19 +117,26 @@
+ 
+ def parse_E():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        parse_A()
+-        match('!')
++    if pos < len(tokens): # Check not EOF for lookahead
++        lookahead = tokens[pos]
++        if lookahead.startswith('l'):
++            parse_A()
++            match('!')
++            parse_E()
++        elif lookahead.startswith('!'):
++            # parse_A() # A produces epsilon, parse_A() does nothing if parse_A is correct.
++            match('!')
++            parse_E()
+ 
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('l'):
++    if pos < len(tokens) and tokens[pos].startswith('l'):
+         match('l')
+         match('{')
+         match('h')
+         match('u')
+-
++        parse_A()
++    
+ def parse_O():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -151,20 +151,22 @@
+ 
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
+-        match("'")
++    if pos < len(tokens) and tokens[pos].startswith('n'):
++        match('n')
+         match(')')
++        parse_P()
+ 
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('`'):
++    if pos < len(tokens) and tokens[pos].startswith('`'):
+         match('`')
+         parse_D()
+         parse_P()
+         match('3')
++        parse_Q()
+ 
+ def parse_D():
+     global pos, tokens
+@@ -197,20 +199,22 @@
+ 
+ def parse_C():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(','):
++    if pos < len(tokens) and tokens[pos].startswith(','):
+         match(',')
+         parse_A()
+         parse_D()
++        parse_C()
+ 
+ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('#'):
++    if pos < len(tokens) and tokens[pos].startswith('#'):
+         match('#')
+         parse_C()
+         match('f')
+         match('@')
++        parse_M()
+ 
+ def parse_G():
+     global pos, tokens

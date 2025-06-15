@@ -1,0 +1,89 @@
+@@ -17,31 +17,19 @@ def parse_O():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('7'):
+-        match('7')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('R'):
+-            match('R')
+-            match('c')
+-            match('R')
+-            match('a')
+-            parse_V()
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['R', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('7'):
+-            match('7')
+-            parse_V()
+-            parse_O()
+-            match('b')
+-            parse_O()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            parse_I()
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['7', '', 'A']))
+-        match('b')
++    global pos, tokens
++    # <O> ::= '7' <V> <O> 'b' <O>
++    #       | 'A' <I>
++    #       | ε
++    if pos < len(tokens):
++        if tokens[pos].startswith('7'):
++            match('7')
++            parse_V()
++            parse_O()
++            match('b')
++            parse_O()
++        elif tokens[pos].startswith('A'):
++            match('A')
++            parse_I()
++        # else: ε production, do nothing
+ 
+@@ -48,9 +36,17 @@ def parse_I():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('N'):
+-        match('N')
+-        parse_V()
+-        parse_I()
+-        parse_I()
+-        parse_O()
++    global pos, tokens
++    # <I> ::= 'N' <V> <I> <I> <O> <I> | ε
++    if pos < len(tokens) and tokens[pos].startswith('N'):
++        match('N')
++        parse_V()
++        parse_I()
++        parse_I()
++        parse_O()
++        parse_I()
+     # ε production
+ 
+@@ -57,8 +53,15 @@ def parse_V():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('R'):
+-        match('R')
+-        match('c')
+-        match('R')
+-        match('a')
++    global pos, tokens
++    # <V> ::= 'R' 'c' '0' 'a' <V> | ε
++    if pos < len(tokens) and tokens[pos].startswith('R'):
++        match('R')
++        match('c')
++        match('0')
++        match('a')
++        parse_V()
+     # ε production
+ 
+@@ -65,6 +68,8 @@ def parse_input(input_str):
+     tokens = list(input_str)
+     pos = 0
+     parse_O()
++    if pos != len(tokens):
++        error("Unexpected trailing input")
+     print("Input accepted.")

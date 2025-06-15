@@ -1,0 +1,62 @@
+@@ -22,38 +22,17 @@ def parse_R():
+-    if lookahead.startswith('t'):
+-        match('t')
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
+-            match('f')
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
+-            match('f')
+-        match('r')
+-        match('s')
+-    elif lookahead.startswith('@'):
+-        match('@')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('t'):
+-            match('t')
+-            parse_W()
+-            parse_W()
+-            match('r')
+-            match('s')
+-        elif lookahead.startswith('@'):
+-            match('@')
+-            parse_R()
+-            parse_W()
+-            match('t')
+-        elif lookahead.startswith('G'):
+-            match('G')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['t', '@', 'G']))
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
+-            match('f')
+-        match('t')
+-    elif lookahead.startswith('G'):
+-        match('G')
+-    else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['t', '@', 'G']))
++    if lookahead == 't':
++        match('t')
++        parse_W()
++        parse_W()
++        match('r')
++        match('s')
++    elif lookahead == '@':
++        match('@')
++        parse_R()
++        parse_W()
++        match('t')
++    elif lookahead == 'G':
++        match('G')
++    else:
++        error("Unexpected token " + lookahead + " in R, expected one of: t, @, G")
+
+@@ -63,3 +63,5 @@ def parse_W():
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
+-        match("'")
+-        match('f')
++    while pos < len(tokens) and tokens[pos] == 'I':
++        match('I')
++        match('f')

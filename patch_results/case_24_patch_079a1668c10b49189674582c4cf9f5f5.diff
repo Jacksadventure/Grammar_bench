@@ -1,0 +1,14 @@
+@@ -22,10 +22,10 @@ def parse_D():
+     if lookahead.startswith('y'):
+         match('y')
+         match('l')
+         match('d')
+         match('[')
+         match('W')
+-    elif lookahead.startswith('v'):
+-        match('v')
++    elif lookahead.startswith(':'):
++        match(':')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', 'v']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', ':']))

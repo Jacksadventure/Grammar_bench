@@ -1,0 +1,89 @@
+--- parser.py
++++ parser.py
+@@ -17,19 +17,20 @@
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('.'):
++    if pos < len(tokens) and tokens[pos].startswith('.'):
+         match('.')
+         match('7')
+         match('>')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('G'):
+-            match('G')
+-            parse_J()
+-            match('#')
+-            match('z')
+-            match('e')
+-            parse_J()
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['G', '']))
++        parse_J()
++        parse_P()
++    elif pos < len(tokens) and tokens[pos].startswith('='):
++        match('=')
++        parse_X()
+ 
+ def parse_S():
+     global pos, tokens
+@@ -43,10 +44,11 @@
+ 
+ def parse_J():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('G'):
++    if pos < len(tokens) and tokens[pos].startswith('G'):
+         match('G')
+         parse_J()
+         match('#')
+         match('z')
+-        match('e')
++        match('t')
++        parse_J()
+ 
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('m'):
++    if pos < len(tokens) and tokens[pos].startswith('m'):
+         match('m')
+         match('{')
+         parse_J()
++        parse_D()
+ 
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('D'):
++    if pos < len(tokens) and tokens[pos].startswith('m'):
+         parse_D()
+         parse_D()
+         match('L')
+         match('c')
++        parse_Z()
+ 
+ def parse_input(input_str):
++
++def parse_X():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input, expected 'j', 'A', or 'q' for X")
++    lookahead = tokens[pos]
++    if lookahead.startswith('j'):
++        match('j')
++        parse_J()
++        parse_D()
++        parse_D()
++        parse_Z()
++    elif lookahead.startswith('A'):
++        match('A')
++        parse_Z()
++        parse_Z()
++        parse_S()
++    elif lookahead.startswith('q'):
++        match('q')
++    else:
++        error("Unexpected token " + lookahead + " in X, expected one of: j, A, q")
++
+     global tokens, pos
+     tokens = list(input_str)
+     pos = 0

@@ -8,6 +8,7 @@ import sqlite3
 import subprocess
 import random
 import os
+import shutil
 import uuid
 from mutation import mutate_grammar
 from file_diff import get_diff_function
@@ -19,12 +20,122 @@ MAX_TESTS = 1
 MAX_EXAMPLES = 100
 MAX_MUTATE_ATTEMPTS = 100
 
-def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db'):
+import concurrent.futures
+import multiprocessing
+
+def _repair_single_case(row, backend, model, results_db, run_id):
+    (case_id, num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
+     orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json) = row
+    # per-case DB connection for writing results
+    conn = sqlite3.connect(results_db, timeout=30)
+    cursor = conn.cursor()
+    print(f"[Case {case_id}] ===== Case start: nonterminals={num_nonterminals}, prob={nonterminal_prob}, loop={loop_prob}, depth={mutation_depth} =====")
+    # load test cases
+    try:
+        test_cases = json.loads(test_cases_json)
+    except json.JSONDecodeError:
+        test_cases = json.loads(test_cases_json.replace("'", '"'))
+    total_tests = len(test_cases)
+    print(f"[Case {case_id}] Total tests: {total_tests}")
+    # generate patch via localization
+    response = localise_program(corr_parser, orig_grammar, backend, model)
+    print(f"[Case {case_id}] Localization response:\n{response}")
+    patch_text = response
+    # write corrupted, patch and repaired files
+    corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
+    with open(corrupted_file, 'w', encoding='utf-8') as f:
+        f.write(corr_parser)
+    patch_file = f"case_{case_id}_patch_{run_id}.diff"
+    with open(patch_file, 'w', encoding='utf-8') as f:
+        f.write(patch_text)
+    repaired_file = f"case_{case_id}_repaired_{run_id}.py"
+    shutil.copy(corrupted_file, repaired_file)
+    # apply patch quietly
+    try:
+        subprocess.run(
+            ['patch', '-t', '-s', repaired_file, '-i', patch_file], check=True
+        )
+    except Exception as e:
+        # first: naive line-level replacement
+        try:
+            diff_lines = patch_text.splitlines()
+            removals = [l[1:] for l in diff_lines if l.startswith('-') and not l.startswith('---')]
+            additions = [l[1:] for l in diff_lines if l.startswith('+') and not l.startswith('+++')]
+            if len(removals) != len(additions):
+                raise ValueError("Mismatched removal/addition lines")
+            with open(repaired_file, 'r', encoding='utf-8') as f:
+                lines = f.readlines()
+            for old, new in zip(removals, additions):
+                replaced = False
+                for idx, ln in enumerate(lines):
+                    if ln.rstrip('\n') == old:
+                        lines[idx] = new + '\n'
+                        replaced = True
+                        break
+                if not replaced:
+                    raise ValueError(f"Line to replace not found: {old}")
+            with open(repaired_file, 'w', encoding='utf-8') as f:
+                f.writelines(lines)
+        except Exception:
+            # fallback: AST per-function aggregated hunks
+            try:
+                from patch import replace_function_ast_in_file
+                func_hunks = {}
+                for ln in patch_text.splitlines():
+                    if ln.startswith('@@'):
+                        parts = ln.split('@@')
+                        sig = parts[-1].strip()
+                        fname = sig.split()[1].split('(')[0]
+                        func_hunks.setdefault(fname, {'sig': sig, 'lines': []})
+                    elif ln.startswith('+') and not ln.startswith('+++'):
+                        func_hunks[fname]['lines'].append(ln[1:])
+                if not func_hunks:
+                    raise ValueError("No function signature in diff")
+                for fname, info in func_hunks.items():
+                    code = info['sig'] + '\n' + '\n'.join(info['lines'])
+                    replace_function_ast_in_file(repaired_file, code, fname, repaired_file)
+            except Exception:
+                print(f"[Case {case_id}] Repair failed: {e}")
+                passed_tests = 0
+                fix = 0
+                cursor.execute(
+                    'REPLACE INTO repair_results(case_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix) VALUES(?,?,?,?,?,?,?)',
+                    (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
+                )
+                conn.commit()
+                conn.close()
+                return
+    # run tests
+    passed_tests = 0
+    for inp in test_cases:
+        proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if proc.returncode == 0:
+            passed_tests += 1
+        else:
+            print(f"[Case {case_id}] Test failed on input={inp}, rc={proc.returncode}")
+    print(f"[Case {case_id}] Result: {passed_tests}/{total_tests}")
+    fix = 1 if passed_tests == total_tests else 0
+    # write result
+    cursor.execute(
+        'REPLACE INTO repair_results(case_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix) VALUES(?,?,?,?,?,?,?)',
+        (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
+    )
+    conn.commit()
+    conn.close()
+    # cleanup
+    try:
+        os.remove(repaired_file)
+    except OSError:
+        pass
+
+def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db', workers=1):
     """
     Read parser cases from a SQLite database and perform localization for each case.
+    Supports parallel execution with `workers` processes.
     """
     # generate a unique run identifier to avoid filename collisions
     run_id = uuid.uuid4().hex
+    # read source cases
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute(
@@ -49,86 +160,25 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         )
     ''')
     results_conn.commit()
-    # Check for previously processed cases to allow resuming
+    # Determine cases to (re)process
     results_cursor.execute("SELECT case_id FROM repair_results")
     processed_cases = {r[0] for r in results_cursor.fetchall()}
-    for row in rows:
-        # Unpack query results including mutation_depth
-        case_id, num_nonterminals, nonterminal_prob, loop_prob, mutation_depth, orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json = row
-        # Skip cases already recorded in results DB
-        if case_id in processed_cases:
-            print(f"Skipping case {case_id}: already processed")
-            continue
-        print(f"========Case {case_id}========")
-        print(f"num_nonterminals: {num_nonterminals}, nonterminal_prob: {nonterminal_prob}, loop_prob: {loop_prob}, mutation_depth: {mutation_depth}")
-
-        # Load test cases
-        try:
-            test_cases = json.loads(test_cases_json)
-        except json.JSONDecodeError:
-            test_cases = json.loads(test_cases_json.replace("'", '"'))
-        total_tests = len(test_cases)
-        print(f"Total test cases: {total_tests}")
-        # # devide test cases into two parts
-        # trigger_inputs = test_cases[:total_tests//2]
-        # validation_test_cases = test_cases[total_tests//2:]
-
-        response = localise_program(corr_parser, orig_grammar, backend, model)
-        print("Localization response:")
-        print(response)
-        # The response is a unified diff patch; apply it to the corrupted parser
-        patch_text = response
-        corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
-        with open(corrupted_file, 'w', encoding='utf-8') as f:
-            f.write(corr_parser)
-        patch_file = f"case_{case_id}_patch_{run_id}.diff"
-        with open(patch_file, 'w', encoding='utf-8') as f:
-            f.write(patch_text)
-        repaired_file = f"case_{case_id}_repaired_{run_id}.py"
-        try:
-            subprocess.run(
-                ['patch', corrupted_file, patch_file, '-o', repaired_file],
-                check=True
-            )
-        except Exception as e:
-            print(f"Repair failed for case {case_id}: {e}")
-            passed_tests = 0
-            fix = 0
-            results_cursor.execute(
-                'INSERT OR REPLACE INTO repair_results(case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
-            )
-            results_conn.commit()
-            continue
-
-        # Run all test cases on repaired parser, record 0 passed if program fails to run
-        passed_tests = 0
-        try:
-            for test_input in test_cases:
-                proc = subprocess.run(
-                    ['python3', repaired_file, test_input],
-                    stdout=subprocess.PIPE, stderr=subprocess.PIPE
-                )
-                if proc.returncode == 0:
-                    passed_tests += 1
-                else:
-                    print(f"Test failed on input: {test_input}, return code: {proc.returncode}")
-        except Exception as e:
-            print(f"Error running repaired program for case {case_id}: {e}")
-            passed_tests = 0
-
-        print(f"Case {case_id}: {passed_tests}/{total_tests} tests passed after repair.")
-        fix = 1 if passed_tests == total_tests else 0
-        results_cursor.execute(
-            'INSERT OR REPLACE INTO repair_results(case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
-        )
-        results_conn.commit()
-        # Delete repaired parser file for this case
-        try:
-            os.remove(repaired_file)
-        except OSError:
-            pass
+    to_run = [row for row in rows if row[0] not in processed_cases]
+    print(f"[Main] {len(to_run)} cases to process using {workers} worker(s)")
+    # dispatch either sequentially or in parallel
+    if workers > 1:
+        ctx = multiprocessing.get_context("spawn")
+        with concurrent.futures.ProcessPoolExecutor(max_workers=workers, mp_context=ctx) as executor:
+            futures = {executor.submit(_repair_single_case, row, backend, model, results_db, run_id): row[0] for row in to_run}
+            for fut in concurrent.futures.as_completed(futures):
+                cid = futures[fut]
+                try:
+                    fut.result()
+                except Exception as e:
+                    print(f"[Case {cid}] Worker exception: {e}")
+    else:
+        for row in to_run:
+            _repair_single_case(row, backend, model, results_db, run_id)
 
 def main():
     parser = argparse.ArgumentParser(description='Sample Parser')
@@ -137,6 +187,7 @@ def main():
     parser.add_argument('--model', type=str, default='o1-mini-2024-09-12', help='model: model name')
     parser.add_argument('--db-path', type=str, default='parser_cases.db', help='Path to the parser_cases SQLite database')
     parser.add_argument('--results-db', type=str, default='repair_results.db', help='Path to output results SQLite database')
+    parser.add_argument('--workers', type=int, default=1, help='number of parallel workers')
     args = parser.parse_args()
     # if args.mode == 'input_repair':
     #     program_input_reapir(args.backend,args.model)
@@ -152,7 +203,7 @@ def main():
     else:
         results_db_name = args.results_db
     print(f"Using results database: {results_db_name}")
-    program_reapir(args.backend, args.model, args.db_path, results_db_name)
+    program_reapir(args.backend, args.model, args.db_path, results_db_name, args.workers)
     # Clean up repaired files after run
     for fname in os.listdir('.'):
         if fname.startswith('case_') and '_repaired_' in fname:
@@ -162,4 +213,9 @@ def main():
                 pass
             
 if __name__ == "__main__":
+    import multiprocessing as mp
+    try:
+        mp.set_start_method("spawn", force=True)
+    except RuntimeError:
+        pass
     main()

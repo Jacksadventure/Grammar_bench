@@ -1,0 +1,53 @@
+--- parser.py
++++ parser.py
+@@ -17,13 +17,8 @@ def parse_V():
+-    while pos < len(tokens) and tokens[pos].startswith('}'):
+-        match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-            match('~')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['.', '']))
++    if pos < len(tokens) and tokens[pos] == '}':
++        match('}')
++        parse_A()
++        parse_V()
++    elif pos < len(tokens) and tokens[pos] == ',':
++        match(',')
++        parse_T()
+@@ -30,10 +30,7 @@ def parse_A():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in A")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('.'):
+-        match('.')
+-        match('~')
+-    else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['.', '']))
++    if pos < len(tokens) and tokens[pos] == '.':
++        match('.')
++        parse_A()
+@@ -88,7 +88,13 @@ def parse_R():
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        parse_A()
+-        match('l')
+-        match('4')
++    while True:
++        # parse A (dots)
++        while pos < len(tokens) and tokens[pos] == '.':
++            match('.')
++        if pos < len(tokens) and tokens[pos] == 'l':
++            match('l')
++            match('4')
++        else:
++            break
+@@ -94,0 +101,6 @@
++def parse_T():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos] == "'":
++        match("'")
++        parse_I()
++        parse_A()

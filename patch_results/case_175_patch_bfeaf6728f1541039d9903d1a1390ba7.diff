@@ -1,0 +1,40 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,33 +17,7 @@ def parse_N():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('b'):
+-        match('b')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(["'"]))
++    while pos < len(tokens) and tokens[pos] == 'b':
++        match('b')
++        match('q')
++        match('q')
++        match('q')
++        match('q')

@@ -1,0 +1,62 @@
+@@ -17,35 +17,11 @@ def parse_C():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        match('A')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('^'):
+-            match('^')
+-            parse_F()
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['^', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            parse_F()
+-            parse_N()
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['?', '']))
+-        match(':')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('t'):
+-            match('t')
+-            parse_C()
+-            parse_N()
+-            parse_G()
+-        elif lookahead.startswith('4'):
+-            match('4')
+-            parse_H()
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['t', '', '4']))
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('A'):
++        match('A')
++        parse_F()
++        parse_N()
++        match(':')
++        parse_G()
+ 
+@@ -53,4 +29,4 @@ def parse_F():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
+-        match('^')
++    while pos < len(tokens) and tokens[pos].startswith(';'):
++        match(';')
+ 
+@@ -94,4 +70,8 @@ def parse_G():
+-    while pos < len(tokens) and tokens[pos].startswith('t'):
+-        match('t')
+-        parse_C()
+-        parse_N()
++    while pos < len(tokens) and tokens[pos].startswith('t'):
++        match('t')
++        parse_C()
++        parse_N()
++    if pos < len(tokens) and tokens[pos].startswith('4'):
++        match('4')
++        parse_H()

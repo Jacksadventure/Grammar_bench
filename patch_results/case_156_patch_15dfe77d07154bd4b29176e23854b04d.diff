@@ -1,0 +1,33 @@
+@@ -42,6 +42,10 @@ def parse_D():
+              match('d')
+              parse_H()
++        # Handle 'z' <Y> alternative in <X>
++        if pos < len(tokens) and tokens[pos].startswith('z'):
++            match('z')
++            parse_Y()
+-        if pos >= len(tokens):
++        if pos >= len(tokens):
+             error("Unexpected end of input in F")
+         lookahead = tokens[pos]
+         if lookahead.startswith('Q'):
+@@ -127,7 +131,7 @@ def parse_P():
+     if lookahead.startswith('I'):
+         match('I')
+-        match('*')
++        match('R')
+     elif lookahead.startswith('u'):
+         match('u')
+     else:
+@@ -135,8 +139,12 @@ def parse_L():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
+-        match('c')
+-        parse_L()
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('!'):
++        match('!')
++        match('c')
++        parse_L()
++        parse_L()
++    # epsilon production: do nothing when no '!' is present

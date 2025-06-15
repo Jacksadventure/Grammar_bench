@@ -1,0 +1,59 @@
+@@ -59,35 +59,7 @@ def parse_V():
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            parse_G()
+-            parse_M()
+-            parse_O()
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            match('Y')
+-            parse_V()
+-            parse_A()
+-            parse_C()
+-        elif lookahead.startswith('+'):
+-            match('+')
+-            parse_E()
+-            parse_G()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['(', '^', '+', 'N']))
+-        while pos < len(tokens) and tokens[pos].startswith('l'):
+-            match('l')
+-            match('{')
+-            match('h')
+-            match('u')
+-        while pos < len(tokens) and tokens[pos].startswith(','):
+-            match(',')
+-            parse_A()
+-            parse_D()
++        parse_V()
++        parse_A()
++        parse_C()
+
+@@ -93,10 +93,8 @@ def parse_V():
+         match('+')
+-        while pos < len(tokens) and tokens[pos].startswith('A'):
+-            parse_A()
+-            match('!')
++        parse_E()
+         if pos >= len(tokens):
+             error("Unexpected end of input in G")
+         lookahead = tokens[pos]
+         if lookahead.startswith('X'):
+
+@@ -122,7 +120,7 @@ def parse_E():
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
++    while pos < len(tokens) and tokens[pos].startswith('l'):
+         parse_A()
+         match('!')
+
+@@ -150,7 +148,7 @@ def parse_P():
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
+-        match("'")
++    while pos < len(tokens) and tokens[pos].startswith('n'):
++        match('n')
+         match(')')

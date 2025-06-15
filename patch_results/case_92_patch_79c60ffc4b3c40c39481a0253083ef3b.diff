@@ -1,0 +1,47 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -23,20 +23,10 @@
+         match('*')
+         match('k')
+         match('/')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('d'):
+-            match('d')
+-            parse_G()
+-            parse_Z()
+-        elif lookahead.startswith('v'):
+-            match('v')
+-            parse_T()
+-            match('f')
+-            match('^')
+-            parse_N()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['d', 'v', '2']))
++        parse_C()
+     elif lookahead.startswith('1'):
+         match('1')
+     else:
+         error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['*', '1']))
+ 
+ def parse_T():
+@@ -53,10 +43,10 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in T")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('a'):
+-        match('a')
++    if lookahead.startswith('^'):
++        match('^')
+         match('j')
+     elif lookahead.startswith('e'):
+         match('e')
+     else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['a', 'e']))
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['^', 'e']))
+ 
+ def parse_C():
+     global pos, tokens

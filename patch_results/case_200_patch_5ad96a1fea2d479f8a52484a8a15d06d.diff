@@ -1,0 +1,61 @@
+@@ -24,27 +24,5 @@ def parse_X():
+         match('/')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-            parse_Y()
+-            match('s')
+-            match('j')
+-            match('K')
+-        elif lookahead.startswith('E'):
+-            match('E')
+-            parse_C()
+-        elif lookahead.startswith('O'):
+-            match('O')
+-            match('Q')
+-            match(']')
+-            parse_G()
+-        elif lookahead.startswith('C'):
+-            parse_C()
+-            parse_L()
+-        elif lookahead.startswith('#'):
+-            match('#')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['e', 'E', 'O', 'C', '#']))
++        parse_S()
+     elif lookahead.startswith("'"):
+         match("'")
+         match('4')
+@@ -93,7 +71,7 @@ def parse_S():
+     elif lookahead.startswith('O'):
+         match('O')
+         match('Q')
+         match(']')
+         parse_G()
+-    elif lookahead.startswith('C'):
++    elif lookahead.startswith('k') or lookahead.startswith('V') or lookahead.startswith('o') or lookahead.startswith('A'):
+         parse_C()
+         parse_L()
+     elif lookahead.startswith('#'):
+@@ -100,7 +78,7 @@ def parse_S():
+         match('#')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['e', 'E', 'O', 'C', '#']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['e', 'E', 'O', 'k', 'V', 'o', 'A', '#']))
+@@ -141,7 +119,7 @@ def parse_L():
+     elif lookahead.startswith('O'):
+         match('O')
+         match('i')
+         match('o')
+         match('9')
+-    elif lookahead.startswith('E'):
++    elif lookahead.startswith('4'):
+         match('4')
+         parse_L()
+     else:
+@@ -147,7 +125,7 @@ def parse_L():
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['R', 'O', 'E']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['R', 'O', '4']))

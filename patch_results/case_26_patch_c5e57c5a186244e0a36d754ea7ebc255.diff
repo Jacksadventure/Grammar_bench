@@ -1,0 +1,9 @@
+@@ -30,5 +30,5 @@
+             match('B')
+-        elif lookahead.startswith('='):
+-            match('=')
++        elif lookahead.startswith(')'):
++            match(')')
+         else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['v', '=']))
++            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['v', ')']))

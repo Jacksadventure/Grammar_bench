@@ -1,0 +1,7 @@
+@@ -186,7 +186,7 @@ def parse_L():
+     elif lookahead.startswith('V'):
+-        parse_V()
++        match('U')
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'V']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'U']))

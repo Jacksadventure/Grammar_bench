@@ -1,0 +1,14 @@
+@@ -51,6 +51,7 @@ def parse_W():
+             match('F')
+             match('{')
+             match('b')
++            match('}')
+     elif lookahead.startswith('('):
+         match('(')
+     elif lookahead.startswith('M'):
+@@ -102,8 +103,9 @@ def parse_Y():
+     while pos < len(tokens) and tokens[pos].startswith('F'):
+         match('F')
+         match('{')
+-        match('b')
++        match('}')

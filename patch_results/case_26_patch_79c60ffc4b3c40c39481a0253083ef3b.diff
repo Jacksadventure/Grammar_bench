@@ -1,0 +1,14 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -28,7 +28,7 @@
+             match('v')
+             match('H')
+             match('B')
+-        elif lookahead.startswith('='):
+-            match('=')
++        elif lookahead.startswith(')'):
++            match(')')
+         else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['v', '=']))
++            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['v', ')']))
+     elif lookahead.startswith('o'):

@@ -1,0 +1,57 @@
+--- a/parser_original.py
++++ b/parser_fixed.py
+@@ -19,11 +19,12 @@
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
+-        match('+')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(']'):
+-            match(']')
+-            parse_R()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join([']', '']))
+-        match("'")
++    # Rule 1: "+" "<R>" "'" "<I>"
++    if pos < len(tokens) and tokens[pos].startswith('+'):
++        match('+')
++        parse_R()
++        match("'")
++        parse_I()
++        return
++
++    # Rule 3: "<R>" "<W>"
++    parse_R()
++    parse_W()
++    # Rule 2: epsilon (handled implicitly)
+@@ -52,10 +53,27 @@
+ 
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(']'):
+-        match(']')
+-
++    # Rule 1: "~" "<R>"
++    if pos < len(tokens) and tokens[pos].startswith('~'):
++        match('~')
++        parse_R()
++        return
++    # Rule 2: epsilon (handled implicitly)
++
++def parse_W():
++    global pos, tokens
++    # Rule 1: "z" "<R>" "<H>" "." "<N>" "<W>"
++    if pos < len(tokens) and tokens[pos].startswith('z'):
++        match('z')
++        parse_R()
++        parse_H()
++        match('.')
++        parse_N()
++        parse_W()
++        return
++    # Rule 2: epsilon (handled implicitly)
+ 
+ def parse_H():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('_'):
+         match('_')

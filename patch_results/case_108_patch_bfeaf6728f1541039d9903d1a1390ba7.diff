@@ -1,0 +1,30 @@
+--- a/parser.py
++++ b/parser.py
+@@ -23,9 +23,4 @@ def parse_C():
+         match('#')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('@'):
+-            match('@')
+-            match('%')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['@', '']))
++        parse_H()
+     elif lookahead.startswith('g'):
+@@ -133,9 +133,5 @@ def parse_H():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in H")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('@'):
+-        match('@')
+-        match('%')
+-    else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['@', '']))
++    # match zero or more '@'
++    while pos < len(tokens) and tokens[pos] == '@':
++        match('@')
+@@ -145,1 +145,1 @@ def parse_F():
+-    while pos < len(tokens) and tokens[pos].startswith('J'):
++    while pos < len(tokens) and tokens[pos] in [']', '.', 'N', '}']:

@@ -1,0 +1,8 @@
+@@ -52,7 +52,7 @@ def parse_J():
+     if lookahead.startswith(','):
+         match(',')
+-        match('x')
++        match('~')
+         match('#')
+         match('+')
+     elif lookahead.startswith('a'):

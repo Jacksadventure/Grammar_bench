@@ -1,0 +1,42 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,34 +19,12 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in E")
+     lookahead = tokens[pos]
+     if lookahead.startswith('c'):
+         match('c')
+         match(')')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('c'):
+-            match('c')
+-            match(')')
+-            parse_E()
+-            parse_E()
+-        elif lookahead.startswith('w'):
+-            match('w')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['c', 'w']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('c'):
+-            match('c')
+-            match(')')
+-            parse_E()
+-            parse_E()
+-        elif lookahead.startswith('w'):
+-            match('w')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['c', 'w']))
+-    elif lookahead.startswith('w'):
+-        match('w')
++        parse_E()
++        parse_E()
++    elif lookahead.startswith('<'):
++        match('<')
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['c', 'w']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['c', '<']))

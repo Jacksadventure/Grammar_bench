@@ -1,0 +1,57 @@
+--- a/parser.py
++++ b/parser.py
+@@ def parse_D():
+-        match(')')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('b'):
+-            match('b')
+-            parse_M()
+-            match('%')
+-            match(')')
+-            parse_D()
+-        elif lookahead.startswith('B'):
+-            match('B')
+-            parse_O()
+-            match('<')
+-            parse_O()
+-            parse_M()
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-            match('s')
+-            parse_K()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-        else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['b', 'B', 'Q', '`']))
++        match(')')
++        parse_D()
+@@ def parse_H():
+-    while pos < len(tokens) and tokens[pos].startswith('3'):
+-        match('3')
+-        match('_')
+-        match('0')
+-        match('<')
+-        parse_K()
++    while pos < len(tokens) and tokens[pos].startswith('3'):
++        match('3')
++        match('_')
++        match('0')
++        match('<')
++        parse_K()
++        match('>')
+@@ def parse_X():
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
+-        match('^')
+-        match('g')
+-        match(']')
+-        match('k')
+-        match(':')
++    if pos < len(tokens) and tokens[pos].startswith('^'):
++        match('^')
++        match('g')
++        match(']')
++        match('k')
++        parse_X()
++        parse_X()

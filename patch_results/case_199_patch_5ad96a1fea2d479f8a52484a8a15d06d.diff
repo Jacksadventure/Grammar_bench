@@ -1,0 +1,7 @@
+@@ -144,7 +144,7 @@ def parse_D():
+     if lookahead.startswith('S'):
+         match('S')
+         match('d')
+-        match('P')
++        match('j')
+     elif lookahead.startswith('h'):

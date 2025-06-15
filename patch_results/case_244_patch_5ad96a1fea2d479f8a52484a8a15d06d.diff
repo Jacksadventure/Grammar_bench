@@ -1,0 +1,17 @@
+@@ -79,12 +79,12 @@ def parse_O():
+     if pos >= len(tokens):
+         error("Unexpected end of input in O")
+     lookahead = tokens[pos]
+     if lookahead.startswith('{'):
+         match('{')
+-    elif lookahead.startswith('/'):
+-        match('/')
++    elif lookahead.startswith('R'):
++        match('R')
+         match(':')
+         match('{')
+         match('(')
+         match('P')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['{', '/']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['{', 'R']))

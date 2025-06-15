@@ -1,0 +1,94 @@
+@@ -22,30 +22,8 @@
+     if lookahead.startswith('='):
+         match('=')
+         match('9')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('='):
+-            match('=')
+-            match('9')
+-            parse_W()
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            match('0')
+-            match('4')
+-            parse_N()
+-        elif lookahead.startswith('k'):
+-            match('k')
+-            match('0')
+-        elif lookahead.startswith('>'):
+-            match('>')
+-            parse_P()
+-            match('.')
+-            match(':')
+-            match('n')
+-        elif lookahead.startswith('H'):
+-            match('H')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['=', '<', 'k', '>', 'H']))
++        parse_W()
+     elif lookahead.startswith('<'):
+@@ -51,25 +27,9 @@
+         match('<')
+         match('0')
+         match('4')
+-        while pos < len(tokens) and tokens[pos].startswith('0'):
+-            match('0')
+-            parse_F()
+-            match('5')
++        parse_N()
+     elif lookahead.startswith('k'):
+         match('k')
+         match('0')
+     elif lookahead.startswith('>'):
+         match('>')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in P")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('*'):
+-            match('*')
+-            parse_E()
+-            match('B')
+-            match('s')
+-            parse_M()
+-        elif lookahead.startswith('u'):
+-            match('u')
+-            match(',')
+-            match('[')
+-            match('7')
+-            match('<')
+-        elif lookahead.startswith('$'):
+-            match('$')
+-        else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['*', 'u', '$']))
++        parse_P()
+         match('.')
+         match(':')
+         match('n')
+@@ -96,10 +96,10 @@
+     if lookahead.startswith('s'):
+         match('s')
+         match('*')
+         match('a')
+-    elif lookahead.startswith('n'):
+-        match('n')
++    elif lookahead.startswith(']'):
++        match(']')
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['s', 'n']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['s', ']']))
+@@ -153,11 +153,15 @@
+     if lookahead.startswith('('):
+         match('(')
+         parse_W()
+         parse_P()
+-    elif lookahead.startswith('M'):
++    elif lookahead.startswith(']') or \
++         lookahead.startswith('G') or \
++         lookahead.startswith(',') or \
++         lookahead.startswith('>'):
+         parse_M()
+     else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['(', 'M']))
++        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['(', ']', 'G', ',', '>']))

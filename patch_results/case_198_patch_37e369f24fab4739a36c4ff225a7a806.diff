@@ -1,0 +1,11 @@
+@@ -138,6 +138,8 @@ def parse_C():
+ 
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('z'):
+-        match('z')
++    while pos < len(tokens) and tokens[pos].startswith('?'):
++        match('?')
++        parse_A()
++        break
+ 

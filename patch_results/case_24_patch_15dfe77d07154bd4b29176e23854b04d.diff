@@ -1,0 +1,20 @@
+@@ -25,9 +25,9 @@ def parse_D():
+         match('l')
+         match('d')
+         match('[')
+         match('W')
+-    elif lookahead.startswith('v'):
+-        match('v')
++    elif lookahead.startswith(':'):
++        match(':')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', 'v']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', ':']))
+ 
+@@ def parse_input(input_str):
+     tokens = list(input_str)
+     pos = 0
+     parse_D()
++    if pos != len(tokens):
++        error("Unexpected trailing input after position " + str(pos))
+     print("Input accepted.")

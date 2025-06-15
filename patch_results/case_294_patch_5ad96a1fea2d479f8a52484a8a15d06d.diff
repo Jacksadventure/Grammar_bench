@@ -1,0 +1,70 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,15 +21,8 @@ def parse_U():
+         match('4')
+         match('w')
+-        while pos < len(tokens) and tokens[pos].startswith('Q'):
+-            match('Q')
+-            parse_R()
+-            parse_G()
+-            parse_G()
+-        while pos < len(tokens) and tokens[pos].startswith('v'):
+-            match('v')
+-            parse_R()
+-            parse_R()
++        parse_L()
++        parse_X()
+     elif lookahead.startswith(')'):
+         match(')')
+     else:
+@@ -41,7 +41,7 @@ def parse_W():
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         parse_W()
+         parse_H()
+@@ -45,2 +45,2 @@ def parse_W():
+         parse_L()
+-        parse_W()
++        parse_W()
+@@ -49,6 +49,12 @@ def parse_L():
+-    while pos < len(tokens) and tokens[pos].startswith('Q'):
+-        match('Q')
+-        parse_R()
+-        parse_G()
+-        parse_G()
++    if pos < len(tokens):
++        if tokens[pos].startswith('Q'):
++            match('Q')
++            parse_R()
++            parse_G()
++            parse_G()
++            parse_L()
++        elif tokens[pos].startswith('6'):
++            match('6')
++            parse_W()
+@@ -57,5 +57,8 @@ def parse_X():
+-    while pos < len(tokens) and tokens[pos].startswith('v'):
+-        match('v')
+-        parse_R()
+-        parse_R()
++    if pos < len(tokens) and tokens[pos].startswith('v'):
++        match('v')
++        parse_R()
++        parse_R()
++        parse_X()
++    # else epsilon
+@@ -80,9 +80,7 @@ def parse_G():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in G")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('d'):
+-        match('d')
+-        match("'")
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['d', '']))
++    # G -> 'd' G | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('d'):
++        match('d')
++        parse_G()
++    # else epsilon

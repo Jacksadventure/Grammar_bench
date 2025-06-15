@@ -1,0 +1,26 @@
+@@ -22,20 +22,9 @@
+     if lookahead.startswith('8'):
+         match('8')
+         match('d')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('8'):
+-            match('8')
+-            match('d')
+-            parse_A()
+-            match("'")
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['8', 'Q']))
+-        match("'")
+-    elif lookahead.startswith('Q'):
+-        match('Q')
++        parse_A()
++        match("'")
++    elif lookahead.startswith('Y'):
++        match('Y')
+     else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['8', 'Q']))
++        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['8', 'Y']))

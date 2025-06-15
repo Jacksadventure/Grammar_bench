@@ -1,0 +1,89 @@
+@@ -21,32 +21,3 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('['):
+-            match('[')
+-            match('-')
+-            parse_U()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            parse_D()
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['[', '', 'A']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Y'):
+-            parse_Y()
+-            parse_Z()
+-        elif lookahead.startswith(','):
+-            match(',')
+-            parse_C()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['Y', '', ',']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('X'):
+-            match('X')
+-            parse_B()
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['X', '']))
++        parse_U()
++        parse_Z()
++        parse_B()
+@@ -55,3 +26,9 @@
+-    while pos < len(tokens) and tokens[pos].startswith('['):
+-        match('[')
+-        match('-')
++    if pos < len(tokens): # Check if tokens are available for lookahead
++        lookahead = tokens[pos]
++        if lookahead.startswith('['):
++            match('[')
++            match('-')
++            parse_U()
++        elif lookahead.startswith('A'):
++            match('A')
++            parse_D()
++    # If not '[' or 'A', or if at EOF, it's an epsilon production for U (do nothing)
+@@ -96,3 +73,9 @@
+-    while pos < len(tokens) and tokens[pos].startswith('Y'):
+-        parse_Y()
+-        parse_Z()
++    if pos < len(tokens): # Check if tokens are available for lookahead
++        lookahead = tokens[pos]
++        # FIRST(Y) includes 'a'. So if Z -> Y Z rule is chosen, current token must be 'a'.
++        if lookahead.startswith('a'): # Corresponds to Z -> <Y> <Z>
++            parse_Y()
++            parse_Z()
++        elif lookahead.startswith(','): # Corresponds to Z -> , <C>
++            match(',')
++            parse_C()
++    # If not 'a' or ',', or if at EOF, it's an epsilon production for Z (do nothing)
+@@ -102,2 +85,2 @@
+-    while pos < len(tokens) and tokens[pos].startswith('X'):
+-        match('X')
++    while pos < len(tokens) and tokens[pos].startswith('s'):
++        match('s')
+@@ -106,3 +89,7 @@
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in J")
+-    lookahead = tokens[pos]
++    # J is nullable (via B -> epsilon).
++    # If at EOF, attempt to parse B (which should yield epsilon for B).
++    if pos >= len(tokens):
++        parse_B() # B will handle its epsilon case as pos >= len(tokens)
++        return
++
++    lookahead = tokens[pos] # Safe to access tokens[pos]
+@@ -131,7 +118,5 @@
+         match('g')
+         parse_C()
+         match('f')
+-    elif lookahead.startswith('B'):
+-        parse_B()
+-    else:
+-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['?', 'b', '3', "'", 'g', 'B']))
++    else: # Default rule: J -> B. parse_B handles 's' or epsilon.
++        parse_B()

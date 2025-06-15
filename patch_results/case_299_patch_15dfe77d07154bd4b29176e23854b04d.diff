@@ -1,0 +1,80 @@
+@@ -85,9 +85,25 @@ def parse_E():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('k'):
+-        match('k')
+-        match('3')
+-        match('[')
+-        parse_S()
+-        match('+')
++    global pos, tokens
++    # Grammar:
++    # <E> -> 'k' '3' '[' <S> '+' <E>
++    #      | ')' <R>
++    #      | ε
++    if pos >= len(tokens):
++        # ε-production
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('k'):
++        match('k')
++        match('3')
++        match('[')
++        parse_S()
++        match('+')
++        parse_E()
++    elif lookahead.startswith(')'):
++        match(')')
++        parse_R()
++    else:
++        # ε-production
++        return
+@@
+-def parse_H():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in H")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('G'):
+-        match('G')
+-        match('m')
+-        match('m')
+-        match(':')
+-        match('#')
+-    else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['G', '']))
++def parse_H():
++    global pos, tokens
++    # Grammar:
++    # <H> -> 'G' 'm' 'm' ':' <H> | ε
++    if pos >= len(tokens):
++        # ε-production
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('G'):
++        match('G')
++        match('m')
++        match('m')
++        match(':')
++        parse_H()
++    else:
++        # ε-production
++        return
++
++def parse_R():
++    """
++    Parses the non-terminal <R>.
++    Grammar:
++        <R> -> '~' <Q> <R> | ε
++    """
++    global pos, tokens
++    if pos >= len(tokens):
++        # ε-production
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('~'):
++        match('~')
++        parse_Q()
++        parse_R()
++    else:
++        # ε-production
++        return

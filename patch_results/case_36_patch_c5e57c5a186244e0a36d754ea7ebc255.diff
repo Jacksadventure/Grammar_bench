@@ -1,0 +1,64 @@
+@@ -23,15 +23,3 @@
+     if lookahead.startswith('N'):
+         match('N')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('N'):
+-            match('N')
+-            parse_Z()
+-            match('4')
+-            match('g')
+-            parse_U()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['N', 'z']))
++        parse_Z()
+         match('4')
+@@ -38,19 +26,2 @@
+         match('g')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('B'):
+-            match('B')
+-            match('w')
+-            match('9')
+-            match('<')
+-        elif lookahead.startswith('?'):
+-            match('?')
+-            match('3')
+-            match('s')
+-            match('z')
+-            match('c')
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', ',']))
++        parse_U()
+     elif lookahead.startswith('z'):
+@@ -75,10 +46,10 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('B'):
+         match('B')
+-        match('w')
+-        match('9')
+-        match('<')
++        match('w') # B w 9 <
++        match('9') # B w 9 <
++        match('<') # B w 9 <
+     elif lookahead.startswith('?'):
+         match('?')
+         match('3')
+@@ -86,8 +57,8 @@
+         match('s')
+         match('z')
+         match('c')
+-    elif lookahead.startswith(','):
+-        match(',')
++    elif lookahead.startswith('g'):
++        match('g')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', ',']))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', 'g']))

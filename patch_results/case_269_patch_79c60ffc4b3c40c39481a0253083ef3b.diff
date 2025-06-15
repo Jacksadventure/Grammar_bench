@@ -1,0 +1,123 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,15 +21,9 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('T'):
+         match('T')
+-        while pos < len(tokens) and tokens[pos].startswith('('):
+-            match('(')
+-            match("'")
+-            match('z')
+-        while pos < len(tokens) and tokens[pos].startswith('0'):
+-            match('0')
+-            match('K')
+-            parse_O()
+-            parse_N()
+-            parse_W()
++        parse_Q()
++        parse_U()
+     elif lookahead.startswith('o'):
+         match('o')
+     elif lookahead.startswith('?'):
+@@ -46,9 +40,13 @@
+ 
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('F'):
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('F'):
+         match('F')
+         parse_B()
+         match('o')
++        parse_W()
+ 
+ def parse_Y():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('n'):
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('n'):
+         match('n')
+         match('J')
+         parse_B()
++        parse_Y()
++    elif lookahead.startswith('+'):
++        match('+')
++        parse_G()
+ 
+ def parse_B():
+     global pos, tokens
+@@ -93,12 +91,9 @@
+ def parse_O():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in O")
+-    lookahead = tokens[pos]
++        return
++    lookahead = tokens[pos]
+     if lookahead.startswith('q'):
+         match('q')
+         match('@')
+         match('q')
+-        match('t')
+-    else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['q', '']))
++        parse_O()
+ 
+ def parse_N():
+     global pos, tokens
+@@ -129,26 +124,48 @@
+ 
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith("'"):
+         match("'")
+         parse_O()
+         parse_O()
+         match(':')
++        parse_Z()
+ 
+ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('0'):
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('0'):
+         match('0')
+         match('K')
+         parse_O()
+         parse_N()
+         parse_W()
++        parse_U()
+ 
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('('):
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('('):
+         match('(')
+         match("'")
+         match('z')
++        parse_Q()
++
++def parse_G():
++    global pos, tokens
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('*'):
++        match('*')
++        parse_G()
+ 
+ def parse_input(input_str):
+     global tokens, pos

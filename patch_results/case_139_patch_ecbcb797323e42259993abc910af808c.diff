@@ -1,0 +1,47 @@
+@@ -85,7 +85,7 @@ def parse_Y():
+         if pos >= len(tokens):
+             error("Unexpected end of input in G")
+         lookahead = tokens[pos]
+-        if lookahead.startswith('F'):
++        if pos < len(tokens) and lookahead.startswith('F'):
+             match('F')
+-            match('E')
++            parse_G()
+         else:
+@@ -208,7 +208,8 @@ def parse_G():
+     if lookahead.startswith('F'):
+         match('F')
+-        match('E')
++        parse_G()
+     else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['F', '']))
++        # epsilon production - do nothing
++        pass
+@@ -125,7 +125,7 @@ def parse_Y():
+         match('}')
+         match('0')
+-        while pos < len(tokens) and tokens[pos].startswith('E'):
++        parse_D()
+-            match('E')
+-            match('{')
+-            parse_G()
+-        while pos < len(tokens) and tokens[pos].startswith('9'):
++        parse_H()
+-            match('9')
+-            parse_D()
+-            match('#')
+-            match('x')
+-            match('f')
+         match('(')
+@@ -214,6 +214,9 @@ def parse_G():
+ def parse_H():
+     global pos, tokens
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('('):
++        match('(')
++        # parse_B() would go here if B was defined
++        return
+     while pos < len(tokens) and tokens[pos].startswith('9'):
+         match('9')

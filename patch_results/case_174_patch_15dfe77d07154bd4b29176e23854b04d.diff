@@ -1,0 +1,14 @@
+@@
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
+-        match('&')
++    while pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
+@@
+     pos = 0
+     parse_J()
+-    print("Input accepted.")
++    if pos != len(tokens):
++        error("Unexpected extra input after position " + str(pos))
++    print("Input accepted.")

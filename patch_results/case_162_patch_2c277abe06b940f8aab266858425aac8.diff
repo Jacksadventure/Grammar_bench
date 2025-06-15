@@ -1,0 +1,176 @@
+@@ -19,41 +19,12 @@
+     while pos < len(tokens) and tokens[pos].startswith('#'):
+         match('#')
+         match('m')
+-        match('Z')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('a'):
+-            match('a')
+-            match('~')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['a', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Z'):
+-            match('Z')
+-            parse_D()
+-            match('=')
+-            parse_I()
+-            parse_Q()
+-        elif lookahead.startswith('*'):
+-            match('*')
+-            parse_H()
+-            match('-')
+-            parse_H()
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            parse_D()
+-            match('%')
+-            parse_F()
+-        elif lookahead.startswith('|'):
+-            match('|')
+-            parse_X()
+-            match('6')
+-            match('&')
+-            match('o')
+-        elif lookahead.startswith('C'):
+-            match('C')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['Z', '*', "'", '|', 'C']))
++    # <I> ::= ["#", "m", "Z", "<X>", "<U>", "<I>"] | [] | ["k", "<G>"]
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('#'):
++            match('#')
++            match('m')
++            match('Z')
++            parse_X()
++            parse_U()
++            parse_I()
++        elif lookahead.startswith('k'):
++            match('k')
++            parse_G()
++        # else: epsilon rule for I (token not # or k)
++    # else: epsilon rule for I (EOF)
+@@ -63,8 +34,8 @@
+ def parse_Y():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('y'):
++    if pos < len(tokens) and tokens[pos].startswith('y'):
+         match('y')
++        parse_Y()
+ 
+ def parse_Q():
+     global pos, tokens
+@@ -87,19 +58,37 @@
+ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('8'):
++    if pos < len(tokens) and tokens[pos].startswith('8'):
+         match('8')
++        parse_S()
+ 
++
++def parse_U():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in U")
++    lookahead = tokens[pos]
++    if lookahead.startswith('Z'):
++        match('Z'); parse_D(); match('='); parse_I(); parse_Q()
++    elif lookahead.startswith('*'):
++        match('*'); parse_H(); match('-'); parse_H()
++    elif lookahead.startswith("'"):
++        match("'"); parse_D(); match('%'); parse_F()
++    elif lookahead.startswith('|'):
++        match('|'); parse_X(); match('6'); match('&'); match('o')
++    elif lookahead.startswith('C'):
++        match('C')
++    else:
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['Z', '*', "'", '|', 'C']))
+ 
+ def parse_H():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('F'):
+-        parse_F()
+-
+-def parse_X():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in X")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('a'):
+-        match('a')
+-        match('~')
+-    else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['a', '']))
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        # Check if lookahead can start F: FIRST(F) = {'/', "'", 'r', '|', 'p', 'M', ','}
++        if lookahead.startswith('/') or lookahead.startswith("'") or \
++           lookahead.startswith('r') or lookahead.startswith('|') or \
++           lookahead.startswith('p') or lookahead.startswith('M') or \
++           lookahead.startswith(','):
++            parse_F()
++            parse_H()
++    # else: epsilon
++
++def parse_X():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('a'):
++        match('a')
++        parse_X()
++    # else: epsilon
+ 
+ def parse_F():
+     global pos, tokens
+@@ -118,13 +107,38 @@
+         parse_D()
+         parse_X()
+         parse_Y()
+         match('R')
+-    elif lookahead.startswith('Q'):
++    # Rule <Q> <Y>: FIRST(Q) = {'r', '|', 'p', 'M'}
++    elif lookahead.startswith('r') or \
++         lookahead.startswith('|') or \
++         lookahead.startswith('p') or \
++         lookahead.startswith('M'):
+         parse_Q()
+         parse_Y()
+     elif lookahead.startswith(','):
+         match(',')
+     else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['/', "'", 'Q', ',']))
++        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['/', "'", 'r', '|', 'p', 'M', ',']))
+ 
++
++def parse_G():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in G")
++    lookahead = tokens[pos]
++
++    first_F_tokens = ['/', "'", 'r', '|', 'p', 'M', ',']
++    is_first_F = any(lookahead.startswith(t) for t in first_F_tokens)
++    expected_tokens_list = sorted(list(set(
++        ['<', '@', 'N', 'y', '_'] + first_F_tokens + ['a']
++    )))
++
++    if lookahead.startswith('<'): # Rule 1: < F H
++        match('<'); parse_F(); parse_H()
++    elif is_first_F or lookahead.startswith('a') or lookahead.startswith('_'): # Rule 2: H X _ m
++        parse_H(); parse_X(); match('_'); match('m')
++    elif lookahead.startswith('y'): # Rule 3: Y X F S
++        parse_Y(); parse_X(); parse_F(); parse_S()
++    elif lookahead.startswith('@'): # Rule 4: @ } I X
++        match('@'); match('}'); parse_I(); parse_X()
++    elif lookahead.startswith('N'): # Rule 5: N
++        match('N')
++    else:
++        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(expected_tokens_list))
+ 
+ def parse_D():
+     global pos, tokens

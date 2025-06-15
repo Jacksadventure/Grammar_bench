@@ -1,0 +1,38 @@
+@@ -22,30 +22,7 @@ def parse_E():
+     lookahead = tokens[pos]
+     if lookahead.startswith('K'):
+         match('K')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('@'):
+-            match('@')
+-            match('J')
+-            parse_Z()
+-            parse_P()
+-            match('V')
+-        elif lookahead.startswith('>'):
+-            match('>')
+-            parse_E()
+-            parse_W()
+-            match('T')
+-        elif lookahead.startswith('C'):
+-            match('C')
+-            parse_W()
+-            parse_Z()
+-            match('7')
+-            parse_W()
+-        elif lookahead.startswith(';'):
+-            match(';')
+-            match("'")
+-            match('/')
+-        elif lookahead.startswith('['):
+-            match('[')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['@', '>', 'C', ';', '[']))
++        parse_F()
+@@
+-        match('b')
+-        match('C')
++        match('b')
++        match('p')

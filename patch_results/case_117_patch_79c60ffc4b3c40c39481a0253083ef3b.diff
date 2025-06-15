@@ -1,0 +1,103 @@
+--- a/parser.py
++++ b/parser.py
+@@ -24,19 +24,7 @@
+         match('b')
+         match('<')
+         match('g')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Y'):
+-            match('Y')
+-            match('9')
+-            parse_W()
+-            match('s')
+-        elif lookahead.startswith('7'):
+-            match('7')
+-        elif lookahead.startswith('.'):
+-            match('.')
+-            match("'")
+-            match('7')
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['Y', '7', '.']))
++        parse_O()
+     elif lookahead.startswith('J'):
+         match('J')
+         match('@')
+@@ -47,19 +35,7 @@
+             error("Unexpected end of input in H")
+         lookahead = tokens[pos]
+         if lookahead.startswith('I'):
+-            match('I')
+-            parse_C()
+-            parse_H()
+-            parse_G()
+-            match('w')
+-        elif lookahead.startswith(';'):
+-            match(';')
+-            match('*')
+-        elif lookahead.startswith('&'):
+-            match('&')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['I', ';', '&']))
++            parse_H()
+     elif lookahead.startswith('Z'):
+         match('Z')
+     else:
+@@ -67,6 +43,26 @@
+             error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['{', 'J', 'Z']))
+ 
+ def parse_H():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in O")
++    lookahead = tokens[pos]
++    if lookahead.startswith('Y'):
++        match('Y')
++        match('9')
++        parse_W()
++        match('s')
++    elif lookahead.startswith('7'):
++        match('7')
++    elif lookahead.startswith('.'):
++        match('.')
++        match("'")
++        match('7')
++    else:
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['Y', '7', '.']))
++
++
++def parse_H():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in H")
+@@ -107,11 +103,11 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in G")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('{'):
+-        match('{')
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['{']))
++    if lookahead.startswith('u'):
++        match('u')
++    else:
++        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['u']))
+ 
+ def parse_K():
+     global pos, tokens
+@@ -119,10 +115,10 @@
+         error("Unexpected end of input in K")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('G'):
++    if lookahead.startswith('u'):
+         parse_G()
+         match('<')
+         match('E')
+         match('Y')
+         parse_G()
+     elif lookahead.startswith('9'):
+         match('9')
+     else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['G', '9']))
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['u', '9']))

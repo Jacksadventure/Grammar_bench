@@ -1,0 +1,202 @@
+@@ -23,31 +23,8 @@ def parse_W():
+     if lookahead.startswith('6'):
+         match('6')
+     elif lookahead.startswith('1'):
+         match('1')
+-        while pos < len(tokens) and tokens[pos].startswith('/'):
+-            match('/')
+-            match('6')
+-            match('w')
+-            match('r')
+-            parse_J()
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('6'):
+-            match('6')
+-        elif lookahead.startswith('1'):
+-            match('1')
+-            parse_N()
+-            parse_W()
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            parse_B()
+-        elif lookahead.startswith('b'):
+-            match('b')
+-            parse_U()
+-            parse_I()
+-        elif lookahead.startswith('H'):
+-            match('H')
+-            match('=')
+-            match('&')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['6', '1', '^', 'b', 'H']))
++        parse_N()
++        parse_W()
+     elif lookahead.startswith('^'):
+         match('^')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('J'):
+-            parse_J()
+-            parse_J()
+-            parse_B()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            match('{')
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            match('{')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['J', '&', '&']))
++        parse_B()
+     elif lookahead.startswith('b'):
+         match('b')
+-        while pos < len(tokens) and tokens[pos].startswith('P'):
+-            match('P')
+-            match('i')
+-            match("'")
+-            parse_B()
+-            match('1')
+-        while pos < len(tokens) and tokens[pos].startswith('j'):
+-            match('j')
++        parse_U()
++        parse_I()
+     elif lookahead.startswith('H'):
+         match('H')
+         match('=')
+@@ -88,20 +65,22 @@
+ 
+ def parse_B():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in B")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('J'):
+-        parse_J()
+-        parse_J()
+-        parse_B()
+-    elif lookahead.startswith('&'):
+-        match('&')
+-        match('{')
+-    elif lookahead.startswith('&'):
+-        match('&')
+-        match('{')
+-    else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['J', '&', '&']))
++    # B ::= <J> <J> <B> | [] | "&" <K>
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('&'):
++            match('&')
++            parse_K()
++        elif lookahead.startswith('/') or \
++             lookahead.startswith('@') or \
++             lookahead.startswith('-') or \
++             lookahead.startswith('R'):
++            parse_J()
++            parse_J()
++            parse_B()
++        # else: Epsilon case for B (B -> [])
++    # else: EOF, Epsilon case for B (B -> [])
++
+ 
+ def parse_N():
+     global pos, tokens
+@@ -115,20 +94,26 @@
+ 
+ def parse_K():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in K")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('-'):
+-        match('-')
+-        match('!')
+-        parse_A()
+-    elif lookahead.startswith('R'):
+-        match('R')
+-        parse_K()
+-    elif lookahead.startswith('B'):
+-        parse_B()
+-    else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['-', 'R', 'B']))
++    # K ::= "-" "!" <A> | "R" <K> | <B>
++    # K is nullable via B.
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('-'):
++            match('-')
++            match('!')
++            parse_A()
++        elif lookahead.startswith('R'):
++            match('R')
++            parse_K()
++        elif lookahead.startswith('/') or \
++             lookahead.startswith('@') or \
++             lookahead.startswith('&'): # Tokens for B not already covered by '-' or 'R'
++            parse_B()
++        # else: Epsilon case for K (K -> B -> [])
++    # else: EOF, Epsilon case for K (K -> B -> [])
++
+ 
+ def parse_J():
+     global pos, tokens
+@@ -136,31 +121,39 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in J")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('A'):
+-        parse_A()
+-        parse_N()
+-    elif lookahead.startswith('@'):
+-        match('@')
+-    else:
+-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['A', '@']))
++    # J ::= <A> <N> | "@"
++    # J is nullable via A and N.
++    if pos < len(tokens): # check added to handle nullable rules correctly before accessing lookahead
++        lookahead = tokens[pos] # moved inside check
++        if lookahead.startswith('@'): # Specific token '@' checked first
++            match('@')
++        elif lookahead.startswith('/') or \
++             lookahead.startswith('-') or \
++             lookahead.startswith('R') or \
++             lookahead.startswith('&'): # Tokens for A part of J -> A N, excluding '@'
++            parse_A()
++            parse_N()
++        # else: Epsilon case for J (J -> A N -> eps eps -> eps)
++    # else: EOF, Epsilon case for J
++
+ 
+ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('P'):
++    # U ::= "P" "i" "'" <B> "1" <U> | []
++    if pos < len(tokens) and tokens[pos].startswith('P'):
+         match('P')
+         match('i')
+         match("'")
+         parse_B()
+         match('1')
++        parse_U()
++    # else: Epsilon case for U (U -> [])
+ 
+ def parse_I():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('j'):
+         match('j')
+ 
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('N'):
++    # A ::= <N> <K> <A> | []
++    if pos < len(tokens) and \
++       (tokens[pos].startswith('/') or tokens[pos].startswith('-') or \
++        tokens[pos].startswith('R') or tokens[pos].startswith('@') or \
++        tokens[pos].startswith('&')): # FIRST(N K)
+         parse_N()
+         parse_K()
++        parse_A()
++    # else: Epsilon case for A (A -> [])

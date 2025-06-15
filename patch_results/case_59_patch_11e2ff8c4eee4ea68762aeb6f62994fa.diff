@@ -1,0 +1,15 @@
+@@ -61,7 +61,7 @@ def parse_W():
+     elif lookahead.startswith(')'):
+         match(')')
+         match('q')
+         match('_')
+-    elif lookahead.startswith('O'):
++    elif lookahead.startswith("'"):
++        match("'")
++        match('q')
++        match('_')
++    elif lookahead.startswith('O'):
+         match('O')
+     else:
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['f', ')', 'O']))
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['f', "'", 'O']))

@@ -1,0 +1,94 @@
+--- a/parser.py
++++ b/parser.py
+@@ -22,21 +22,6 @@
+     if lookahead.startswith('p'):
+         match('p')
+         match('I')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            match('I')
+-            parse_L()
+-            match('~')
+-            parse_G()
+-        elif lookahead.startswith('J'):
+-            match('J')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['p', 'J']))
+-        match('~')
+-        while pos < len(tokens) and tokens[pos].startswith('('):
+-            match('(')
+-            parse_H()
+-            match('k')
++        parse_L()
++        match('~')
++        parse_G()
+     elif lookahead.startswith('J'):
+         match('J')
+     else:
+@@ -53,9 +38,9 @@
+     if lookahead.startswith('+'):
+         match('+')
+         match('+')
+-    elif lookahead.startswith('C'):
+-        match('C')
++    elif lookahead.startswith('W'):
++        match('W')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['+', 'C']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['+', 'W']))
+ 
+ def parse_R():
+     global pos, tokens
+@@ -62,5 +47,6 @@
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('T'):
++    if pos < len(tokens) and tokens[pos].startswith('T'):
+         match('T')
+         parse_O()
+         parse_M()
++        parse_R()
+ 
+ def parse_P():
+     global pos, tokens
+@@ -95,7 +81,8 @@
+ def parse_H():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
++    if pos < len(tokens) and tokens[pos].startswith('>'):
+         match('>')
+         parse_P()
+         match('^')
+         match(';')
+         parse_M()
++        parse_H()
+ 
+ def parse_G():
+     global pos, tokens
+@@ -106,5 +93,6 @@
+ def parse_G():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('('):
++    if pos < len(tokens) and tokens[pos].startswith('('):
+         match('(')
+         parse_H()
+         match('k')
++        parse_G()
+ 
+ def parse_M():
+     global pos, tokens
+@@ -113,6 +101,7 @@
+ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('4'):
++    if pos < len(tokens) and tokens[pos].startswith('4'):
+         match('4')
+         parse_R()
+         match('8')
+         match('Q')
++        parse_M()
+ 
+ def parse_input(input_str):

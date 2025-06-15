@@ -1,0 +1,24 @@
+@@ -94,7 +94,8 @@ def parse_P():
+         match('|')
+         match(',')
+         parse_T()
+-        match('n')
++        parse_B()
++        match('n') if pos < len(tokens) and tokens[pos].startswith('n') else None
+
+@@ -55,7 +55,8 @@ def parse_Z():
+             match('|')
+             match(',')
+             parse_T()
+-            match('n')
++            parse_B()
++            match('n') if pos < len(tokens) and tokens[pos].startswith('n') else None
+
+@@ -135,6 +135,11 @@ def parse_B():
+         match('u')
+         match('?')
+         match('<')
+         match('1')
++    if pos < len(tokens) and tokens[pos].startswith('A'):
++        match('A')
++        parse_U()

@@ -1,0 +1,9 @@
+@@ -22,7 +22,7 @@ def parse_F():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('6'):
+-        match('6')
++    if lookahead.startswith('A'):
++        match('A')
+     else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['6']))
++        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['A']))

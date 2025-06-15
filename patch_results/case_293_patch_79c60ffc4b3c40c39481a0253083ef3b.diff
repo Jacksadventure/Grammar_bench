@@ -1,0 +1,144 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,42 +19,29 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in K")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('E'):
+-        while pos < len(tokens) and tokens[pos].startswith('%'):
+-            match('%')
+-            match('7')
+-            match('b')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('B'):
+-            match('B')
+-            match('$')
+-            match('9')
+-            parse_H()
+-            parse_K()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_S()
+-            parse_H()
+-        elif lookahead.startswith('h'):
+-            match('h')
+-            parse_F()
+-            parse_F()
+-            match('u')
+-        elif lookahead.startswith('J'):
+-            match('J')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['B', '~', 'h', 'J']))
+-    elif lookahead.startswith('i'):
++    # K -> i
++    if lookahead.startswith('i'):
+         match('i')
+-    elif lookahead.startswith('D'):
++    # K -> D E W
++    elif lookahead.startswith('D'):
+         match('D')
+-        while pos < len(tokens) and tokens[pos].startswith('%'):
+-            match('%')
+-            match('7')
+-            match('b')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('*'):
+-            match('*')
+-            parse_F()
+-            parse_K()
+-        elif lookahead.startswith('-'):
+-            match('-')
+-            parse_A()
+-            parse_F()
+-            parse_W()
+-            parse_Q()
+-        elif lookahead.startswith('e'):
+-            match('e')
+-            parse_S()
+-            match('[')
+-            parse_H()
+-        elif lookahead.startswith('Z'):
+-            match('Z')
+-            match('U')
+-        elif lookahead('1'):
+-            match('1')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['*', '-', 'e', 'Z', '1']))
++        parse_E()
++        parse_W()
++    # K -> E C
++    elif lookahead.startswith('%') or \
++         lookahead.startswith('B') or \
++         lookahead.startswith('~') or \
++         lookahead.startswith('h') or \
++         lookahead.startswith('J'):
++        parse_E()
++        parse_C()
+     else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['E', 'i', 'D']))
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['i', 'D', '%', 'B', '~', 'h', 'J']))
+ 
+ def parse_E():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('%'):
+         match('%')
+         match('7')
+         match('b')
+ 
+@@ -111,6 +98,29 @@
+     else:
+         error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['?', 'Z', 'q', '-']))
+ 
++def parse_C():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in C")
++    lookahead = tokens[pos]
++    if lookahead.startswith('B'):
++        match('B')
++        match('$')
++        match('9')
++        parse_H()
++        parse_K()
++    elif lookahead.startswith('~'):
++        match('~')
++        parse_S()
++        parse_H()
++    elif lookahead.startswith('h'):
++        match('h')
++        parse_F()
++        parse_F()
++        match('u')
++    elif lookahead.startswith('J'):
++        match('J')
++    else:
++        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['B', '~', 'h', 'J']))
++
+ def parse_W():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -171,13 +181,8 @@
+ def parse_F():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in F")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('L'):
+-        match('L')
+-        match('d')
+-        match('v')
+-        match('0')
+-        match(';')
+-    else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['L', '']))
++        # F can be epsilon, so EOF is fine here.
++        return
++    while pos < len(tokens) and tokens[pos].startswith('L'):
++        match('L')
++        match('d')
++        match('v')
++        match('0')

@@ -1,0 +1,8 @@
+@@ -74,6 +74,9 @@ def parse_E():
+     elif lookahead.startswith('v'):
+         match('v')
++    elif lookahead.startswith('.'):
++        match('.')
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['[', ']', 'v']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['[', ']', '.']))

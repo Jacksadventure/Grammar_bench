@@ -1,0 +1,42 @@
+@@ -24,5 +24,1 @@ def parse_W():
+-        while pos < len(tokens) and tokens[pos].startswith('Q'):
+-            match('Q')
+-            parse_X()
+-            parse_B()
+-            parse_K()
++        parse_X()
+
+@@ -114,8 +114,3 @@ def parse_G():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in G")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('r'):
+-        match('r')
+-        match('7')
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['r', '']))
++    while pos < len(tokens) and tokens[pos].startswith('r'):
++        match('r')
+
+@@ -183,5 +183,8 @@ def parse_X():
+-    while pos < len(tokens) and tokens[pos].startswith('Q'):
+-        match('Q')
+-        parse_X()
+-        parse_B()
+-        parse_K()
++    if pos < len(tokens) and tokens[pos].startswith('Q'):
++        match('Q')
++        parse_X()
++        parse_B()
++        parse_K()
++        parse_X()
+
+@@ -241,7 +241,8 @@ def parse_Y():
+-    elif lookahead.startswith('F'):
+-        parse_F()
++    elif lookahead.startswith('0'):
++        parse_F()
+-    else:
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['f', 'F']))
++    else:
++        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['f', '0']))

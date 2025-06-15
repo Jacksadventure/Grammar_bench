@@ -1,0 +1,9 @@
+@@ -47,7 +47,7 @@
+         match('G')
+     elif lookahead.startswith('$'):
+         match('$')
+-        match('v')
++        parse_Y()
+     else:
+         error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['G', '$']))
+ 

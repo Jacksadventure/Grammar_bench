@@ -1,0 +1,10 @@
+@@ -163,6 +163,8 @@ def parse_D():
+         match('A')
+         match('a')
+     elif lookahead.startswith('t'):
+         match('t')
++    elif lookahead.startswith('v'):
++        match('v')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['_', 'a', 't']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['_', 'a', 'v']))

@@ -1,0 +1,68 @@
+@@ -20,1 +20,1 @@
+-        error("Unexpected end of input in B")
++        error("Unexpected end of input in B. Expected 'l', '7', or 'z'.")
+@@ -23,6 +23,3 @@
+         match('l')
+-        while pos < len(tokens) and tokens[pos].startswith(']'):
+-            match(']')
+-            match('F')
+-            match('(')
++        parse_J()
+         match('.')
+@@ -28,22 +25,4 @@
+         match('.')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('l'):
+-            match('l')
+-            parse_J()
+-            match('.')
+-            parse_B()
+-            parse_J()
+-        elif lookahead.startswith('7'):
+-            match('7')
+-            parse_B()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['l', '7', 'z']))
+-        while pos < len(tokens) and tokens[pos].startswith(']'):
+-            match(']')
+-            match('F')
+-            match('(')
++        parse_B()
++        parse_J()
+     elif lookahead.startswith('7'):
+@@ -50,18 +29,3 @@
+         match('7')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('l'):
+-            match('l')
+-            parse_J()
+-            match('.')
+-            parse_B()
+-            parse_J()
+-        elif lookahead.startswith('7'):
+-            match('7')
+-            parse_B()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['l', '7', 'z']))
++        parse_B()
+     elif lookahead.startswith('z'):
+@@ -69,2 +33,2 @@
+     else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['l', '7', 'z']))
++        error("Unexpected token " + lookahead + " in B, expected 'l', '7', or 'z'")
+@@ -74,4 +38,5 @@
+-    while pos < len(tokens) and tokens[pos].startswith(']'):
++    if pos < len(tokens) and tokens[pos].startswith(']'):
+         match(']')
+         match('F')
+-        match('(')
++        parse_J()
++        parse_J()

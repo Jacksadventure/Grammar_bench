@@ -1,0 +1,12 @@
+@@ -149,7 +149,7 @@ def parse_B():
+     elif lookahead.startswith("'"):
+         match("'")
++    elif lookahead.startswith(','):
++        match(',')
+     elif lookahead.startswith('s'):
+         match('s')
+         match('!')
+         parse_J()
+     else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['+', "'", 's']))
++        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['+', "'", ',', 's']))

@@ -1,0 +1,60 @@
+@@ -17,16 +17,9 @@ def parse_G():
+-    while pos < len(tokens) and tokens[pos].startswith('{'):
+-        match('{')
+-        match('1')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('q'):
+-            match('q')
+-            match("'")
+-            match('|')
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['q', '']))
+-        match('R')
++    # G -> "{" "1" K "R" G | "Y" Z | ε
++    if pos < len(tokens) and tokens[pos] == '{':
++        match('{'); match('1'); parse_K(); match('R'); parse_G()
++    elif pos < len(tokens) and tokens[pos] == 'Y':
++        match('Y'); parse_Z()
+
+@@ -33,12 +26,5 @@ def parse_K():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in K")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('q'):
+-        match('q')
+-        match("'")
+-        match('|')
+-    else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['q', '']))
++    # K -> "q" "'" K | ε
++    if pos < len(tokens) and tokens[pos] == 'q':
++        match('q'); match("'"); parse_K()
+
+@@ -45,7 +38,23 @@ def parse_Z():
+-    while pos < len(tokens) and tokens[pos].startswith('f'):
+-        match('f')
+-        match('|')
+-        match('d')
++    # Z -> "f" "|" "d" Z | "H" E D | ε
++    if pos < len(tokens) and tokens[pos] == 'f':
++        match('f'); match('|'); match('d'); parse_Z()
++    elif pos < len(tokens) and tokens[pos] == 'H':
++        match('H'); parse_E(); parse_D()
+ 
++def parse_D():
++    global pos, tokens
++    # D -> "Y" D | ε
++    if pos < len(tokens) and tokens[pos] == 'Y':
++        match('Y'); parse_D()
++
++def parse_E():
++    global pos, tokens
++    # E -> Z | "P" G "-" G K | "b"
++    if pos < len(tokens) and tokens[pos] == 'P':
++        match('P'); parse_G(); match('-'); parse_G(); parse_K()
++    elif pos < len(tokens) and tokens[pos] == 'b':
++        match('b')
++    else:
++        parse_Z()

@@ -1,0 +1,67 @@
+@@ -21,25 +21,7 @@
+         error("Unexpected end of input in R")
+     lookahead = tokens[pos]
+     if lookahead.startswith('4'):
+         match('4')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-            match('Z')
+-            match('H')
+-            match('2')
+-            parse_K()
+-        elif lookahead.startswith('o'):
+-            match('o')
+-            match('(')
+-            parse_Y()
+-            parse_W()
+-            match('C')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['.', 'o', '*']))
++        parse_J()
+     elif lookahead.startswith('|'):
+         match('|')
+     else:
+@@ -100,12 +100,8 @@
+ def parse_T():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in T")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('6'):
++    if pos < len(tokens) and tokens[pos].startswith('6'):
+         match('6')
+-        match('Q')
+-    else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['6', '']))
++        parse_T()
++    # else: Epsilon production
+ 
+ def parse_J():
+@@ -137,12 +133,18 @@
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('_'):
+-        match('_')
+-        match('~')
+-        match('8')
+-        match("'")
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('_'):
++            match('_')
++            match('~')
++            match('8')
++            match("'")
++            parse_W()
++        elif lookahead.startswith('E'):
++            match('E')
++            parse_L()
++    # else: Epsilon production (either EOF or token not in FIRST(W))
+ 
+ def parse_P():
+     global pos, tokens

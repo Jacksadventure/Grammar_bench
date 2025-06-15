@@ -1,0 +1,135 @@
+--- a/parser.py
++++ b/parser.py
+@@ -16,40 +16,29 @@
+     else:
+         error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
+ 
+-def parse_O():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('*'):
+-        match('*')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            match('N')
+-            match('^')
+-            parse_F()
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['T', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('p'):
+-            match('p')
+-            parse_P()
+-            parse_D()
+-        elif lookahead.startswith('6'):
+-            match('6')
+-            parse_F()
+-            match('2')
+-            match('N')
+-        elif lookahead.startswith('-'):
+-            match('-')
+-            match('V')
+-            match('8')
+-        elif lookahead.startswith('G'):
+-            parse_G()
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['p', '6', '-', 'G']))
+-        match('1')
++def parse_O(): # Corrected based on grammar O ::= "*" F W "1" O | epsilon | "s" H
++    global pos, tokens
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('*'):
++            match('*')
++            parse_F()
++            parse_W()
++            match('1')
++            parse_O()
++        elif lookahead.startswith('s'):
++            match('s')
++            parse_H()
++        # else: Implies epsilon rule, no action needed for valid epsilon.
+ 
+ def parse_H():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in H")
+     lookahead = tokens[pos]
+     if lookahead.startswith('7'):
+         match('7')
+         parse_M()
+     elif lookahead.startswith('.'):
+@@ -69,6 +58,27 @@
+     else:
+         error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['7', '.', 'p', 'I']))
+ 
++def parse_W(): # Extracted from original parse_O (lines 32-50)
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in W")
++    lookahead = tokens[pos]
++    if lookahead.startswith('p'):
++        match('p')
++        parse_P()
++        parse_D()
++    elif lookahead.startswith('6'):
++        match('6')
++        parse_F()
++        match('2')
++        match('N')
++    elif lookahead.startswith('-'):
++        match('-')
++        match('V')
++        match('8')
++    elif lookahead.startswith('G'):
++        parse_G()
++    else:
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['p', '6', '-', 'G']))
++
+ def parse_P():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -83,9 +93,9 @@
+     elif lookahead.startswith('L'):
+         match('L')
+     elif lookahead.startswith('e'):
+-        match('e')
++        match('-') # Grammar specifies '-', not 'e'
+     elif lookahead.startswith('g'):
+         match('g')
+     else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['*', '{', 'L', 'e', 'g']))
++        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['*', '{', 'L', '-', 'g']))
+ 
+ def parse_D():
+     global pos, tokens
+@@ -109,10 +119,13 @@
+ def parse_Q():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('P'):
++        # Corrected: 'P' is a non-terminal. Check its FIRST set.
++        # FIRST(P) = {*, {, L, -, g}
++        if not (tokens[pos].startswith('*') or tokens[pos].startswith('{') or \
++                tokens[pos].startswith('L') or tokens[pos].startswith('-') or \
++                tokens[pos].startswith('g')):
++            break # No P token, exit loop for epsilon
+         parse_P()
+-
+ def parse_F():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('T'):
+-        match('T')
+-        match('N')
+-        match('^')
++    if pos < len(tokens) and tokens[pos].startswith('T'): # Changed while to if for F ::= T N ^ F | epsilon
++        match('T')
++        match('N')
++        match('^')
++        parse_F() # Recursive call for F ::= T N ^ F
+ 
+ def parse_G():
+     global pos, tokens

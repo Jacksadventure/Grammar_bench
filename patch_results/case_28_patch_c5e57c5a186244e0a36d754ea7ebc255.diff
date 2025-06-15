@@ -1,0 +1,44 @@
+@@ -17,27 +17,31 @@
++def parse_G():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in G")
++    lookahead = tokens[pos]
++    if lookahead.startswith('y'):
++        match('y')
++        match('>')
++        match('&')
++        match('*')
++    elif lookahead.startswith('6'): # Corresponds to 'D' in grammar
++        match('6')
++    else:
++        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['y', '6']))
++
+ def parse_B():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in B")
+     lookahead = tokens[pos]
+     if lookahead.startswith('~'):
+         match('~')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('y'):
+-            match('y')
+-            match('>')
+-            match('&')
+-            match('*')
+-        elif lookahead.startswith('6'):
+-            match('6')
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['y', '6']))
++        parse_G()
+     elif lookahead.startswith('`'):
+         match('`')
+         match('c')
+     elif lookahead.startswith('l'):
+         match('l')
+     else:
+         error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['~', '`', 'l']))
++

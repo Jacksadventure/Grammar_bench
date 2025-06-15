@@ -1,0 +1,38 @@
+--- parser.py
++++ parser.py
+@@ -21,19 +21,7 @@ def parse_T():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('-'):
+-        match('-')
+-        match('(')
+-        match('s')
+-        match('=')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-            parse_T()
+-            match('J')
+-            parse_K()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['e', '`']))
++    if lookahead.startswith('-'):
++        match('-')
++        match('(')
++        match('s')
++        match('=')
++        parse_E()
+     elif lookahead.startswith('J'):
+         match('J')
+@@ -63,5 +63,6 @@ def parse_K():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('V'):
+-        match('V')
+-        parse_E()
++    if lookahead.startswith('q'):
++        match('q')
++        parse_E()
+     elif lookahead.startswith('a'):

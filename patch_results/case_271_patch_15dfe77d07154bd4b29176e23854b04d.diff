@@ -1,0 +1,57 @@
+@@ -19,32 +19,10 @@ def parse_N():
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
+-        match('M')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('n'):
+-            match('n')
+-            parse_Z()
+-            match('H')
+-            parse_Z()
+-            parse_X()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-            match('W')
+-            parse_Z()
+-            parse_N()
+-        elif lookahead.startswith('a'):
+-            match('a')
+-            parse_Z()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            parse_R()
+-            parse_R()
+-            parse_N()
+-            parse_Z()
+-        elif lookahead.startswith('p'):
+-            match('p')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['n', '0', 'a', 'A', 'p']))
+-        match('_')
+-        match('c')
+-        match("'")
++    while pos < len(tokens) and tokens[pos].startswith('M'):
++        match('M')
++        parse_Z()
++        match('_')
++        match('c')
++        match("'")
+ 
+@@ -59,12 +37,8 @@ def parse_R():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in R")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('{'):
+-        match('{')
+-        parse_N()
+-        match('?')
+-    else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['{', '']))
++    global pos, tokens
++    # ε-production: only parse when a '{' is present
++    if pos < len(tokens) and tokens[pos].startswith('{'):
++        match('{')
++        parse_N()
++        parse_R()

@@ -1,0 +1,113 @@
+@@ def parse_W():
+-        match("'")
+-        while pos < len(tokens) and tokens[pos].startswith('b'):
+-            match('b')
+-            match('$')
+-        match('@')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('S'):
+-            match('S')
+-            parse_U()
+-            match('8')
+-        elif lookahead.startswith('}'):
+-            match('}')
+-            match('N')
+-            parse_H()
+-            match('%')
+-            match("'")
+-        elif lookahead.startswith('y'):
+-            match('y')
+-            match('(')
+-            match('Y')
+-        elif lookahead.startswith('A'):
+-            match('A')
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['S', '}', 'y', 'A']))
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
+-            match('V')
+-            match('1')
+-            match('m')
+-            match('b')
++        match("'")
++        parse_J()
++        match('@')
++        parse_M()
++        parse_F()
+@@ def parse_W():
+-    elif lookahead.startswith(';'):
+-        match(';')
+-        match('^')
+-        match('o')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('E'):
+-            match('E')
+-            parse_M()
+-            match('Q')
+-            match(')')
+-        elif lookahead.startswith('1'):
+-            match('1')
+-        elif lookahead.startswith('W'):
+-            parse_W()
+-            match('%')
+-        elif lookahead.startswith('o'):
+-            match('o')
+-            match("'")
+-            match('b')
+-            match('_')
+-            parse_J()
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['E', '1', 'W', 'o']))
++    elif lookahead.startswith(';'):
++        match(';')
++        match('^')
++        match('o')
++        parse_U()
+@@ def parse_F():
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
+-        match("'")
+-        match('V')
+-        match('1')
+-        match('m')
+-        match('b')
++    while pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
++        match('V')
++        match('9')
++        match('m')
++        match('b')
+@@ def parse_J():
+-    while pos < len(tokens) and tokens[pos].startswith('b'):
+-        match('b')
+-        match('$')
++    while pos < len(tokens) and tokens[pos].startswith('b'):
++        match('b')
++        match('$')
++    # optional H G production
++    if pos < len(tokens) and (tokens[pos].startswith('+') or tokens[pos].startswith('h') or tokens[pos].startswith('X') or tokens[pos].startswith('_') or tokens[pos].startswith('B') or tokens[pos].startswith('a')):
++        parse_H()
++        parse_G()
+@@ def parse_H():
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
+-        match('+')
+-        match('k')
+-        match('s')
+-        match('4')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('+'):
++            match('+')
++            match('k')
++            match('s')
++            match('4')
++            parse_H()
++            return
++        elif lookahead.startswith('h'):
++            match('h')
++            parse_L()
++            return
++    # epsilon

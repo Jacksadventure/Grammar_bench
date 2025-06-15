@@ -1,0 +1,125 @@
+--- a/parser.py
++++ b/parser.py
+@@ -27,37 +27,7 @@
+             match('<')
+             match("'")
+             match('e')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(','):
+-            match(',')
+-            parse_Q()
+-        elif lookahead.startswith('w'):
+-            match('w')
+-            match('O')
+-            match('j')
+-            match('P')
+-            match('J')
+-        elif lookahead.startswith('%'):
+-            match('%')
+-            match('o')
+-            match('e')
+-            match(';')
+-            parse_Y()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            match('&')
+-            match('f')
+-            match('.')
+-            match('-')
+-        elif lookahead.startswith('E'):
+-            match('E')
+-            match('w')
+-            parse_C()
+-            parse_V()
+-            parse_Y()
+-        elif lookahead.startswith('w'):
+-            match('w')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join([',', 'w', '%', 'A', 'E', 'w']))
++        parse_N()
+     elif lookahead.startswith('`'):
+         match('`')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('k'):
+-            match('k')
+-            match('c')
+-            match("'")
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            match("'")
+-            match('e')
+-            parse_N()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-            parse_C()
+-            parse_F()
+-            match('M')
+-        elif lookahead.startswith('@'):
+-            match('@')
+-            parse_Y()
+-        elif lookahead.startswith('w'):
+-            match('w')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['k', '<', '`', '@', 'w']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('w'):
+-            match('w')
+-            match('u')
+-            parse_Q()
+-            match('S')
+-            match('B')
+-        elif lookahead.startswith(';'):
+-            match(';')
+-        elif lookahead.startswith('q'):
+-            match('q')
+-        elif lookahead.startswith('x'):
+-            match('x')
+-        elif lookahead.startswith('!'):
+-            match('!')
+-            parse_F()
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['w', ';', 'q', 'x', '!']))
++        parse_C()
++        parse_F()
+         match('M')
+     elif lookahead.startswith('@'):
+         match('@')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            match('u')
+-            match('-')
+-            match('s')
+-        elif lookahead.startswith('W'):
+-            match('W')
+-            match(')')
+-            match('?')
+-            match('w')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            match('T')
+-        elif lookahead.startswith('@'):
+-            match('@')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['u', 'W', "'", '@']))
++        parse_Y()
+     elif lookahead.startswith('w'):
+         match('w')
+     else:
+@@ -220,7 +190,7 @@
+         match('X')
+         match('z')
+     elif lookahead.startswith('8'):
+-        match('8')
++        match('9')
+         match('n')
+     elif lookahead.startswith('E'):
+         match('E')

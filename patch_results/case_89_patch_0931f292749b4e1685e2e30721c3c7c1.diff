@@ -1,0 +1,62 @@
+--- a/parser.py
++++ b/parser.py
+@@ -26,23 +26,3 @@ def parse_L():
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('g'):
+-            match('g')
+-            match('T')
+-            match('[')
+-            match('p')
+-            parse_L()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            match('Y')
+-            match('9')
+-            match('m')
+-            match(',')
+-        elif lookahead.startswith('#'):
+-            match('#')
+-            parse_H()
+-            parse_W()
+-        elif lookahead.startswith('}'):
+-            match('}')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['g', 'A', '#', '}']))
++        parse_L()
++        return
+@@ -54,12 +34,4 @@ def parse_L():
+-    elif lookahead.startswith('#'):
+-        match('#')
+-        while pos < len(tokens) and tokens[pos].startswith('6'):
+-            match('6')
+-            parse_L()
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['.']))
++    elif lookahead.startswith('#'):
++        match('#')
++        parse_H()
++        parse_W()
+@@ -75,6 +45,12 @@ def parse_H():
+         match('6')
+         parse_L()
++    if pos < len(tokens) and tokens[pos].startswith(')'):
++        match(')')
++        parse_M()
++        return
++
++# empty H allowed
+@@ -84,5 +62,5 @@ def parse_W():
+-    if lookahead.startswith('.'):
+-        match('.')
++    if lookahead.startswith('0'):
++        match('0')
+     else:
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['.']))
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['0']))

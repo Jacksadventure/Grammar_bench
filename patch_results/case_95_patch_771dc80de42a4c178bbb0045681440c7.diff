@@ -1,0 +1,56 @@
+@@ -19,16 +19,9 @@
+-    while pos < len(tokens) and tokens[pos].startswith('-'):
+-        match('-')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
++    if pos < len(tokens):
+        lookahead = tokens[pos]
+-        if lookahead.startswith('M'):
+-            match('M')
+-            match('b')
+-            match('o')
++        if lookahead.startswith('-'):
++            match('-')
+            parse_R()
+-        elif lookahead.startswith('v'):
+-            match('v')
+-            parse_K()
+-            parse_Q()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['M', '', 'v']))
++            parse_I()
++        elif lookahead.startswith('k'):
++            match('k')
++            parse_C()
+@@ -59,5 +52,6 @@
+-    while pos < len(tokens) and tokens[pos].startswith('j'):
+-        match('j')
++    if pos < len(tokens) and tokens[pos].startswith('w'):
++        match('w')
+         match('f')
+         match('L')
+         parse_K()
++        parse_K()
+@@ -67,4 +61,11 @@
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
+-        match('M')
+-        match('b')
+-        match('o')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('M'):
++            match('M')
++            match('b')
++            match('o')
++            parse_R()
++        elif lookahead.startswith('v'):
++            match('v')
++            parse_K()
++            parse_Q()
+@@ -74,4 +75,5 @@
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
++    if pos < len(tokens) and tokens[pos].startswith('?'):
+         match('?')
+         parse_C()
+         match(']')
++        parse_C()

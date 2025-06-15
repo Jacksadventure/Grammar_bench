@@ -1,0 +1,53 @@
+@@ -19,18 +19,9 @@ def parse_Q():
+-    while pos < len(tokens) and tokens[pos].startswith('f'):
+-        match('f')
+-        match('g')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            match('g')
+-            match('A')
+-            parse_X()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-            parse_W()
+-            parse_B()
+-            parse_M()
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['(', '', 'N']))
+-        match('t')
+-        match('G')
++    while pos < len(tokens) and tokens[pos].startswith('f'):
++        match('f')
++        match('g')
++        parse_X()
++        match('t')
++        match('G')
+ 
+@@ -137,7 +128,20 @@ def parse_X():
+-    while pos < len(tokens) and tokens[pos].startswith('('):
+-        match('(')
+-        match('g')
+-        match('A')
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('('):
++        match('(')
++        match('g')
++        match('A')
++        parse_X()
++    elif lookahead.startswith('N'):
++        match('N')
++        parse_W()
++        parse_B()
++        parse_M()
++    # epsilon production
+ 
+@@ -84,3 +88,3 @@ def parse_D():
+-    while pos < len(tokens) and tokens[pos].startswith('R'):
+-        match('R')
++    while pos < len(tokens) and tokens[pos].startswith('/'):
++        match('/')

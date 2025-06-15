@@ -1,0 +1,9 @@
+@@ -69,7 +69,7 @@ def parse_X():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('c'):
+-        match('c')
++    if lookahead.startswith('o'):
++        match('o')
+     else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['c']))
++        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['o']))

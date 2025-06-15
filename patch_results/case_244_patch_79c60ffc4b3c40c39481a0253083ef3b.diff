@@ -1,0 +1,64 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -23,45 +23,9 @@
+     if lookahead.startswith('D'):
+         match('D')
+         match('n')
+         match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_S()
+-        elif lookahead.startswith('('):
+-            match('(')
+-            parse_A()
+-            match('g')
+-            match('(')
+-            parse_F()
+-        elif lookahead.startswith('c'):
+-            match('c')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['9', '(', 'c']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('S'):
+-            parse_S()
+-            match('z')
+-            match(';')
+-            match('W')
+-            parse_L()
+-        elif lookahead.startswith('M'):
+-            match('M')
+-            match('7')
+-            match('3')
+-            match('k')
+-            match('B')
+-        elif lookahead.startswith('y'):
+-            match('y')
+-            match('D')
+-            match('k')
+-        elif lookahead.startswith('%'):
+-            match('%')
+-            match('b')
+-            match('[')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['S', 'M', 'y', '%', '_']))
++        parse_V()
++        parse_J()
+     elif lookahead.startswith('9'):
+         match('9')
+     else:
+@@ -80,7 +44,7 @@
+     if lookahead.startswith('{'):
+         match('{')
+     elif lookahead.startswith('/'):
+-        match('/')
++        match('R')
+         match(':')
+         match('{')
+         match('(')

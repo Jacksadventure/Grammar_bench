@@ -1,0 +1,37 @@
+--- parser.py
++++ parser.py
+@@ -23,7 +23,6 @@ def parse_X():
+         match('R')
+         match('6')
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
++        parse_J()
+     elif lookahead.startswith('|'):
+         match('|')
+@@ -34,1 +33,1 @@ def parse_X():
+-            match('9')
++            match('U')
+@@ -71,1 +70,1 @@ def parse_Q():
+-    match('9')
++    match('U')
+@@ -82,3 +81,13 @@ def parse_Q():
+     else:
+         error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['`', 'n', 'N']))
++
++def parse_H():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('_'):
++        match('_')
++
++def parse_J():
++    global pos, tokens
++    if pos < len(tokens):
++        if tokens[pos].startswith("'"):
++            match("'")
++            parse_J()
++        elif tokens[pos].startswith('I'):
++            match('I')
++            parse_H()
++
+ def parse_input(input_str):
+     global tokens, pos

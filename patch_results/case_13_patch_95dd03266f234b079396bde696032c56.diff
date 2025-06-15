@@ -1,0 +1,11 @@
+--- parser.py
++++ parser.py
+@@ -21,8 +21,8 @@ def parse_U():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('Z'):
+-        match('Z')
++    if lookahead.startswith('~'):
++        match('~')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['Z']))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['~']))

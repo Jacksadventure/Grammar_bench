@@ -1,0 +1,12 @@
+@@ -78,7 +78,7 @@ def parse_Q():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in Q")
+     lookahead = tokens[pos]
+-    if lookahead.startswith(']'):
+-        match(']')
++    if lookahead.startswith('q'):
++        match('q')
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['q']))

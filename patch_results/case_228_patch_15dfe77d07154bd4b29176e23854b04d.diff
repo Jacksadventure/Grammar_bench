@@ -1,0 +1,47 @@
+@@ -59,34 +59,10 @@ def parse_V():
+         match('^')
+         match('Y')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            parse_G()
+-            parse_M()
+-            parse_O()
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            match('Y')
+-            parse_V()
+-            parse_A()
+-            parse_C()
+-        elif lookahead.startswith('+'):
+-            match('+')
+-            parse_E()
+-            parse_G()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['(', '^', '+', 'N']))
+-        while pos < len(tokens) and tokens[pos].startswith('l'):
+-            match('l')
+-            match('{')
+-            match('h')
+-            match('u')
+-        while pos < len(tokens) and tokens[pos].startswith(','):
+-            match(',')
+-            parse_A()
+-            parse_D()
++        # According to the grammar: '^' 'Y' <V> <A> <C>
++        parse_V()
++        parse_A()
++        parse_C()
+@@
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
+-        match("'")
++    while pos < len(tokens) and tokens[pos].startswith('n'):
++        match('n')
+         match(')')
++        # loop continues automatically for repeated 'n' ')' patterns

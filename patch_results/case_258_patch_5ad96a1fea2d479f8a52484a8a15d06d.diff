@@ -1,0 +1,51 @@
+@@ -21,26 +21,7 @@ def parse_R():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('4'):
+-        match('4')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-            match('Z')
+-            match('H')
+-            match('2')
+-            parse_K()
+-        elif lookahead.startswith('o'):
+-            match('o')
+-            match('(')
+-            parse_Y()
+-            parse_W()
+-            match('C')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['.', 'o', '*']))
++    if lookahead.startswith('4'):
++        match('4')
++        parse_J()
+     elif lookahead.startswith('|'):
+         match('|')
+     else:
+@@ -101,8 +101,4 @@ def parse_T():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in T")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('6'):
+-        match('6')
+-        match('Q')
+-    else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['6', '']))
++    # match zero or more '6's
++    while pos < len(tokens) and tokens[pos].startswith('6'):
++        match('6')
+@@ -138,6 +138,10 @@ def parse_W():
+     global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('E'):
++        match('E')
++        parse_L()
++        return
+     while pos < len(tokens) and tokens[pos].startswith('_'):
+         match('_')
+         match('~')

@@ -1,0 +1,82 @@
+@@ -17,13 +17,14 @@
+ def parse_V():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('}'):
+-        match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-            match('~')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['.', '']))
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos] == '}':
++        match('}')
++        parse_A()
++        parse_V()
++    elif pos < len(tokens) and tokens[pos] == ',':
++        match(',')
++        parse_T()
++    else:
++        # epsilon production
++        pass
+ 
+@@
+ def parse_A():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in A")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('.'):
+-        match('.')
+-        match('~')
+-    else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['.', '']))
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos] == '.':
++        match('.')
++    # epsilon production when no '.' tokens
+ 
+@@
+ def parse_G():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('%'):
+-        match('%')
+-        parse_L()
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('%'):
++        match('%')
++        parse_L()
++
++def parse_T():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos] == "'":
++        match("'")
++        parse_I()
++        parse_A()
++        parse_T()
++    else:
++        # epsilon production
++        pass
+ 
+@@
+ def parse_R():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        parse_A()
+-        match('l')
+-        match('4')
++    global pos, tokens
++    # Parse zero or more occurrences of <A> 'l' '4'
++    while True:
++        start_pos = pos
++        parse_A()
++        if pos < len(tokens) and tokens[pos] == 'l':
++            match('l')
++            match('4')
++            continue
++        else:
++            pos = start_pos
++            break

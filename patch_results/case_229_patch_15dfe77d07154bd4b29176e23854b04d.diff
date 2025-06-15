@@ -1,0 +1,62 @@
+@@ -22,39 +22,18 @@ def parse_A():
+-    if lookahead.startswith('l'):
+-        match('l')
+-        match('m')
+-        while pos < len(tokens) and tokens[pos].startswith('&'):
+-            match('&')
+-        while pos < len(tokens) and tokens[pos].startswith('&'):
+-            match('&')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('8'):
+-            match('8')
+-            parse_G()
+-            parse_Z()
+-            parse_S()
+-        elif lookahead.startswith('Y'):
+-            match('Y')
+-            parse_Z()
+-            parse_G()
+-            parse_G()
+-            parse_G()
+-        elif lookahead.startswith('}'):
+-            match('}')
+-            parse_A()
+-            parse_A()
+-            parse_Z()
+-            parse_C()
+-        elif lookahead.startswith('w'):
+-            match('w')
+-            parse_A()
+-            parse_G()
+-            parse_Z()
+-            parse_C()
+-        elif lookahead.startswith('$'):
+-            match('$')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['8', 'Y', '}', 'w', '$']))
++    if lookahead.startswith('l'):
++        match('l')
++        match('m')
++        parse_C()   # first <C>
++        parse_C()   # second <C>
++        parse_Z()   # <Z>
+     elif lookahead.startswith('4'):
+         match('4')
+     else:
+         error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['l', '4']))
+@@
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in G")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('.'):
++    if pos < len(tokens) and tokens[pos].startswith('.'):
+         match('.')
+         parse_G()
+         match("'")
+-        match('4')
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['.', '']))
++        parse_G()
++    # epsilon production: do nothing if the current token is not '.'

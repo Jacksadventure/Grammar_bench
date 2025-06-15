@@ -1,0 +1,7 @@
+@@ -211,4 +211,4 @@ def parse_D():
+     while pos < len(tokens) and tokens[pos].startswith(';'):
+         match(';')
+         match('z')
+         parse_R()
+-        match('P')
++        match('>')

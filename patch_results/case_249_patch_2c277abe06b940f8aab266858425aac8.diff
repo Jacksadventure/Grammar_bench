@@ -1,0 +1,91 @@
+```diff
+@@ -24,69 +24,16 @@
+         match('7')
+         match('~')
+         match('?')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in P")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('B'):
+-            match('B')
+-            match(']')
+-            match('3')
+-            parse_E()
+-        elif lookahead.startswith('a'):
+-            match('a')
+-        else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['B', 'a']))
++        parse_P()
+     elif lookahead.startswith('>'):
+         match('>')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('1'):
+-            match('1')
+-            match('(')
+-            match('#')
+-            match("'")
+-        elif lookahead.startswith('l'):
+-            match('l')
+-            match('p')
+-            match('a')
+-        elif lookahead.startswith('X'):
+-            match('X')
+-            parse_J()
+-            match('o')
+-            parse_Z()
+-        elif lookahead.startswith('M'):
+-            parse_M()
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['1', 'l', 'X', 'M']))
++        parse_N()
+     elif lookahead.startswith('}'):
+         match('}')
+     elif lookahead.startswith('f'):
+         match('f')
+     elif lookahead.startswith('8'):
+         match('8')
+         match('j')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('w'):
+-            match('w')
+-            match('k')
+-            parse_Z()
+-            match('W')
+-            parse_M()
+-        elif lookahead.startswith('G'):
+-            match('G')
+-            match('k')
+-            parse_U()
+-            match("'")
+-        elif lookahead.startswith('}'):
+-            match('}')
+-            match('#')
+-            match("'")
+-            match('v')
+-        elif lookahead.startswith('R'):
+-            match('R')
+-        else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['w', 'G', '}', 'R']))
++        parse_D()
+     else:
+@@ -166,11 +113,11 @@
+ def parse_U():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in U")
++        error("Unexpected end of input in U") # No change to this line, but part of context
+     lookahead = tokens[pos]
+-    if lookahead.startswith('r'):
+-        match('r')
++    if lookahead.startswith('3'):
++        match('3')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['r']))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['3']))
+ 
+ def parse_M():
+```

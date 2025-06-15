@@ -1,0 +1,77 @@
+--- parser.py
++++ parser.py
+@@ def parse_O():
+-    if lookahead.startswith('/'):
+-        match('/')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            match('=')
+-            match('(')
+-            parse_B()
+-            parse_K()
+-        elif lookahead.startswith('_'):
+-            match('_')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['T', '_']))
+-        match('o')
+-    elif lookahead.startswith('?'):
+-        match('?')
+-        match('$')
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
+-            parse_O()
+-            match('(')
+-            match("'")
++    if lookahead.startswith('/'):
++        match('/')
++        parse_Z()
++        match('o')
++    elif lookahead.startswith('?'):
++        match('?')
++        match('$')
++        parse_X()
+     elif lookahead.startswith('d'):
+         match('d')
+     else:
+@@ def parse_K():
+-    elif lookahead.startswith('Z'):
+-        parse_Z()
++    elif lookahead.startswith('T') or lookahead.startswith('_'):
++        parse_Z()
+     elif lookahead.startswith('C'):
+         match('C')
+     else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['#', 'A', '`', 'Z', 'C']))
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['#', 'A', '`', 'T', '_', 'C']))
+
+@@ def parse_W():
+     while pos < len(tokens) and tokens[pos].startswith('j'):
+         match('j')
+-        match('D')
++        match('f')
+
++def parse_M():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('3'):
++        match('3')
++        match('k')
++        parse_Y()
++        parse_O()
++        parse_Z()
++        parse_M()
++
++def parse_X():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
++        parse_O()
++        match('(')
++        match("'")
++        parse_X()
++    else:
++        if pos < len(tokens) and tokens[pos].startswith('3'):
++            parse_M()
++            parse_M()

@@ -1,0 +1,76 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -16,20 +16,13 @@
+ def parse_I():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('-'):
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('-'):
++            match('-')
++            parse_R()
++            parse_I()
++        elif lookahead.startswith('k'):
++            match('k')
++            parse_C()
++
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('M'):
+-            match('M')
+-            match('b')
+-            match('o')
+-            parse_R()
+-        elif lookahead.startswith('v'):
+-            match('v')
+-            parse_K()
+-            parse_Q()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['M', '', 'v']))
+-
+ def parse_Q():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -58,21 +51,28 @@
+ 
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('j'):
+-        match('j')
++    if pos < len(tokens) and tokens[pos].startswith('w'):
++        match('w')
+         match('f')
+         match('L')
+         parse_K()
++        parse_K()
+ 
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
+-        match('M')
+-        match('b')
+-        match('o')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('M'):
++            match('M')
++            match('b')
++            match('o')
++            parse_R()
++        elif lookahead.startswith('v'):
++            match('v')
++            parse_K()
++            parse_Q()
+ 
+ def parse_C():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
++    if pos < len(tokens) and tokens[pos].startswith('?'):
+         match('?')
+         parse_C()
+         match(']')
++        parse_C()
+ 
+ def parse_input(input_str):
+     global tokens, pos

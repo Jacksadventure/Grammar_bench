@@ -1,0 +1,66 @@
+@@ -22,9 +22,6 @@ def parse_B():
+     if lookahead.startswith('l'):
+         match('l')
+-        while pos < len(tokens) and tokens[pos].startswith(']'):
+-            match(']')
+-            match('F')
+-            match('(')
++        parse_J()
+         match('.')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('l'):
+-            match('l')
+-            parse_J()
+-            match('.')
+-            parse_B()
+-            parse_J()
+-        elif lookahead.startswith('7'):
+-            match('7')
+-            parse_B()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['l', '7', 'z']))
+-        while pos < len(tokens) and tokens[pos].startswith(']'):
+-            match(']')
+-            match('F')
+-            match('(')
++        parse_B()
++        parse_J()
+     elif lookahead.startswith('7'):
+         match('7')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('l'):
+-            match('l')
+-            parse_J()
+-            match('.')
+-            parse_B()
+-            parse_J()
+-        elif lookahead.startswith('7'):
+-            match('7')
+-            parse_B()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['l', '7', 'z']))
++        parse_B()
+     elif lookahead.startswith('z'):
+@@ -72,6 +69,12 @@ def parse_B():
+ def parse_J():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(']'):
+-        match(']')
+-        match('F')
+-        match('(')
++    if pos < len(tokens) and tokens[pos].startswith(']'):
++        match(']')
++        match('F')
++        parse_J()
++        parse_J()
++    else:
++        # epsilon production
++        pass

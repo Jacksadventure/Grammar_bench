@@ -1,0 +1,84 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -21,57 +21,12 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('F'):
+         match('F')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('G'):
+-            match('G')
+-            match(']')
+-            match('y')
+-            parse_E()
+-        elif lookahead.startswith('>'):
+-            match('>')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['G', '>']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            match('I')
+-            match(':')
+-            match('[')
+-            match('}')
+-        elif lookahead.startswith('/'):
+-            match('/')
+-            match('t')
+-            parse_T()
+-        elif lookahead.startswith('.'):
+-            match('.')
+-            match('e')
+-            match('z')
+-            match('B')
+-            match('`')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['j', '/', '.', 'd']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('A'):
+-            match('A')
+-            parse_Y()
+-            match('k')
+-            match('J')
+-            match('c')
+-            match('=')
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        elif lookahead.startswith('X'):
+-            parse_X()
+-            match('*')
+-            match(';')
+-            parse_Y()
+-            match('O')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['A', '2', 'X']))
++        parse_T()
++        parse_X()
++        parse_Y()
+     elif lookahead.startswith('>'):
+         match('>')
+     else:
+         error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['F', '>']))
+@@ -165,11 +120,11 @@
+         match('c')
+         match('=')
+     elif lookahead.startswith('2'):
+         match('2')
+-    elif lookahead.startswith('X'):
+-        parse_X()
++    elif lookahead.startswith('O'):
++        match('O')
+         match('*')
+         match(';')
+         parse_Y()
+         match('O')
+     else:
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['A', '2', 'X']))
++        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['A', '2', 'O']))

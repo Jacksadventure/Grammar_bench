@@ -1,0 +1,11 @@
+@@ -183,7 +183,7 @@ def parse_N():
+     elif lookahead.startswith(':'):
+         match(':')
+         match('6')
+-    elif lookahead.startswith(';'):
+-        match(';')
++    elif lookahead.startswith('@'):
++        match('@')
+     elif lookahead.startswith('m'):
+         match('m')
+         parse_J()

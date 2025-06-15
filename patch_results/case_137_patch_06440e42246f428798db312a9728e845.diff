@@ -1,0 +1,40 @@
+@@ -94,7 +94,7 @@ def parse_N():
+     if lookahead.startswith('@'):
+         match('@')
+-    elif lookahead.startswith('2'):
+-        match('2')
++    elif lookahead.startswith('&'):
++        match('&')
+     elif lookahead.startswith('a'):
+         match('a')
+         parse_D()
+@@ -106,7 +106,7 @@ def parse_N():
+     else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['@', '2', 'a', 'A']))
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['@', '&', 'a', 'A']))
+
+@@ -125,9 +125,22 @@ def parse_M():
+
+ def parse_L():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('p'):
+-        match('p')
+-        match('$')
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('p'):
++        while pos < len(tokens) and tokens[pos].startswith('p'):
++            match('p')
++            match('$')
++        parse_L()
++    elif lookahead.startswith('D') or lookahead.startswith('>'):
++        parse_H()
++        parse_B()
++
++def parse_B():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('W'):
++        match('W')
++        match('R')
++        match('r')

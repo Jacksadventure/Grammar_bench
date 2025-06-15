@@ -1,0 +1,24 @@
+@@ -22,17 +22,11 @@ def parse_Q():
+     if lookahead.startswith(']'):
+         match(']')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(']'):
+-            match(']')
+-            parse_Q()
+-            match('`')
+-            match('*')
+-        elif lookahead.startswith('@'):
+-            match('@')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']', '@']))
++        parse_Q()
+         match('`')
+-        match('*')
++        parse_Q()
+     elif lookahead.startswith('@'):
+         match('@')
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']', '@']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']', '@']))

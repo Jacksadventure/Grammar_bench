@@ -1,0 +1,9 @@
+@@ -136,7 +136,7 @@ def parse_Z():
+     elif lookahead.startswith('!'):
+         match('!')
+     elif lookahead.startswith('7'):
+-        match('7')
++        match('~')
+     else:
+-        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['o', '!', '7']))
++        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['o', '~', '7']))

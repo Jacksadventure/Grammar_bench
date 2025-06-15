@@ -1,0 +1,7 @@
+@@ -81,7 +81,7 @@ def parse_O():
+     elif lookahead.startswith('/'):
+-        match('/')
++        match('R')
+         match(':')
+         match('{')
+         match('(')

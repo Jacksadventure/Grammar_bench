@@ -1,0 +1,11 @@
+
+
+@@ -22,7 +22,7 @@ def parse_E():
+-    if lookahead.startswith('S'):
++    if lookahead.startswith('e'):
+@@ -23,7 +23,7 @@ def parse_E():
+-        match('S')
++        match('e')
+@@ -28,7 +28,7 @@ def parse_E():
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['S', 'M']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['e', 'M']))

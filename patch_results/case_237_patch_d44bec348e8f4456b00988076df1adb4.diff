@@ -1,0 +1,94 @@
+@@ -22,71 +22,15 @@ def parse_U():
+     if lookahead.startswith('3'):
+         match('3')
+         match('@')
+-        while pos < len(tokens) and tokens[pos].startswith('#'):
+-            match('#')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('3'):
+-            match('3')
+-            match('@')
+-            parse_F()
+-            parse_U()
+-            parse_U()
+-        elif lookahead.startswith('m'):
+-            match('m')
+-            parse_M()
+-            match('}')
+-            parse_U()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['3', 'm', '9']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('3'):
+-            match('3')
+-            match('@')
+-            parse_F()
+-            parse_U()
+-            parse_U()
+-        elif lookahead.startswith('m'):
+-            match('m')
+-            parse_M()
+-            match('}')
+-            parse_U()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['3', 'm', '9']))
++        parse_F()
++        parse_U()
++        parse_U()
+     elif lookahead.startswith('m'):
+         match('m')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Q'):
+-            match('Q')
+-            match('>')
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['Q', '']))
++        parse_M()
+         match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('3'):
+-            match('3')
+-            match('@')
+-            parse_F()
+-            parse_U()
+-            parse_U()
+-        elif lookahead.startswith('m'):
+-            match('m')
+-            parse_M()
+-            match('}')
+-            parse_U()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['3', 'm', '9']))
++        parse_U()
+     elif lookahead.startswith('9'):
+         match('9')
+     else:
+@@ -101,8 +45,10 @@ def parse_M():
+     lookahead = tokens[pos]
+     if lookahead.startswith('Q'):
+         match('Q')
+-        match('>')
+-    else:
+-        error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['Q', '']))
++        parse_M()
++    # else: handle empty production (epsilon)
+ 
+ def parse_F():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('#'):
++        match('#')
++        parse_F()

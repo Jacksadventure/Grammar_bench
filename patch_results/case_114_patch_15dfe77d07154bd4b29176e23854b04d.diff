@@ -1,0 +1,21 @@
+@@ -63,9 +63,13 @@ def parse_X():
+ def parse_X():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('w'):
+-        match('w')
+-        match('?')
+-        parse_X()
+-        match('O')
+-        match('j')
++    # According to grammar: "w <X> <X> O j <X>" | ε
++    if pos < len(tokens) and tokens[pos].startswith('w'):
++        match('w')
++        # First nested <X>
++        parse_X()
++        # Second nested <X>
++        parse_X()
++        match('O')
++        match('j')
++        # Third nested <X>
++        parse_X()
++    # epsilon production: do nothing when the current token is not 'w'

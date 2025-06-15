@@ -1,0 +1,49 @@
+@@ -19,15 +19,7 @@ def parse_E():
+-    while pos < len(tokens) and tokens[pos].startswith('I'):
+-        match('I')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('2'):
+-            match('2')
+-            match('W")
+-            parse_L()
+-        elif lookahead.startswith('e'):
+-            match('e')
+-            parse_R()
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['2', '', 'e']))
++    if pos < len(tokens) and tokens[pos].startswith('7'):
++        match('7')
++        parse_C()
++        return
++    while pos < len(tokens) and tokens[pos].startswith('I'):
++        match('I')
++        parse_L()
+@@ -80,4 +80,8 @@ def parse_L():
+-    while pos < len(tokens) and tokens[pos].startswith('2'):
+-        match('2')
+-        match('W')
++    # parse sequences of '2' 'W'
++    while pos < len(tokens) and tokens[pos].startswith('2'):
++        match('2')
++        match('W')
++    # optional 'e' R production
++    if pos < len(tokens) and tokens[pos].startswith('e'):
++        match('e')
++        parse_R()
+@@ -103,4 +103,4 @@ def parse_N():
+-    elif lookahead.startswith('J'):
+-        match('J')
++    elif lookahead.startswith(':'):
++        match(':')
+@@ -113,7 +113,7 @@ def parse_C():
+     if lookahead.startswith('?'):
+         match('?')
+         parse_L()
+         match('`')
+-    elif lookahead.startswith('L'):
++    elif lookahead.startswith('2') or lookahead.startswith('e') or lookahead.startswith('7'):
+         parse_L()
+         match('7')
+     elif lookahead.startswith('u'):

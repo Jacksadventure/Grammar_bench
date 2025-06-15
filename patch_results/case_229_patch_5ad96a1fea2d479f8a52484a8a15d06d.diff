@@ -1,0 +1,29 @@
+@@ -64,9 +64,10 @@ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('('):
++    if pos < len(tokens) and tokens[pos].startswith('('):
+         match('(')
+         parse_G()
+         parse_S()
+         parse_G()
+         match('f')
++        parse_S()
+
+@@ -106,12 +106,13 @@ def parse_G():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in G")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('.'):
+-        match('.')
+-        parse_G()
+-        match("'")
+-        match('4')
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['.', '']))
++    # <G> ::= "." <G> "'" <G> | ε
++    if pos < len(tokens) and tokens[pos].startswith('.'):
++        match('.')
++        parse_G()
++        match("'")
++        parse_G()
++    # epsilon: do nothing if no '.'

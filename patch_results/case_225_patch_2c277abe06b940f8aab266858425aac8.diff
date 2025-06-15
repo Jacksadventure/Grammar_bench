@@ -1,0 +1,41 @@
+@@ -22,24 +22,9 @@
+     if lookahead.startswith('T'):
+         match('T')
+         match('v')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('n'):
+-            match('n')
+-            parse_X()
+-        elif lookahead.startswith('x'):
+-            match('x')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['n', 'x']))
++        parse_S()
+         match('!')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(']'):
+-            match(']')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']']))
++        parse_Q()
+     elif lookahead.startswith('I'):
+         match('I')
+     elif lookahead.startswith('P'):
+@@ -80,10 +80,10 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in Q")
+     lookahead = tokens[pos]
+-    if lookahead.startswith(']'):
+-        match(']')
++    if lookahead.startswith('q'):
++        match('q')
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['q']))
+ 
+ def parse_Y():
+     global pos, tokens

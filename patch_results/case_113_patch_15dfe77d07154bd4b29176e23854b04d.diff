@@ -1,0 +1,51 @@
+@@ -19,38 +19,10 @@ def parse_N():
+-    while pos < len(tokens) and tokens[pos].startswith(')'):
+-        match(')')
+-        match('I')
+-        match('z')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('r'):
+-            match('r')
+-            match('q')
+-            parse_J()
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['r', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('o'):
+-            match('o')
+-            parse_T()
+-            match("'")
+-            parse_T()
+-        elif lookahead.startswith('*'):
+-            match('*')
+-            parse_B()
+-        elif lookahead.startswith('4'):
+-            match('4')
+-            parse_R()
+-        elif lookahead.startswith('H'):
+-            match('H')
+-            parse_K()
+-            match('8')
+-        elif lookahead.startswith('^'):
+-            match('^')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['o', '*', '4', 'H', '^']))
++    while pos < len(tokens) and tokens[pos].startswith(')'):
++        match(')')
++        match('I')
++        match('z')
++        # Parse optional <J>
++        parse_J()
++        # Parse mandatory <B>
++        parse_B()
+ 
+@@ -82,4 +54,4 @@ def parse_K():
+-    while pos < len(tokens) and tokens[pos].startswith('t'):
+-        match('t')
++    while pos < len(tokens) and tokens[pos].startswith('v'):
++        match('v')
+         match('I')

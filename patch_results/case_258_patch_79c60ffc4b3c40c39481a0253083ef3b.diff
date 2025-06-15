@@ -1,0 +1,40 @@
+--- a/parser.py
++++ b/parser.py
+@@ -100,10 +100,7 @@
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in T")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('6'):
++    # <T> can be epsilon, so no EOF check or error if nothing matches.
++    if pos < len(tokens) and tokens[pos].startswith('6'):
+         match('6')
+-        match('Q')
+-    else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['6', '']))
++        parse_T()
+ 
+ def parse_J():
+@@ -137,10 +134,17 @@
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('_'):
+-        match('_')
+-        match('~')
+-        match('8')
+-        match("'")
++    # <W> can be epsilon, so no EOF check or error if nothing matches.
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('_'):
++            match('_')
++            match('~')
++            match('8')
++            match("'")
++            parse_W() # Recursive call
++        elif lookahead.startswith('E'): # New alternative based on grammar
++            match('E')
++            parse_L()
+ 
+ def parse_P():
+     global pos, tokens

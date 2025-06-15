@@ -1,0 +1,13 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,7 +19,7 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in E")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('^'):
+-        match('^')
++    if lookahead.startswith('j'):
++        match('j')
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['^']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['j']))

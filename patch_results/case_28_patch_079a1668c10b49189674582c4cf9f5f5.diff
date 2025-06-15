@@ -1,0 +1,9 @@
+@@ -32,7 +32,7 @@ def parse_B():
+         elif lookahead.startswith('6'):
+             match('6')
+         else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['y', '6']))
++            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['y', 'D']))
+     elif lookahead.startswith('`'):
+         match('`')
+         match('c')

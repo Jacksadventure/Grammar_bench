@@ -1,0 +1,112 @@
+@@ -21,78 +21,12 @@ def parse_E():
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('T'):
+-        match('T')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            parse_E()
+-            match('A')
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_U()
+-            parse_R()
+-            match('2')
+-            parse_I()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['T', '~', '2']))
+-        match('A')
+-    elif lookahead.startswith('~'):
+-        match('~')
+-        while pos < len(tokens) and tokens[pos].startswith('>'):
+-            match('>')
+-            match('l')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('K'):
+-            match('K')
+-        elif lookahead.startswith(','):
+-            match(',')
+-            match('n')
+-            match('8')
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            match('8')
+-            match('}')
+-        elif lookahead.startswith('P'):
+-            parse_P()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['K', ',', '<', 'P']))
+-        match('2')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('x'):
+-            match('x')
+-            match('x')
+-            match('h')
+-        elif lookahead.startswith('%'):
+-            match('%')
+-            parse_R()
+-            parse_N()
+-            parse_J()
+-            parse_E()
+-        elif lookahead.startswith('L'):
+-            match('L')
+-            parse_E()
+-            match('Z')
+-            match('l')
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-            match('=')
+-        elif lookahead.startswith('+'):
+-            match('+')
+-            parse_N()
+-            match('@')
+-            match('u')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['x', '%', 'L', 'Q', '+', '*']))
+-    elif lookahead.startswith('2'):
+-        match('2')
+-    else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['T', '~', '2']))
++    lookahead = tokens[pos]
++    if lookahead.startswith('T'):
++        match('T')
++        parse_E()
++        match('A')
++    elif lookahead.startswith('~'):
++        match('~')
++        parse_U()
++        parse_R()
++        match('2')
++        parse_I()
++    elif lookahead.startswith('2'):
++        match('2')
++    else:
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['T', '~', '2']))
+
+@@ -126,3 +126,3 @@ def parse_U():
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
+-        match('>')
+-        match('l')
++    while pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        parse_E()
+
+@@ -133,3 +133,3 @@ def parse_O():
+-    if lookahead.startswith('U'):
+-        parse_U()
++    if lookahead.startswith('>'):
++        parse_U()
+
+@@ -149,3 +149,3 @@ def parse_O():
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['U', '%', '=', 'e']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['>', '%', '=', 'e']))

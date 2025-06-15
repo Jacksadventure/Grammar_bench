@@ -1,0 +1,59 @@
+@@ -17,14 +17,20 @@ def parse_H():
+ def parse_H():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
+-        match('?')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('^'):
+-            match('^')
+-            match('=')
+-            match('4')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['^', '']))
+-        match('b')
++    if pos >= len(tokens):
++        return  # epsilon production
++    lookahead = tokens[pos]
++    if lookahead.startswith('?'):
++        match('?')
++        parse_X()
++        match('b')
++        parse_H()
++    elif lookahead.startswith('P'):
++        match('P')
++        parse_Y()
++    else:
++        # epsilon production - do nothing
++        return
++
++@@ -95,11 +101,15 @@ def parse_X():
+ def parse_X():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in X")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('^'):
++    if pos < len(tokens) and tokens[pos].startswith('^'):
+         match('^')
+         match('=')
+-        match('4')
++        parse_X()
+     else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['^', '']))
++        # epsilon production - do nothing
++        return
++
++@@ -107,6 +117,9 @@ def parse_V():
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('5'):
++    if pos >= len(tokens):
++        return  # epsilon production
++    while pos < len(tokens) and tokens[pos].startswith('5'):
+         match('5')
+         parse_Y()
+         match('3')
++        parse_V()
++        break  # only one iteration since we handle recursion explicitly

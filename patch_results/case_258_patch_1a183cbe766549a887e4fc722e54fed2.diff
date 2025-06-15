@@ -1,0 +1,23 @@
+@@ -104,7 +104,9 @@ def parse_T():
+     if lookahead.startswith('6'):
+         match('6')
+-        match('Q')
++        parse_T()
++    elif lookahead == '' or not any(lookahead.startswith(c) for c in ['6']):
++        pass
+     else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['6', '']))
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['6']))
+
+@@ -137,6 +139,11 @@ def parse_W():
+ def parse_W():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('_'):
+         match('_')
+         match('~')
+         match('8')
+         match("'")
++        parse_W()
++    if pos < len(tokens) and tokens[pos].startswith('E'):
++        match('E')
++        parse_L()

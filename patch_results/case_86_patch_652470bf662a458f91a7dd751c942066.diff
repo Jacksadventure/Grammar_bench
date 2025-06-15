@@ -1,0 +1,24 @@
+@@ -87,11 +87,12 @@ def parse_F():
+ def parse_P():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in P")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('b'):
+-        match('b')
+-        parse_F()
+-        match('6')
+-    else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['b', '']))
++    while pos < len(tokens) and tokens[pos].startswith('b'):
++        match('b')
++        parse_F()
++        parse_P()
+ 
+ def parse_H():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('A'):
+         match('A')
+         parse_O()
+         parse_P()
++        parse_H()

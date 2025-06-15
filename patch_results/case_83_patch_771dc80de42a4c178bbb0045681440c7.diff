@@ -1,0 +1,34 @@
+@@ -21,10 +21,3 @@
+         match('d')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in P")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('~'):
+-            match('~')
+-            match('F')
+-        else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['~', '']))
++        parse_P()
+         match('T')
+@@ -30,10 +23,3 @@
+         match('T')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('D'):
+-            match('D')
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['D', '']))
++        parse_Z()
+ 
+@@ -44,2 +30,9 @@
+ 
++
++def parse_P():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('~'):
++        match('~')
++        parse_P()
++
+ def parse_input(input_str):

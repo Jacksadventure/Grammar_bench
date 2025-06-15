@@ -1,0 +1,100 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,18 +17,8 @@ def parse_K():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('V'):
+         match('V')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('{'):
+-            match('{')
+-            parse_O()
+-            parse_H()
+-            parse_M()
+-            parse_D()
+-        elif lookahead.startswith('i'):
+-            match('i')
+-            parse_E()
+-        else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['{', '', 'i']))
++        parse_D()
+ 
+ def parse_H():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -57,4 +47,5 @@ def parse_M():
+     while pos < len(tokens) and tokens[pos].startswith('<'):
+         match('<')
+         match('?')
+         parse_L()
++        parse_M()
+ 
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('{'):
+-        match('{')
+-        parse_O()
+-        parse_H()
+-        parse_M()
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('{'):
++        match('{')
++        parse_O()
++        parse_H()
++        parse_M()
++        parse_D()
++    elif lookahead.startswith('i'):
++        match('i')
++        parse_E()
+ 
+ def parse_O():
+     global pos, tokens
+@@ -72,3 +69,4 @@ def parse_O():
+     while pos < len(tokens) and tokens[pos].startswith('('):
+         match('(')
+         parse_M()
++        parse_O()
+ 
+ def parse_Y():
+     global pos, tokens
+@@ -79,3 +77,4 @@ def parse_Y():
+     while pos < len(tokens) and tokens[pos].startswith('A'):
+         parse_A()
+         parse_K()
++        parse_Y()
+ 
+ def parse_E():
+     global pos, tokens
+@@ -85,4 +85,5 @@ def parse_E():
+         match('S')
+         parse_E()
+         match('.')
+         match('6')
++        parse_E()
+ 
+ def parse_L():
+     global pos, tokens
+@@ -92,9 +93,6 @@ def parse_L():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in L")
++        return
+     lookahead = tokens[pos]
+     if lookahead.startswith('0'):
+         match('0')
+-        match('<')
++        parse_L()
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['0', '']))
+ 
+ def parse_A():
+     global pos, tokens
+@@ -104,4 +102,5 @@ def parse_A():
+         match('b')
+         parse_M()
+         parse_Y()
+         parse_Y()
++        parse_A()

@@ -1,6 +1,8 @@
 from langchain_ollama import OllamaLLM
 from openai import OpenAI
 from google import genai
+import anthropic
+from together import Together
 import re
 import os
 class OllamaModel:
@@ -53,3 +55,31 @@ class Gemini:
             contents = prompt + "\n" + text
         ).text
         return response
+
+class ClaudeModel:
+    def __init__(self, model):
+        api_key = os.getenv("ANTHROPIC_API_KEY")
+        self.client = anthropic.Anthropic(api_key=api_key)
+        self.model = model
+    def get_response(self, prompt: str, text: str):
+        response = self.client.messages.create(
+            model=self.model,
+            system=prompt,
+            max_tokens=10000,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "text",
+                            "text": text
+                        }
+                    ]
+                }
+            ]
+        )
+        return response.content[0].text 
+
+class Together:
+    def __init__(self, model):
+        self.client = Together()

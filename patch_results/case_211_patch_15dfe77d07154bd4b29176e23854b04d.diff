@@ -1,0 +1,56 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,32 +19,7 @@ def parse_C():
+         match('l')
+         match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('{'):
+-            match('{')
+-            parse_L()
+-            parse_G()
+-            match('{')
+-            parse_I()
+-        elif lookahead.startswith(']'):
+-            match(']')
+-            match("'")
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            parse_B()
+-            parse_L()
+-        elif lookahead.startswith('e'):
+-            match('e')
+-            parse_G()
+-            match(':')
+-            match('(')
+-            match('8')
+-        elif lookahead.startswith('|'):
+-            match('|')
+-            parse_W()
+-            parse_B()
+-        elif lookahead.startswith('l'):
+-            match('l')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['{', ']', '<', 'e', '|', 'l']))
++        parse_W()
+         match('h')
+ 
+@@
+-def parse_G():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('q'):
+-        match('q')
+-        match('(')
++def parse_G():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('q'):
++        match('q')
++        match('v')
+ 
+@@
+ def parse_L():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('T'):
++    while pos < len(tokens) and tokens[pos].startswith('%'):
+         parse_T()

@@ -17,7 +17,7 @@ Example:
 -    old code line
 +    new code line
 
-PLEASE DO NOT ADD ```diff ``` IN YOUR RESPONSE.
+PLEASE DO NOT ADD MARKDOWN TAG LIKE```diff, ``` IN YOUR RESPONSE.
 """
 
 def localise_program_input(program, corrupted_text, backend, model):

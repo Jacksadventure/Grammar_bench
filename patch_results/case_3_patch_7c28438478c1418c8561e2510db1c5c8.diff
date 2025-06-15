@@ -1,0 +1,27 @@
+@@ -22,18 +22,8 @@ def parse_U():
+-    if lookahead.startswith('w'):
+-        match('w')
+-        match('<')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('w'):
+-            match('w')
+-            match('<')
+-            parse_U()
+-        elif lookahead.startswith('Z'):
+-            match('Z')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['w', 'Z']))
+-    elif lookahead.startswith('Z'):
+-        match('Z')
+-    else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['w', 'Z']))
++    if lookahead == 'h':
++        match('h')
++        match('<')
++        parse_U()
++    elif lookahead == 'Z':
++        match('Z')
++    else:
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['h', 'Z']))

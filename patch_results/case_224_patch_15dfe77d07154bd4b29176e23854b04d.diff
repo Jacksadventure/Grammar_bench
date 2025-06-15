@@ -1,0 +1,42 @@
+@@ -17,17 +17,14 @@ def parse_A():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('k'):
+-        match('k')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('J'):
+-            match('J')
+-            match('W')
+-            parse_Y()
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['J', '']))
++    global pos, tokens
++    # A -> k Y A | ε
++    if pos < len(tokens) and tokens[pos].startswith('k'):
++        match('k')
++        parse_Y()
++        parse_A()
++    # ε-production: do nothing if the next token is not 'k'
+ 
+ def parse_Y():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('J'):
+-        match('J')
+-        match('W')
++    # Y -> J Y Y | ε
++    if pos < len(tokens) and tokens[pos].startswith('J'):
++        match('J')
++        parse_Y()
++        parse_Y()
+ 
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)
+     pos = 0
+-    parse_A()
+-    print("Input accepted.")
++    parse_A()
++    if pos != len(tokens):
++        error("Extra input after parsing")
++    print("Input accepted.")

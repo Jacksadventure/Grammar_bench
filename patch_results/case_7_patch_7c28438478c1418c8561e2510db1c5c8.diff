@@ -1,0 +1,33 @@
+@@ -22,22 +22,10 @@ def parse_H():
+-    if lookahead.startswith('/'):
+-        match('/')
+-        match('y')
+-        match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('/'):
+-            match('/')
+-            match('y')
+-            match("'")
+-            parse_H()
+-            match('Z')
+-        elif lookahead.startswith('L'):
+-            match('L')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['/', 'L']))
+-        match('Z')
+-    elif lookahead.startswith('L'):
+-        match('L')
+-    else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['/', 'L']))
++    if lookahead == '/':
++        match('/')
++        match('y')
++        match("'")
++        parse_H()
++        match('Z')
++    elif lookahead == 's':
++        match('s')
++    else:
++        error("Unexpected token " + lookahead + " in H, expected one of: '/', 's'")

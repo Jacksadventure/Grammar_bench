@@ -1,0 +1,13 @@
+@@ -64,7 +64,7 @@ def parse_K():
+     if lookahead.startswith('V'):
+         match('V')
+         parse_E()
+-    elif lookahead.startswith('a'):
++    elif lookahead.startswith('q'):
++        match('q')
++        parse_E()
++    elif lookahead.startswith('a'):
+@@ -75,4 +75,4 @@ def parse_K():
+     else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['V', 'a', 'F']))
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['q', 'a', 'F']))

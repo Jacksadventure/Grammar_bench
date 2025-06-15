@@ -1,0 +1,16 @@
+@@ -74,7 +74,7 @@ def parse_N():
+ def parse_N():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in N")
++        return
+     lookahead = tokens[pos]
+     if lookahead.startswith('j'):
+         match('j')
+@@ -84,6 +84,6 @@ def parse_N():
+     elif lookahead.startswith('Y'):
+         match('Y')
+-        match('f')
++        parse_D()
+     else:
+         error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['j', '0', 'Y']))

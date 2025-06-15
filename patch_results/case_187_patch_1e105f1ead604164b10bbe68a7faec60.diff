@@ -1,0 +1,65 @@
+@@ -17,51 +17,32 @@ def parse_A():
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('9'):
+-        match('9')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('$'):
+-            match('$')
+-            match('q')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['$', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_J()
+-            parse_A()
+-            parse_J()
+-            parse_A()
+-        elif lookahead.startswith('P'):
+-            match('P')
+-            parse_D()
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['9', '', 'P']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('$'):
+-            match('$')
+-            match('q')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['$', '']))
++    if pos >= len(tokens):
++        return  # epsilon production
++    lookahead = tokens[pos]
++    if lookahead.startswith('9'):
++        match('9')
++        parse_J()
++        parse_A()
++        parse_J()
++        parse_A()
++    elif lookahead.startswith('P'):
++        match('P')
++        parse_D()
++    else:
++        # epsilon production - do nothing
++        return
+ 
+ @@ -75,10 +56,8 @@ def parse_J():
+ def parse_J():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in J")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('$'):
++    if pos < len(tokens) and tokens[pos].startswith('$'):
+         match('$')
+-        match('q')
+-    else:
+-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['$', '']))
++        parse_J()
++    # else epsilon production - do nothing

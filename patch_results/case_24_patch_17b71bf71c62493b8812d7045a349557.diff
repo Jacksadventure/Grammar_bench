@@ -1,0 +1,11 @@
+
+
+@@ -28,7 +28,7 @@
+-    elif lookahead.startswith('v'):
++    elif lookahead.startswith(':'):
+@@ -29,7 +29,7 @@
+-        match('v')
++        match(':')
+@@ -31,7 +31,7 @@
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', 'v']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['y', ':']))

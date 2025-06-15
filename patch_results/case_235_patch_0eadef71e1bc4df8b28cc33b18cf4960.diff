@@ -1,0 +1,55 @@
+@@ -17,14 +17,20 @@ def parse_V():
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('}'):
++    if pos < len(tokens) and tokens[pos].startswith('}'):
+         match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-            match('~')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['.', '']))
++        parse_A()
++        parse_V()
++    elif pos < len(tokens) and tokens[pos].startswith(','):
++        match(',')
++        parse_T()
++    # else: empty production
++
++def parse_T():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith("'"):
++        match("'")
++        parse_I()
++        parse_A()
++        parse_T()
++    # else: empty production
+ 
+ def parse_A():
+@@ -32,9 +38,9 @@ def parse_A():
+     if pos >= len(tokens):
+         error("Unexpected end of input in A")
+     lookahead = tokens[pos]
+     if lookahead.startswith('.'):
+         match('.')
+-        match('~')
++        parse_A()
+     else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['.', '']))
++        # empty production
++        pass
+ 
+ def parse_L():
+@@ -88,7 +94,6 @@ def parse_G():
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
++    if pos < len(tokens) and tokens[pos].startswith('.'):
+         parse_A()
+         match('l')
+         match('4')
++        parse_R()
++    # else: empty production

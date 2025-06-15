@@ -1,0 +1,40 @@
+@@ -22,12 +22,7 @@ def parse_D():
+     if lookahead.startswith('C'):
+         match('C')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('5'):
+-            match('5')
+-            parse_Z()
+-            parse_Z()
+-            match('H')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['5', '']))
++        parse_Z()
+     elif lookahead.startswith('t'):
+         match('t')
+     else:
+@@ -39,13 +34,17 @@ def parse_D():
+ def parse_Z():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in Z")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('5'):
+-        match('5')
+-        parse_Z()
+-        parse_Z()
+-        match('H')
+-    else:
+-        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['5', '']))
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('5'):
++        match('5')
++        parse_Z()
++        parse_Z()
++        parse_Z()
++    else:
++        # Empty production - do nothing
++        pass

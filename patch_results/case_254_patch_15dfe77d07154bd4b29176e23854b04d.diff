@@ -1,0 +1,96 @@
+@@ -17,53 +17,16 @@ def parse_X():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('c'):
+-        match('c')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('V'):
+-            match('V')
+-            parse_R()
+-            parse_Q()
+-            parse_X()
+-        elif lookahead.startswith('*'):
+-            match('*')
+-            match(':')
+-            parse_T()
+-            parse_X()
+-            parse_R()
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            parse_T()
+-            parse_R()
+-        elif lookahead.startswith('&'):
+-            match('&')
+-            parse_X()
+-            parse_X()
+-            parse_X()
+-            parse_X()
+-        elif lookahead.startswith('g'):
+-            match('g')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['V', '*', 'd', '&', 'g']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(')'):
+-            match(')')
+-            match('m')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([')', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            parse_R()
+-            parse_Q()
+-            parse_R()
+-        elif lookahead.startswith('s'):
+-            match('s')
+-            parse_P()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['?', '', 's']))
++    global pos, tokens
++    # <X> ::= 'c' <T> <Q> <R> <X> | ε
++    if pos < len(tokens) and tokens[pos].startswith('c'):
++        match('c')
++        parse_T()
++        parse_Q()
++        parse_R()
++        parse_X()
++    # epsilon production: do nothing if the next token is not 'c'
+ 
+@@ -85,10 +48,8 @@ def parse_Q():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in Q")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith(')'):
+-        match(')')
+-        match('m')
+-    else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([')', '']))
++    global pos, tokens
++    # <Q> ::= ')' <Q> | ε
++    while pos < len(tokens) and tokens[pos].startswith(')'):
++        match(')')
+ 
+@@ -96,7 +57,17 @@ def parse_R():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
+-        match('?')
+-        parse_R()
+-        parse_Q()
++    global pos, tokens
++    # <R> ::= '?' <R> <Q> <R> | 's' <P> | ε
++    if pos < len(tokens) and tokens[pos].startswith('?'):
++        match('?')
++        parse_R()
++        parse_Q()
++        parse_R()
++    elif pos < len(tokens) and tokens[pos].startswith('s'):
++        match('s')
++        parse_P()
++    # epsilon production: do nothing if the next token is neither '?' nor 's'
+ 

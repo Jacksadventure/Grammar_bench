@@ -1,0 +1,22 @@
+--- parser.py
++++ parser.py
+@@ -22,7 +22,4 @@ def parse_C():
+         match('$')
+-        while pos < len(tokens) and tokens[pos].startswith('Y'):
+-            match('Y')
+-            match('J')
+-            parse_C()
++        parse_N()
+     elif lookahead.startswith('8'):
+@@ -45,3 +45,11 @@ def parse_input(input_str):
+     print("Input accepted.")
+ 
++# N -> Y C C N | ε
++def parse_N():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('Y'):
++        match('Y')
++        parse_C()
++        parse_C()
++
+ def main():

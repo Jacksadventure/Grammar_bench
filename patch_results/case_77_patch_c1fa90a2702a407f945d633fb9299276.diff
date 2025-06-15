@@ -1,0 +1,18 @@
+@@ -34,7 +34,7
+-        elif lookahead.startswith('='):
+-            match('=')
++        elif lookahead.startswith('x'):
++            match('x')
+@@ -41,7 +41,7
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['C', '=', '_']))
++            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['C', 'x', '_']))
+@@ -94,7 +94,7
+-    elif lookahead.startswith('='):
+-        match('=')
++    elif lookahead.startswith('x'):
++        match('x')
+@@ -101,7 +101,7
+-    else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['C', '=', '_']))
++    else:
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['C', 'x', '_']))

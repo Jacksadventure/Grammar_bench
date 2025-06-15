@@ -1,0 +1,36 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -22,30 +22,8 @@
+     if lookahead.startswith('K'):
+         match('K')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('K'):
+-            match('K')
+-            parse_V()
+-            match(';')
+-            parse_V()
+-        elif lookahead.startswith('f'):
+-            match('f')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['K', 'f']))
+-        match(';')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('K'):
+-            match('K')
+-            parse_V()
+-            match(';')
+-            parse_V()
+-        elif lookahead.startswith('f'):
+-            match('f')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['K', 'f']))
++        parse_V()
++        parse_V()
++        parse_V()
+     elif lookahead.startswith('f'):
+         match('f')
+     else:

@@ -1,0 +1,59 @@
+*** Begin Patch
+*** Update File: parser.py
+@@ def match(expected):
+     else:
+         error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
++
++def parse_X():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in X")
++    lookahead = tokens[pos]
++    if lookahead.startswith('O'):
++        match('O')
++        parse_B()
++        parse_D()
++    elif lookahead.startswith('0'):
++        match('0')
++    else:
++        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['O', '0']))
+@@ def parse_B():
+-    while pos < len(tokens) and tokens[pos].startswith('$'):
+-        match('$')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('O'):
+-            match('O')
+-            parse_B()
+-            parse_D()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['O', '0']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('O'):
+-            match('O')
+-            parse_B()
+-            parse_D()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['O', '0']))
+-        match('(')
++    if pos < len(tokens) and tokens[pos].startswith('$'):
++        match('$')
++        parse_X()
++        parse_X()
++        match('(')
++        parse_B()
++    elif pos < len(tokens) and (tokens[pos].startswith('*') or tokens[pos].startswith('a') or tokens[pos].startswith('G')):
++        parse_I()
+@@ def parse_D():
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
++    while pos < len(tokens) and tokens[pos].startswith('1'):
++        match('1')
+*** End Patch

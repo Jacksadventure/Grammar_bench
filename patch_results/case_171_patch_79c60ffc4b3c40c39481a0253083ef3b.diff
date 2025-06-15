@@ -1,0 +1,80 @@
+--- a/parser.py
++++ b/parser.py
+@@ -16,31 +16,13 @@
+ def parse_O():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('7'):
+-        match('7')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('R'):
+-            match('R')
+-            match('c')
+-            match('R')
+-            match('a')
+-            parse_V()
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['R', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('7'):
+-            match('7')
+-            parse_V()
+-            parse_O()
+-            match('b')
+-            parse_O()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            parse_I()
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['7', '', 'A']))
+-        match('b')
++    if pos < len(tokens) and tokens[pos].startswith('7'):
++        match('7')
++        parse_V()
++        parse_O()
++        match('b')
++        parse_O()
++    elif pos < len(tokens) and tokens[pos].startswith('A'):
++        match('A')
++        parse_I()
+ 
+-def parse_I():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('N'):
+-        match('N')
+-        parse_V()
+-        parse_I()
+-        parse_I()
+-        parse_O()
+-
+-def parse_V():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('R'):
+-        match('R')
+-        match('c')
+-        match('R')
+-        match('a')
++@@ -48,9 +28,9 @@
++ def parse_I():
++     global pos, tokens
++     if pos < len(tokens) and tokens[pos].startswith('N'):
++         match('N')
++         parse_V()
++         parse_I()
++         parse_I()
++         parse_O()
++         parse_I()
++ 
++@@ -58,8 +38,9 @@
++ def parse_V():
++     global pos, tokens
++     if pos < len(tokens) and tokens[pos].startswith('R'):
++         match('R')
++         match('c')
++         match('0')
++         match('a')
++         parse_V()
+```

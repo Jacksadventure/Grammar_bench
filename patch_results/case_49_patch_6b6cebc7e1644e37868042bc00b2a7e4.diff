@@ -1,0 +1,25 @@
+--- parser.py
++++ parser.py
+@@ -22,10 +22,6 @@ def parse_I():
+         match('P')
+         match('!')
+-        while pos < len(tokens) and tokens[pos].startswith('L'):
+-            match('L')
+-            match('`')
+-            match('^')
+-            parse_K()
++        parse_K()
+     elif lookahead.startswith('Q'):
+         match('Q')
+@@ -35,7 +31,11 @@ def parse_K():
+-    while pos < len(tokens) and tokens[pos].startswith('L'):
+-        match('L')
+-        match('`')
+-        match('^')
+-        parse_K()
++    if pos < len(tokens) and tokens[pos].startswith('L'):
++        match('L')
++        parse_I()
++        match('^')
++        parse_K()
++        parse_K()

@@ -1,0 +1,47 @@
+--- parser.py
++++ parser.py
+@@ -19,27 +19,5 @@ def parse_N():
+-    while pos < len(tokens) and tokens[pos].startswith('|'):
+-        match('|')
+-        match('J')
+-        match('G')
+-        match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            parse_P()
+-            parse_P()
+-        elif lookahead.startswith('H'):
+-            match('H')
+-            parse_M()
+-            parse_N()
+-            parse_U()
+-        elif lookahead.startswith('+'):
+-            match('+')
+-            match('T')
+-            parse_M()
+-            parse_P()
+-            parse_M()
+-        elif lookahead.startswith('Z'):
+-            match('Z')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['T', 'H', '+', 'Z']))
++    while pos < len(tokens) and tokens[pos].startswith('|'):
++        match('|')
++        match('J')
++        match('G')
++        match("'")
++        parse_U()
+@@ -52,7 +30,7 @@ def parse_M():
+     if lookahead.startswith('/'):
+-        match('/')
+-        match('c')
+-        match(':')
+-        parse_M()
++        match('/')
++        parse_P()
++        match(':')
++        parse_M()
+     elif lookahead.startswith('&'):

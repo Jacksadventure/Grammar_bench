@@ -1,0 +1,104 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,29 +19,5 @@
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('M'):
+-            match('M')
+-            match('#')
+-            parse_U()
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['M', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('|'):
+-            match('|')
+-            parse_E()
+-            parse_Q()
+-            parse_U()
+-            parse_T()
+-        elif lookahead.startswith('V'):
+-            parse_V()
+-            match('z')
+-            match('q')
+-            parse_Q()
+-        elif lookahead.startswith('@'):
+-            match('@')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['|', 'V', '@']))
++    if pos < len(tokens) and tokens[pos].startswith('!'):
++        match('!')
++        parse_U()
++        parse_Q()
++        parse_E()
+ 
+ def parse_V():
+     global pos, tokens
+@@ -70,12 +46,12 @@
+             parse_Q()
+             parse_U()
+             parse_T()
+-    elif lookahead.startswith('V'):
++    elif lookahead.startswith('c') or lookahead.startswith('h'):
+         parse_V()
+         match('z')
+         match('q')
+         parse_Q()
+     elif lookahead.startswith('@'):
+         match('@')
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['|', 'V', '@']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['|', 'c', 'h', '@']))
+ 
+ def parse_F():
+     global pos, tokens
+@@ -111,29 +87,35 @@
+ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
+-        match('M')
++    while pos < len(tokens) and tokens[pos].startswith(','):
++        match(',')
+         match('#')
+ 
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('h'):
++    # <B> ::= "h" <T> <B> <X> <F> <B> | ε | "-" <V>
++    if pos < len(tokens) and tokens[pos].startswith('h'):
+         match('h')
+         parse_T()
+         parse_B()
+         parse_X()
+         parse_F()
++        parse_B()
++    elif pos < len(tokens) and tokens[pos].startswith('-'):
++        match('-')
++        parse_V()
+ 
+ def parse_X():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
++    # <X> ::= "&" "u" <X> | ε
++    if pos < len(tokens) and tokens[pos].startswith('&'):
+         match('&')
+         match('u')
++        parse_X()
+ 
+ def parse_T():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('Y'):
++    # <T> ::= "Y" "!" <B> "<T>" | ε
++    if pos < len(tokens) and tokens[pos].startswith('Y'):
+         match('Y')
+         match('!')
+         parse_B()
++        parse_T()
+ 
+ def parse_input(input_str):
+     global tokens, pos

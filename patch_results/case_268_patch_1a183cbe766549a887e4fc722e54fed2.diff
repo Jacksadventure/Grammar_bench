@@ -1,0 +1,16 @@
+@@ -49,11 +49,12 @@ def parse_L():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in L")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('G'):
++    if lookahead.startswith('G') or lookahead.startswith('L') or lookahead.startswith('>'):
+         parse_G()
+         parse_R()
+-        match('0')
++        parse_L()
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['G', '']))
++        return
+ 
+ def parse_Y():

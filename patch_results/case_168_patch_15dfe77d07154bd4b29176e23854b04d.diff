@@ -1,0 +1,56 @@
+@@ -22,33 +22,8 @@ def parse_E():
+     if lookahead.startswith('8'):
+         match('8')
+         match('Z')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('$'):
+-            match('$')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-        elif lookahead.startswith('5'):
+-            match('5')
+-            parse_E()
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['$', "'", '5']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-            match('?')
+-            match('U')
+-            parse_J()
+-            parse_W()
+-        elif lookahead.startswith(','):
+-            match(',')
+-            match('@')
+-            parse_E()
+-        elif lookahead.startswith('f'):
+-            match('f')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(["'", ',', 'f']))
++        parse_J()
++        parse_W()
+     elif lookahead.startswith('h'):
+         match('h')
+     else:
+@@ -61,9 +36,9 @@ def parse_E():
+     lookahead = tokens[pos]
+     if lookahead.startswith('$'):
+         match('$')
+@@
+-    if lookahead.startswith('$'):
+-        match('$')
++    if lookahead.startswith(';'):
++        match(';')
+     elif lookahead.startswith("'"):
+         match("'")
+     elif lookahead.startswith('5'):
+         match('5')
+         parse_E()
+-    else:
+-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['$', "'", '5']))
++    else:
++        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join([';', "'", '5']))

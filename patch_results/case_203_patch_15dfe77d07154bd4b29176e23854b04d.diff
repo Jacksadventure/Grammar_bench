@@ -1,0 +1,48 @@
+@@ -22,19 +22,9 @@ def parse_C():
+-    if lookahead.startswith(','):
+-        match(',')
+-        while pos < len(tokens) and tokens[pos].startswith('D'):
+-            parse_D()
+-            parse_E()
+-            parse_Z()
+-            match('l')
+-    elif lookahead.startswith('w'):
+-        match('w')
+-        match('9')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(';'):
+-            match(';')
+-            parse_C()
+-            match('6')
+-            parse_S()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-            match('|')
+-        elif lookahead.startswith('C'):
+-            parse_C()
+-            match('4')
+-        elif lookahead.startswith('$'):
+-            match('$')
+-            match('n')
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join([';', '2', 'C', '$', '2']))
++    if lookahead.startswith(','):
++        match(',')
++        parse_Z()
++    elif lookahead.startswith('w'):
++        match('w')
++        match('9')
++        parse_M()
+@@
+-    elif lookahead.startswith(','):
+-        match(',')
++    elif lookahead.startswith('d'):
++        match('d')
+         match('(')
+@@
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['k', 'K', '_', ']', ',']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['k', 'K', '_', ']', 'd']))

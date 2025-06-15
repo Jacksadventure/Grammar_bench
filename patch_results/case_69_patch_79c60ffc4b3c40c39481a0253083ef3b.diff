@@ -1,0 +1,20 @@
+--- a/parser.py
++++ b/parser.py
+@@ -23,7 +23,4 @@
+         match("'")
+         match('z')
+-        while pos < len(tokens) and tokens[pos].startswith('>'):
+-            match('>')
+-            parse_G()
+-            match('J')
++        parse_G()
+     elif lookahead.startswith('J'):
+@@ -37,4 +34,5 @@
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
++    if pos < len(tokens) and tokens[pos].startswith('>'):
+         match('>')
+         parse_G()
+-        match('J')
++        match('H')
++        parse_G()

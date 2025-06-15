@@ -1,0 +1,15 @@
+@@ -182,8 +182,8 @@ def parse_N():
+         match(':')
+         match('6')
+-    elif lookahead.startswith(';'):
+-        match(';')
++    elif lookahead.startswith('@'):
++        match('@')
+     elif lookahead.startswith('m'):
+         match('m')
+         parse_J()
+@@ -194,7 +194,7 @@ def parse_N():
+         match('!')
+     else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join([',', ':', ';', 'm', 'y']))
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join([',', ':', '@', 'm', 'y']))

@@ -1,0 +1,80 @@
+--- a/parser_original.py
++++ b/parser_fixed.py
+@@ -20,58 +20,21 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in D")
+     lookahead = tokens[pos]
+     if lookahead.startswith('b'):
+         match('b')
+-        while pos < len(tokens) and tokens[pos].startswith('0'):
+-            match('0')
+-            parse_K()
+-            match('N')
+-            match('e')
+-            match(':')
++        parse_M()
+         match('%')
+         match(')')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('b'):
+-            match('b')
+-            parse_M()
+-            match('%')
+-            match(')')
+-            parse_D()
++        parse_D()
+     elif lookahead.startswith('B'):
+         match('B')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('5'):
+-            match('5')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('[')
+-            parse_O()
+-            parse_M()
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['5', '_']))
++        parse_O()
+         match('<')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('5'):
+-            match('5')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('[')
+-            parse_O()
+-            parse_M()
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['5', '_']))
+-        while pos < len(tokens) and tokens[pos].startswith('0'):
+-            match('0')
+-            parse_K()
+-            match('N')
+-            match('e')
+-            match(':')
++        parse_O()
++        parse_M()
+     elif lookahead.startswith('Q'):
+         match('Q')
+         match('s')
+         if pos >= len(tokens):
+@@ -191,10 +154,11 @@
+ 
+ def parse_X():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
++    if pos < len(tokens) and tokens[pos].startswith('^'):
+         match('^')
+         match('g')
+         match(']')
+         match('k')
+-        match(':')
++        parse_X()
++        parse_X()

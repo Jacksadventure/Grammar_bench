@@ -1,0 +1,74 @@
+@@ -17,18 +17,15 @@ def parse_A():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
+-        match('#')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('!'):
+-            match('!')
+-            match('#')
+-            parse_A()
+-            parse_A()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['!', '', '9']))
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # epsilon production
++    lookahead = tokens[pos]
++    if lookahead.startswith('!'):
++        match('!')
++        match('#')
++        parse_A()
++        parse_A()
++    elif lookahead.startswith('9'):
++        match('9')
++        parse_L()
++    # epsilon for any other lookahead
+ 
+@@ def parse_T():
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('@'):
+-        match('@')
++    lookahead = tokens[pos]
++    if lookahead.startswith('*'):
++        match('*')
+         match('t')
+         parse_T()
+         match('Z')
+         match('/')
+@@
+-    else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['@', '(']))
++    else:
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['*', '(']))
+ 
+@@
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
+-        parse_R()
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('!'):
++        match('!')
++        parse_R()
++        parse_L()
++    else:
++        saved_pos = pos
++        parse_A()
++        if pos < len(tokens) and (tokens[pos].startswith("'") or tokens[pos].startswith('G')):
++            parse_B()
++        else:
++            pos = saved_pos  # revert, epsilon if nothing matched
+ 
+@@ def parse_input(input_str):
+     tokens = list(input_str)
+     pos = 0
+     parse_A()
++    if pos != len(tokens):
++        error("Unexpected trailing input")
+     print("Input accepted.")

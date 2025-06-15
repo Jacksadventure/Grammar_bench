@@ -1,0 +1,51 @@
+--- a/parser.py
++++ b/parser.py
+@@ def parse_U():
+-    if lookahead.startswith('_'):
+-        match('_')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('*'):
+-            match('*')
+-            parse_Z()
+-            parse_X()
+-            parse_Z()
+-        elif lookahead.startswith('6'):
+-            match('6')
+-            parse_J()
+-        elif lookahead.startswith('g'):
+-            match('g')
+-            match('R')
+-            parse_Q()
+-            parse_V()
+-        elif lookahead.startswith(','):
+-            match(',')
+-            parse_U()
+-            parse_K()
+-            match('.')
+-            match('q')
+-        elif lookahead.startswith('Q'):
+-            parse_Q()
+-            parse_Z()
+-            parse_C()
+-            parse_L()
+-            match("'")
+-        elif lookahead.startswith('C'):
+-            parse_C()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['*', '6', 'g', ',', 'Q', 'C']))
+-        match('@')
++    if lookahead.startswith('_'):
++        match('_')
++        parse_Z()
++        match('@')
+@@ def parse_Q():
+-        match('6')
++        parse_C()
+@@ def parse_Z():
+-    elif lookahead.startswith('Q'):
++    elif lookahead.startswith('W'):
+@@ def parse_Z():
+-    elif lookahead.startswith('C'):
++    elif lookahead.startswith('n'):

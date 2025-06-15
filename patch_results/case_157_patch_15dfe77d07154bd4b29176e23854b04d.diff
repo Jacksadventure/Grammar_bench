@@ -1,0 +1,18 @@
+@@ -104,10 +104,9 @@
+ def parse_P():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in P")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('8'):
+-        match('8')
+-        match('Z')
+-    else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['8', '']))
++    global pos, tokens
++    # <P> -> '8' <P> | ε
++    if pos < len(tokens) and tokens[pos].startswith('8'):
++        match('8')
++        parse_P()
++    # else: epsilon production, do nothing
+ 

@@ -1,0 +1,131 @@
+@@ -17,94 +17,37 @@ def parse_W():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in W")
+     lookahead = tokens[pos]
+     if lookahead.startswith('E'):
+-        match('E')
+-        while pos < len(tokens) and tokens[pos].startswith('Q'):
+-            match('Q')
+-            parse_X()
+-            parse_B()
+-            parse_K()
+-        match('%')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('/'):
+-            match('/')
+-            match('p')
+-            match('r')
+-            parse_F()
+-            parse_O()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-            parse_F()
+-        elif lookahead.startswith('P'):
+-            match('P')
+-            parse_W()
+-            parse_G()
+-            parse_Y()
+-            parse_O()
+-        elif lookahead.startswith('('):
+-            match('(')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['/', 'N', 'P', '(']))
++        match('E')
++        parse_X()
++        match('%')
++        parse_B()
+     elif lookahead.startswith('m'):
+-        match('m')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('0'):
+-            match('0')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['0']))
+-        match('y')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            parse_G()
+-            match('N')
+-            match('_')
+-        match('s')
++        match('m')
++        parse_F()
++        match('y')
++        parse_O()
++        match('s')
+     elif lookahead.startswith('b'):
+-        match('b')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('r'):
+-            match('r')
+-            match('7')
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['r', '']))
+-        match('f')
+-    elif lookahead.startswith('J'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('D'):
+-            match('D')
+-            match('e')
+-        elif lookahead.startswith('x'):
+-            match('x')
+-            match('C')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('5')
+-            match('m')
+-            parse_O()
+-            match('L')
+-        elif lookahead.startswith('b'):
+-            match('b')
+-            parse_Y()
+-            match(';')
+-            match('r')
+-            parse_J()
+-        elif lookahead.startswith('}'):
+-            match('}')
+-            parse_K()
+-            parse_J()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['D', 'x', '_', 'b', '}', '2']))
++        match('b')
++        parse_G()
++        match('f')
+     else:
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['E', 'm', 'b', 'J']))
++        # Delegate to <J> for remaining alternatives
++        parse_J()
+ 
+@@
+ def parse_G():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in G")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('r'):
+-        match('r')
+-        match('7')
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['r', '']))
++    # <G> ::= 'r' <G> | ε
++    while pos < len(tokens) and tokens[pos].startswith('r'):
++        match('r')
+ 
+@@
+     while pos < len(tokens) and tokens[pos].startswith('Q'):
+         match('Q')
+         parse_X()
+         parse_B()
+         parse_K()
++        parse_X()

@@ -1,0 +1,41 @@
+@@ -27,12 +27,9 @@ def parse_I():
+         if lookahead.startswith('-'):
+             match('-')
+             parse_I()
+-        elif lookahead.startswith('O'):
+-            match('O')
+-            parse_D()
+-        elif lookahead.startswith('O'):
++        else:
++            error("Unexpected token " + lookahead + " in I after '-', expected '-'")
++    elif lookahead.startswith('O'):
++        match('O')
++        if pos < len(tokens):
++            parse_D()
++    else:
++        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['-', 'O']))
++
++def parse_D():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('S'):
++        match('S')
++        match(':')
++        match('x')
+@@ -37,15 +34,4 @@ def parse_I():
+-    elif lookahead.startswith('O'):
+-        match('O')
+-        while pos < len(tokens) and tokens[pos].startswith('S'):
+-            match('S')
+-            match('4')
+-            match('x')
+-    elif lookahead.startswith('O'):
+-        match('O')
+-    else:
+-        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['-', 'O', 'O']))
+-
+-def parse_D():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('S'):
+-        match('S')
+-        match('4')
+-        match('x')

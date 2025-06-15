@@ -1,0 +1,21 @@
+@@ -80,3 +80,3 @@ def parse_T():
+     elif lookahead.startswith('='):
+-        match('=')
++        match('<')
+     else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '<']))
+@@ -62,3 +62,3 @@ def parse_Q():
+         elif lookahead.startswith('='):
+-            match('=')
++            match('<')
+         else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '<']))
+@@ -31,3 +31,3 @@ def parse_Q():
+         elif lookahead.startswith('='):
+-            match('=')
++            match('<')
+         else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '<']))

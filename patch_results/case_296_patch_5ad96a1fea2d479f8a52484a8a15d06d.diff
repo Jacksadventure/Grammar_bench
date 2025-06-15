@@ -1,0 +1,155 @@
+@@ -18,98 +18,21 @@ def parse_E():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in E")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('R'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('x'):
+-            match('x')
+-            parse_R()
+-            match('V')
+-            match('c')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['x', '']))
+-        while pos < len(tokens) and tokens[pos].startswith('K'):
+-            match('K')
+-            parse_G()
+-            parse_S()
+-            match('P')
+-            match('?')
+-        match('6')
+-    elif lookahead.startswith('K'):
+-        match('K')
+-        match("'")
+-    elif lookahead.startswith('['):
+-        match('[')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('R'):
+-            parse_R()
+-            parse_M()
+-            match('6')
+-        elif lookahead.startswith('K'):
+-            match('K')
+-            match("'")
+-        elif lookahead.startswith('['):
+-            match('[')
+-            parse_E()
+-            match('D')
+-            match('q')
+-            parse_N()
+-            parse_M()
+-        elif lookahead.startswith('%'):
+-            match('%')
+-            parse_M()
+-            parse_M()
+-            parse_M()
+-            parse_N()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['R', 'K', '[', '%', '0']))
+-        match('D')
+-        match('q')
+-        while pos < len(tokens) and tokens[pos].startswith('m'):
+-            match('m')
+-            match('s')
+-            parse_C()
+-            match('O')
+-            match('v')
+-        while pos < len(tokens) and tokens[pos].startswith('K'):
+-            match('K')
+-            parse_G()
+-            parse_S()
+-            match('P')
+-            match('?')
+-    elif lookahead.startswith('%'):
+-        match('%')
+-        while pos < len(tokens) and tokens[pos].startswith('K'):
+-            match('K')
+-            parse_G()
+-            parse_S()
+-            match('P')
+-            match('?')
+-        while pos < len(tokens) and tokens[pos].startswith('K'):
+-            match('K')
+-            parse_G()
+-            parse_S()
+-            match('P')
+-            match('?')
+-        while pos < len(tokens) and tokens[pos].startswith('K'):
+-            match('K')
+-            parse_G()
+-            parse_S()
+-            match('P')
+-            match('?')
+-        while pos < len(tokens) and tokens[pos].startswith('m'):
+-            match('m')
+-            match('s')
+-            parse_C()
+-            match('O')
+-            match('v')
+-    elif lookahead.startswith('0'):
+-        match('0')
+-    else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['R', 'K', '[', '%', '0']))
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in E")
++    lookahead = tokens[pos]
++    if lookahead == 'x':
++        parse_R()
++        parse_M()
++        match('6')
++    elif lookahead == 'K':
++        match('K')
++        match("'")
++    elif lookahead == '[':
++        match('[')
++        parse_E()
++        match('D')
++        match('q')
++        parse_N()
++        parse_M()
++    elif lookahead == '%':
++        match('%')
++        parse_M()
++        parse_M()
++        parse_M()
++        parse_N()
++    elif lookahead == '0':
++        match('0')
++    else:
++        error("Unexpected token " + lookahead + " in E, expected one of: x, K, [, %, 0")
+@@ -123,7 +46,7 @@ def parse_R():
+         parse_R()
+         match('V')
+-        match('c')
++        parse_R()
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['x', '']))
++        return
+@@ -157,5 +80,8 @@ def parse_S():
+-    while pos < len(tokens) and tokens[pos].startswith('<'):
+-        match('<')
+-        match('@')
+-        match('s')
+-        parse_S()
++    if pos < len(tokens) and tokens[pos] == '<':
++        match('<')
++        match('@')
++        match('s')
++        parse_S()
++        parse_S()
+@@ -164,5 +90,8 @@ def parse_C():
+-    while pos < len(tokens) and tokens[pos].startswith('U'):
+-        match('U')
+-        match('o')
++    if pos < len(tokens) and tokens[pos] == 'U':
++        match('U')
++        match('o')
++        parse_C()

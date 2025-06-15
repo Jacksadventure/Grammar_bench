@@ -1,0 +1,12 @@
+@@ -75,7 +75,7 @@ def parse_W():
+     if lookahead.startswith('F'):
+         match('F')
+         parse_J()
+-    elif lookahead.startswith('C'):
++    elif lookahead.startswith('^'):
++        match('^')
++        parse_J()
++    elif lookahead.startswith('C'):
+@@ -81,1 +83,1 @@ def parse_W():
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['F', 'C']))
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['^', 'C']))

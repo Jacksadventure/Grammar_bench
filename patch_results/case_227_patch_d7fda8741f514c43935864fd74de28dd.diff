@@ -1,0 +1,7 @@
+@@ -196,7 +196,7 @@ def parse_T():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith(':'):
+         match(':')
+         match('y')
+-        match('[')
++        match('Y')

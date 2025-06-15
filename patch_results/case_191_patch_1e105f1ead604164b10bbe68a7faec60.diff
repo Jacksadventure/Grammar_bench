@@ -1,0 +1,10 @@
+@@ -99,7 +99,8 @@ def parse_Q():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('W'):
+         match('W')
+         match('@')
++        parse_C()
++        match('B')
+-        match('6')
+-        match('B')
++        parse_Q()

@@ -1,0 +1,92 @@
+@@ -17,64 +17,27 @@ def parse_S():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in S")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('u'):
+-        match('u')
+-        match('B')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            match('B')
+-            parse_S()
+-            parse_S()
+-            parse_S()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_L()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['u', '~', 'n']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            match('B')
+-            parse_S()
+-            parse_S()
+-            parse_S()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_L()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['u', '~', 'n']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            match('B')
+-            parse_S()
+-            parse_S()
+-            parse_S()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_L()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['u', '~', 'n']))
+-    elif lookahead.startswith('~'):
+-        match('~')
+-        while pos < len(tokens) and tokens[pos].startswith('S'):
+-            parse_S()
+-    elif lookahead.startswith('n'):
+-        match('n')
+-    else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['u', '~', 'n']))
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in S")
++    lookahead = tokens[pos]
++    if lookahead == 'u':
++        match('u')
++        match('B')
++        # After 'u' 'B' the grammar requires exactly three <S> in sequence
++        parse_S()
++        parse_S()
++        parse_S()
++    elif lookahead == '~':
++        match('~')
++        parse_L()
++    elif lookahead == 'n':
++        match('n')
++    else:
++        error("Unexpected token " + lookahead + " in S, expected one of: u, ~, n")
+ 
+@@
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('S'):
+-        parse_S()
++    global pos, tokens
++    # <L> ::= "'" <L> | ε
++    while pos < len(tokens) and tokens[pos] == "'":
++        match("'")
+@@

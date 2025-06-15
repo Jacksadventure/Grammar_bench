@@ -1,0 +1,42 @@
+@@ -24,7 +24,7 @@ def parse_U():
+         match('6')
+-        while pos < len(tokens) and tokens[pos].startswith('2'):
++        parse_O()
++    elif lookahead.startswith('('):
++        match('(')
++    else:
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['S', '(']))
++
++def parse_O():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('2'):
++        match('2')
++        parse_N()
++        match('F')
++
++def parse_N():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('D'):
++        match('D')
++        parse_O()
++        match('K')
++        parse_U()
++        match('}')
++
++def parse_input(input_str):
++    global tokens, pos
++    tokens = list(input_str)
++    pos = 0
++    parse_U()
++    print("Input accepted.")
++
++def main():
++    import sys
++    if len(sys.argv) > 1:
++        input_str = sys.argv[1]
++    else:
++        input_str = sys.stdin.read()
++    parse_input(input_str)
++
++if __name__ == "__main__":
++    main()

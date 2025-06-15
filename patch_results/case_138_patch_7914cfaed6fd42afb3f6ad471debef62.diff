@@ -1,0 +1,5 @@
+@@ -134,2 +134,2 @@ def parse_O():
+     if lookahead.startswith('U'):
+-        parse_U()
++        match('U')
+     elif lookahead.startswith('%'):

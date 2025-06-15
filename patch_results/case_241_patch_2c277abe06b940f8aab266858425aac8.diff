@@ -1,0 +1,117 @@
+```diff
+@@ -22,78 +22,22 @@
+     if lookahead.startswith('^'):
+         match('^')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('^'):
+-            match('^')
+-            parse_Z()
+-            match('e')
+-        elif lookahead.startswith('H'):
+-            parse_H()
+-        elif lookahead.startswith('q'):
+-            match('q')
+-            match('w')
+-            match('p')
+-            parse_H()
+-            parse_D()
+-        elif lookahead.startswith('x'):
+-            match('x')
+-            parse_J()
+-            parse_J()
+-            match('e')
+-        elif lookahead.startswith('P'):
+-            match('P')
+-            match('5')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['^', 'H', 'q', 'x', 'P']))
++        parse_Z()
+         match('e')
+-    elif lookahead.startswith('H'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('+'):
+-            match('+')
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-        elif lookahead.startswith('B'):
+-            match('B')
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['+', 'Q', 'B']))
++    elif lookahead.startswith('+') or lookahead.startswith('Q') or lookahead.startswith('p'):
++        parse_H()
+     elif lookahead.startswith('q'):
+         match('q')
+         match('w')
+         match('p')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('+'):
+-            match('+')
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-        elif lookahead.startswith('B'):
+-            match('B')
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['+', 'Q', 'B']))
+-        while pos < len(tokens) and tokens[pos].startswith('`'):
+-            match('`')
+-            parse_D()
+-            parse_D()
+-            parse_J()
++        parse_H()
++        parse_D()
+     elif lookahead.startswith('x'):
+         match('x')
+-        while pos < len(tokens) and tokens[pos].startswith('_'):
+-            match('_')
+-            parse_H()
+-            parse_K()
+-        while pos < len(tokens) and tokens[pos].startswith('_'):
+-            match('_')
+-            parse_H()
+-            parse_K()
++        parse_J()
++        parse_J()
+         match('e')
+     elif lookahead.startswith('P'):
+         match('P')
+         match('5')
+     else:
+-        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['^', 'H', 'q', 'x', 'P']))
++        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['^', '+', 'Q', 'p', 'q', 'x', 'P']))
+@@ -115,18 +59,19 @@
+ 
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('`'):
++    if pos < len(tokens) and tokens[pos].startswith('`'):
+         match('`')
+         parse_D()
+         parse_D()
+         parse_J()
++        parse_D()
+ 
+ def parse_H():
+     global pos, tokens
+@@ -128,10 +73,10 @@
+         match('+')
+     elif lookahead.startswith('Q'):
+         match('Q')
+-    elif lookahead.startswith('B'):
+-        match('B')
++    elif lookahead.startswith('p'):
++        match('p')
+         parse_Z()
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['+', 'Q', 'B']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['+', 'Q', 'p']))
+
+ def parse_input(input_str):
+```

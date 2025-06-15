@@ -1,0 +1,97 @@
+@@ -47,4 +47,1 @@ def parse_X():
+-        while pos < len(tokens) and tokens[pos].startswith('r'):
+-            match('r')
+-            match('C')
++        parse_N()
+@@ -53,84 +53,4 @@ def parse_X():
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_D()
+-            parse_D()
+-            parse_D()
+-        elif lookahead.startswith('y'):
+-            match('y')
+-            match(':')
+-            parse_P()
+-            parse_M()
+-            parse_P()
+-        elif lookahead.startswith('r'):
+-            match('r')
+-            parse_N()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            parse_X()
+-            parse_D()
+-            parse_X()
+-            parse_X()
+-        elif lookahead.startswith('p'):
+-            match('p')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['-', 'y', 'r', '9', 'p']))
+-        while pos < len(tokens) and tokens[pos].startswith('k'):
+-            match('k')
+-            match('E')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_D()
+-            parse_D()
+-            parse_D()
+-        elif lookahead.startswith('y'):
+-            match('y')
+-            match(':')
+-            parse_P()
+-            parse_M()
+-            parse_P()
+-        elif lookahead.startswith('r'):
+-            match('r')
+-            parse_N()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            parse_X()
+-            parse_D()
+-            parse_X()
+-            parse_X()
+-        elif lookahead.startswith('p'):
+-            match('p')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['-', 'y', 'r', '9', 'p']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_D()
+-            parse_D()
+-            parse_D()
+-        elif lookahead.startswith('y'):
+-            match('y')
+-            match(':')
+-            parse_P()
+-            parse_M()
+-            parse_P()
+-        elif lookahead.startswith('r'):
+-            match('r')
+-            parse_N()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            parse_X()
+-            parse_D()
+-            parse_X()
+-            parse_X()
+-        elif lookahead.startswith('p'):
+-            match('p')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['-', 'y', 'r', '9', 'p']))
++        parse_X()
++        parse_D()
++        parse_X()
++        parse_X()
+@@ -146,1 +146,1 @@ def parse_N():
+-        match('C')
++        match('w')

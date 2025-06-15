@@ -1,0 +1,65 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -22,20 +22,12 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('k'):
+         match('k')
+         match('%')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            parse_L()
+-            match('P')
+-        elif lookahead.startswith('I'):
+-            match('I')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['u', 'I']))
++        parse_R()
+     elif lookahead.startswith('E'):
+         match('E')
+         match('E')
+     elif lookahead.startswith('v'):
+         match('v')
+         match(')')
+     elif lookahead.startswith('>'):
+         match('>')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('1'):
+-            match('1')
+-            parse_K()
+-            match('&')
+-            match('+')
+-            parse_S()
+-        elif lookahead.startswith('d'):
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['1', 'd']))
++        parse_K()
+         match('h')
+         match('B')
+     elif lookahead.startswith(','):
+         match(',')
+     else:
+         error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['k', 'E', 'v', '>', ',']))
+ 
+ def parse_S():
+@@ -106,9 +98,9 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in R")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('u'):
+-        match('u')
++    if lookahead.startswith('5'):
++        match('5')
+         parse_L()
+         match('P')
+     elif lookahead.startswith('I'):
+         match('I')
+-    else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['u', 'I']))
++    else:
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['5', 'I']))

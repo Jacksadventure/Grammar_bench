@@ -1,0 +1,57 @@
+@@
+-    elif lookahead.startswith('H'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('F'):
+-            match('F')
+-            match('r')
+-            parse_J()
+-        elif lookahead.startswith('7'):
+-            match('7')
+-            match(',')
+-            parse_J()
+-            match('h')
+-        elif lookahead.startswith('+'):
+-            match('+')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['F', '7', '+']))
+-        match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('n'):
+-            match('n')
+-            parse_H()
+-            parse_C()
+-        elif lookahead.startswith('+'):
+-            match('+')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['n', '+']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('n'):
+-            match('n')
+-            parse_H()
+-            parse_C()
+-        elif lookahead.startswith('+'):
+-            match('+')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['n', '+']))
++    elif lookahead.startswith(('F', '7', '+')):
++        # <C> -> <H> '|' <I> <I>
++        parse_H()
++        match('|')
++        parse_I()
++        parse_I()
+     elif lookahead.startswith('S'):
+         match('S')
+@@
+-    elif lookahead.startswith('+'):
+-        match('+')
++    elif lookahead.startswith('*'):
++        match('*')
+@@
+-        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['n', '+']))
++        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['n', '*']))

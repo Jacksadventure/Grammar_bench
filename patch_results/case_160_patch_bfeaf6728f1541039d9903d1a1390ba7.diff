@@ -1,0 +1,128 @@
+--- parser.py
++++ parser.py
+@@ def parse_O():
+-        match('c')
++        parse_O()
+@@ def parse_P():
+-        match(')')
+-        match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('V'):
+-            match('V')
+-            match('-')
+-            match('r')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            match('7')
+-        elif lookahead.startswith('c'):
+-            match('c')
+-            parse_H()
+-            parse_R()
+-            match('*')
+-        elif lookahead.startswith('v'):
+-            match('v')
+-            match('n')
+-        elif lookahead.startswith('['):
+-            match('[')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['V', \"'\", 'c', 'v', '[']))
+-        while pos < len(tokens) and tokens[pos].startswith('R'):
+-            parse_R()
+-            parse_R()
+-            parse_A()
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            match('s')
+-            parse_S()
+-        elif lookahead.startswith('r'):
+-            match('r')
+-            parse_S()
+-            parse_H()
+-            match('4')
+-            match('g')
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-            match('n')
+-            match('z')
+-            match('2')
+-            parse_A()
+-        elif lookahead.startswith('.'):
+-            match('.')
+-            match('&')
+-            match('p')
+-            match('f')
+-            parse_P()
+-        elif lookahead.startswith('x'):
+-            match('x')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['T', 'r', 'Q', '.', 'x']))
++        match(')')
++        match('|')
++        parse_S()
++        parse_D()
++        parse_E()
+@@ def parse_P():
+-    elif lookahead.startswith('y'):
+-        match('y')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            parse_O()
+-        while pos < len(tokens) and tokens[pos].startswith('r'):
+-            match('r')
++    elif lookahead.startswith('y'):
++        match('y')
++        parse_N()
++        parse_L()
+@@ def parse_D():
+     while pos < len(tokens) and tokens[pos].startswith('m'):
+         parse_R()
+         parse_R()
+         parse_A()
++
++def parse_E():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in E")
++    lookahead = tokens[pos]
++    if lookahead.startswith('T'):
++        match('T')
++        match('s')
++        parse_S()
++    elif lookahead.startswith('r'):
++        match('r')
++        parse_S()
++        parse_H()
++        match('4')
++        match('g')
++    elif lookahead.startswith('Q'):
++        match('Q')
++        match('n')
++        match('z')
++        match('2')
++        parse_A()
++    elif lookahead.startswith('.'):
++        match('.')
++        match('&')
++        match('p')
++        match('f')
++        parse_P()
++    elif lookahead.startswith('x'):
++        match('x')
++    else:
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['T', 'r', 'Q', '.', 'x']))
++
++def parse_N():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('.'):
++        match('.')
++        parse_O()
++
++def parse_L():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('r'):
++        match('r')

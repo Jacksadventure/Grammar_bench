@@ -1,0 +1,11 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -21,7 +21,7 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('!'):
+         match('!')
+-        match('e')
++        parse_I()
+     elif lookahead.startswith("'"):
+         match("'")
+     else:

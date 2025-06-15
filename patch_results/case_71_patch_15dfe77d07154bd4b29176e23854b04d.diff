@@ -1,0 +1,77 @@
+@@ -22,45 +22,15 @@ def parse_O():
+         match('j')
+         match('Q')
+     elif lookahead.startswith('!'):
+         match('!')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            match('Q')
+-        elif lookahead.startswith('!'):
+-            match('!')
+-            parse_O()
+-            parse_X()
+-            match('P')
+-            parse_L()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-            parse_T()
+-            parse_X()
+-            match('^')
+-            parse_L()
+-        elif lookahead.startswith('}'):
+-            match('}')
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['j', '!', '0', '}']))
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            match('B')
+-        match('P')
+-        while pos < len(tokens) and tokens[pos].startswith('>'):
+-            match('>')
+-            parse_X()
++        parse_O()
++        parse_X()
++        match('P')
++        parse_L()
+     elif lookahead.startswith('0'):
+         match('0')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(']'):
+-            match(']')
+-            match('q')
+-            parse_T()
+-            match('x')
+-        elif lookahead.startswith('w'):
+-            match('w')
+-            match('@')
+-            parse_T()
+-            match('^')
+-        elif lookahead.startswith(')'):
+-            match(')')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join([']', 'w', ')']))
+-        while pos < len(tokens) and tokens[pos].startswith('B'):
+-            match('B')
+-        match('^')
+-        while pos < len(tokens) and tokens[pos].startswith('>'):
+-            match('>')
+-            parse_X()
++        parse_T()
++        parse_X()
++        match('^')
++        parse_L()
+     elif lookahead.startswith('}'):
+         match('}')
+     else:
+         error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['j', '!', '0', '}']))
+@@
+ def parse_X():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('B'):
+-        match('B')
++    while pos < len(tokens) and tokens[pos].startswith('0'):
++        match('0')

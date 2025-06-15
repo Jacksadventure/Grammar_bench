@@ -1,0 +1,13 @@
+@@ -91,9 +91,12 @@ def parse_V():
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
++    if pos < len(tokens) and tokens[pos].startswith('M'):
+         match('M')
+-        parse_W()
++        match('+')
+         match('^')
+         match('v')
+         match('b')
++        parse_V()
++    # Empty production - do nothing

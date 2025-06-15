@@ -11,6 +11,9 @@ class AIInterface:
         elif backend == "gemini":
             from models import Gemini
             self.model = Gemini(model)
+        elif backend == "claude":
+            from models import ClaudeModel
+            self.model = ClaudeModel(model)
         else:
             raise ValueError("Invalid backend")
         

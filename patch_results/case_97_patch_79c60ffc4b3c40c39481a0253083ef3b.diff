@@ -1,0 +1,30 @@
+--- a/parser.py
++++ b/parser.py
+@@ -14,4 +14,13 @@
+     else:
+         error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
+ 
++def parse_N():
++    global pos, tokens
++    # <N> -> Y <C> <C> <N> | epsilon
++    # Epsilon case: if the current token is not 'Y' (or EOF), then N is empty
++    if pos >= len(tokens) or not tokens[pos].startswith('Y'):
++        return
++    match('Y')
++    parse_C()
++    parse_C()
++    parse_N()
++
+ def parse_C():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -23,10 +32,7 @@
+         match('$')
+-        while pos < len(tokens) and tokens[pos].startswith('Y'):
+-            match('Y')
+-            match('J')
+-            parse_C()
++        parse_N()
+     elif lookahead.startswith('8'):
+         match('8')
+         match('l')

@@ -1,0 +1,6 @@
+@@ -52,7 +52,7 @@ def parse_J():
+         match(',')
+-        match('x')
++        match('~')
+         match('#')
+         match('+')

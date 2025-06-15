@@ -1,0 +1,18 @@
+@@ -69,8 +69,8 @@ def parse_H():
+-    if lookahead.startswith('L'):
+-        parse_L()
+-        match('V')
+-        match(';')
+-        match('|')
+-    elif lookahead.startswith('4'):
+-        match('4')
++    if lookahead.startswith(('k', '?', 's', '(', '#')):
++        parse_L()
++        match('V')
++        match(';')
++        match('|')
++    elif lookahead.startswith('O'):
++        match('O')
+@@
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['L', '4']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['k', '?', 's', '(', '#', 'O']))

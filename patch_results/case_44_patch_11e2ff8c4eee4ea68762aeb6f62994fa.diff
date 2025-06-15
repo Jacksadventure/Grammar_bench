@@ -1,0 +1,8 @@
+@@ -31,6 +31,8 @@ def parse_W():
+         elif lookahead.startswith('C'):
+             match('C')
++        elif lookahead.startswith('~'):
++            match('~')
+         else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['%', 'C']))
++            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['%', '~']))

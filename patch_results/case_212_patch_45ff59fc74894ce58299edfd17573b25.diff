@@ -1,0 +1,52 @@
+@@ -24,7 +24,7 @@ def parse_X():
+         match('g')
+         match('R')
+         match('6')
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
++        parse_J()
+     elif lookahead.startswith('|'):
+         match('|')
+         if pos >= len(tokens):
+@@ -33,7 +33,7 @@ def parse_X():
+         if lookahead.startswith('`'):
+             match('`')
+-            match('9')
++            match('U')
+             match('c')
+             parse_X()
+         elif lookahead.startswith('n'):
+@@ -70,7 +70,7 @@ def parse_Q():
+     if lookahead.startswith('`'):
+         match('`')
+-        match('9')
++        match('U')
+         match('c')
+         parse_X()
+     elif lookahead.startswith('n'):
+@@ -81,6 +81,25 @@ def parse_Q():
+         error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['`', 'n', 'N']))
+ 
++def parse_J():
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # epsilon production
++    lookahead = tokens[pos]
++    if lookahead.startswith("'"):
++        match("'")
++        parse_J()
++    elif lookahead.startswith('I'):
++        match('I')
++        parse_H()
++    # else epsilon production
++
++def parse_H():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('_'):
++        match('_')
++        parse_H()
++    # else epsilon production
++
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)

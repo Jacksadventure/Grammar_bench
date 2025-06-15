@@ -1,0 +1,39 @@
+@@ -21,17 +21,7 @@ def parse_O():
+     lookahead = tokens[pos]
+     if lookahead.startswith('%'):
+         match('%')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('!'):
+-            match('!')
+-            match('u')
+-        elif lookahead.startswith('M'):
+-            match('M')
+-            match('~')
+-        elif lookahead.startswith('>'):
+-            match('>')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['!', 'M', '>']))
++        parse_F()
+     elif lookahead.startswith('a'):
+         match('a')
+     else:
+         error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['%', 'a']))
+ 
++# Parse function for <F> non-terminal
++def parse_F():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in F")
++    lookahead = tokens[pos]
++    if lookahead.startswith('!'):
++        match('!')
++        match('u')
++    elif lookahead.startswith('M'):
++        match('M')
++        match('~')
++    elif lookahead.startswith('8'):
++        match('8')
++    else:
++        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['!', 'M', '8']))

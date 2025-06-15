@@ -1,0 +1,18 @@
+@@ -78,2 +78,2 @@ def parse_Q():
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([';', '']))
++        # Q can be empty, so if we don't match ';', just return
++        return
+
+@@ -133,2 +133,4 @@ def parse_V():
+         match('!')
+     elif lookahead.startswith('W'):
++        match('W')
++    elif lookahead.startswith('`') or lookahead.startswith('E'):
+         parse_W()
+         match('Y')
+
+@@ -141,2 +143,4 @@ def parse_V():
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['!', 'W', 'D']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['!', 'W', '`', 'E', 'D']))

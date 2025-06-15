@@ -1,0 +1,62 @@
+--- a/parser.py
++++ b/parser.py
+@@ -18,34 +18,10 @@
+     while pos < len(tokens) and tokens[pos].startswith('A'):
+         match('A')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('^'):
+-            match('^')
+-            parse_F()
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['^', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            parse_F()
+-            parse_N()
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['?', '']))
++        parse_F()
++        parse_N()
+         match(':')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('t'):
+-            match('t')
+-            parse_C()
+-            parse_N()
+-            parse_G()
+-        elif lookahead.startswith('4'):
+-            match('4')
+-            parse_H()
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['t', '', '4']))
++        parse_G()
+ 
+ def parse_F():
+     global pos, tokens
+@@ -93,8 +69,14 @@
+ 
+ def parse_G():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('t'):
+-        match('t')
+-        parse_C()
+-        parse_N()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('t'):
++            match('t')
++            parse_C()
++            parse_N()
++            parse_G()
++        elif lookahead.startswith('4'):
++            match('4')
++            parse_H()
+ 
+ def parse_input(input_str):

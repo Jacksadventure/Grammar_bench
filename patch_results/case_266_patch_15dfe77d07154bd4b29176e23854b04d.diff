@@ -1,0 +1,15 @@
+@@ -139,9 +139,9 @@ def parse_L():
+         match(']')
+         match('=')
+-    elif lookahead.startswith('h'):
+-        match('h')
++    elif lookahead.startswith('z'):
++        match('z')
+         match('k')
+     elif lookahead.startswith('#'):
+         match('#')
+@@ def parse_L():
+         match('x')
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join([']', 'h', '#', 'x']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join([']', 'z', '#', 'x']))

@@ -1,0 +1,42 @@
+--- a/parser_original.py
++++ b/parser_fixed.py
+@@ -18,24 +18,7 @@
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('e'):
+         match('e')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('s'):
+-            match('s')
+-            match('P')
+-            parse_K()
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['s', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('W'):
+-            match('W')
+-            match('c')
+-            parse_K()
+-            match('w')
+-            parse_V()
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['W', '']))
++        parse_K()
++        parse_V()
+         match(';')
+ 
+ def parse_V():
+@@ -50,7 +33,8 @@
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('s'):
++    if pos < len(tokens) and tokens[pos].startswith('s'):
+         match('s')
+-        match('P')
++        match('[')
++        parse_K()
+ 
+ def parse_input(input_str):

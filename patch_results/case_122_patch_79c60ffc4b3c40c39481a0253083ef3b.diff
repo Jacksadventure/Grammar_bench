@@ -1,0 +1,66 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,16 +19,10 @@
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
+-        match('#')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('!'):
+-            match('!')
+-            match('#')
+-            parse_A()
+-            parse_A()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['!', '', '9']))
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('!'):
++            match('!')
++            match('#')
++            parse_A()
++            parse_A()
++        elif lookahead.startswith('9'):
++            match('9')
++            parse_L()
+ 
+ def parse_T():
+     global pos, tokens
+@@ -41,11 +35,11 @@
+     lookahead = tokens[pos]
+-    if lookahead.startswith('@'):
+-        match('@')
++    if lookahead.startswith('*'):
++        match('*')
+         match('t')
+         parse_T()
+         match('Z')
+         match('/')
+     elif lookahead.startswith('('):
+         match('(')
+     else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['@', '(']))
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['*', '(']))
+ 
+ def parse_Q():
+     global pos, tokens
+@@ -71,8 +65,15 @@
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
+-        parse_R()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('!'):
++            match('!')
++            parse_R()
++            parse_L()
++        elif lookahead.startswith('9') or lookahead.startswith("'") or lookahead.startswith('G'):
++            parse_A()
++            parse_B()
+ 
+ def parse_R():
+     global pos, tokens

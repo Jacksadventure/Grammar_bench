@@ -1,0 +1,15 @@
+@@ -164,10 +164,10 @@ def parse_U():
+     if pos >= len(tokens):
+         error("Unexpected end of input in U")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('r'):
+-        match('r')
++    if lookahead.startswith('3'):
++        match('3')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['r']))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['3']))
+ 
+ def parse_M():
+     global pos, tokens
+     if pos >= len(tokens):

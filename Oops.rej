@@ -1,0 +1,5 @@
+@@ -133,2 +133,4 @@
+         match('!')
+     elif lookahead.startswith('W'):
++        match('W')
++    elif lookahead.startswith('`') or lookahead.startswith('E'):

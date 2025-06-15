@@ -1,0 +1,12 @@
+--- a/parser.py
++++ b/parser.py
+@@ -22,8 +22,7 @@ def parse_X():
+         match('<')
+-        while pos < len(tokens) and tokens[pos].startswith('z'):
+-            match('z')
++        parse_Q()
+@@ -61,3 +61,3 @@ def parse_Q():
+-    while pos < len(tokens) and tokens[pos].startswith('z'):
+-        match('z')
++    while pos < len(tokens) and tokens[pos].startswith('U'):
++        match('U')

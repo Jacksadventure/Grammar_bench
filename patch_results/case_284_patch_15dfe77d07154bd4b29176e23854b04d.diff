@@ -1,0 +1,55 @@
+@@ -19,14 +19,7 @@ def parse_Y():
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-            match('Z')
+-            match('/')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(["'", '']))
++        parse_U()
+@@ -40,11 +33,7 @@ def parse_Y():
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('&'):
+-            match('&')
+-            parse_K()
+-            parse_O()
+-            parse_K()
+-            parse_W()
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['&', '']))
++        parse_W()
+@@ -87,11 +78,12 @@ def parse_U():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in U")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith("'"):
+-        match("'")
+-        match('Z')
+-        match('/')
+-    else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(["'", '']))
++    global pos, tokens
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith("'"):
++        match("'")
++        match('Z')
++        parse_U()
++    # epsilon production: do nothing when the lookahead does not begin a U production
+@@ -99,7 +91,10 @@ def parse_input(input_str):
+-    tokens = list(input_str)
+-    pos = 0
+-    parse_Y()
+-    print("Input accepted.")
++    tokens = list(input_str)
++    pos = 0
++    parse_Y()
++    if pos != len(tokens):
++        error("Unexpected trailing input")
++    print("Input accepted.")

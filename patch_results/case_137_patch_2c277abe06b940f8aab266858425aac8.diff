@@ -1,0 +1,160 @@
+@@ -20,63 +20,33 @@
+     lookahead = tokens[pos]
+-    if lookahead.startswith('L'):
+-        while pos < len(tokens) and tokens[pos].startswith('p'):
+-            match('p')
+-            match('$')
+-        while pos < len(tokens) and tokens[pos].startswith(')'):
+-            match(')')
++    # X -> <L> <M> | 4 <H> | s , <L> | < <D> <X> v | <D>
++    # FIRST(<L><M>) = {p, d, >, ')'} (if L is eps, M starts with ')') plus epsilon
++    # FIRST(4 <H>) = {'4'}
++    # FIRST(s , <L>) = {'s'}
++    # FIRST(< <D> <X> v) = {'<'}
++    # FIRST(<D>) = {'d', epsilon}
++    # Resolve ambiguity for 'd' by order: <L><M> before <D>.
++    if lookahead.startswith('p') or lookahead.startswith('d') or \
++       lookahead.startswith('>') or lookahead.startswith(')'): # For X -> <L> <M>
++        parse_L()
++        parse_M()
+     elif lookahead.startswith('4'):
+         match('4')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('D'):
+-            parse_D()
+-        elif lookahead.startswith('>'):
+-            match('>')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['D', '>']))
++        parse_H() # For X -> 4 <H>
+     elif lookahead.startswith('s'):
+         match('s')
+         match(',')
+-        while pos < len(tokens) and tokens[pos].startswith('p'):
+-            match('p')
+-            match('$')
++        parse_L() # For X -> s , <L>
+     elif lookahead.startswith('<'):
+         match('<')
+-        while pos < len(tokens) and tokens[pos].startswith('d'):
+-            match('d')
+-            match('Q')
+-            parse_N()
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('L'):
+-            parse_L()
+-            parse_M()
+-        elif lookahead.startswith('4'):
+-            match('4')
+-            parse_H()
+-        elif lookahead.startswith('s'):
+-            match('s')
+-            match(',')
+-            parse_L()
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            parse_D()
+-            parse_X()
+-            match('v')
+-        elif lookahead.startswith('D'):
+-            parse_D()
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['L', '4', 's', '<', 'D']))
++        parse_D()
++        parse_X() # For X -> < <D> <X> v
+         match('v')
+-    elif lookahead.startswith('D'):
+-        while pos < len(tokens) and tokens[pos].startswith('d'):
+-            match('d')
+-            match('Q')
+-            parse_N()
+     else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['L', '4', 's', '<', 'D']))
++        # Fallback for X -> <D> (which can be <D> -> epsilon or <D> -> d... if 'd' wasn't taken by <L><M>)
++        # Or X -> <L><M> if both are epsilon and lookahead is in FOLLOW(X)
++        # The grammar lists X -> D as the last alternative.
++        parse_D()
+ 
+ def parse_D():
+     global pos, tokens
+@@ -93,15 +63,15 @@
+         error("Unexpected end of input in N")
+     lookahead = tokens[pos]
+     if lookahead.startswith('@'):
+-        match('@')
+-    elif lookahead.startswith('2'):
+-        match('2')
++        match('@') # N -> @
++    elif lookahead.startswith('&'): # N -> &
++        match('&')
+     elif lookahead.startswith('a'):
+-        match('a')
++        match('a') # N -> a <D> 9 <D> n
+         parse_D()
+         match('9')
+         parse_D()
+         match('n')
+     elif lookahead.startswith('A'):
+-        match('A')
++        match('A') # N -> A
+     else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['@', '2', 'a', 'A']))
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['@', '&', 'a', 'A']))
+ 
+ def parse_H():
+     global pos, tokens
+@@ -109,29 +79,34 @@
+         error("Unexpected end of input in H")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('D'):
++    # H -> <D> | >
++    # FIRST(D) = {d, epsilon}
++    if lookahead.startswith('>'):
++        match('>')
++    else: # This covers H -> <D>. <D> can start with 'd' or be epsilon. parse_D() handles this.
+         parse_D()
+-    elif lookahead.startswith('>'):
+-        match('>')
+-    else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['D', '>']))
+ 
+ def parse_M():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith(')'):
+-        match(')')
++        match(')') # M -> ) <M>
++    # else: M -> epsilon
++
++def parse_B(): # Added function for B -> W R r <B> | epsilon
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('W'):
++        match('W')
++        match('R')
++        match('r')
++        parse_B()
++    # else: B -> epsilon
+ 
+ def parse_L():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('p'):
+-        match('p')
+-        match('$')
++    # L -> p $ <L> | <H> <B> | epsilon
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('p'):
++            match('p')
++            match('$')
++            parse_L()
++        elif lookahead.startswith('d') or lookahead.startswith('>'): # FIRST(H) includes {d, >}
++            parse_H()
++            parse_B()
++        # else: L -> epsilon (neither 'p' nor FIRST(H) non-epsilon tokens matched)
++    # else: L -> epsilon (end of input)
+ 
+ def parse_input(input_str):
+     global tokens, pos

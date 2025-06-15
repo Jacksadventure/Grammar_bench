@@ -1,0 +1,121 @@
+--- parser.py
++++ parser.py
+@@ def parse_H():
+-    while pos < len(tokens) and tokens[pos].startswith('E'):
+-        match('E')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('E'):
+-            match('E')
+-            parse_H()
+-            parse_H()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            parse_A()
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['E', '', '~']))
++    # <H> ::= 'E' <H> <H> | '~' <A> | ε
++    if pos < len(tokens) and tokens[pos].startswith('E'):
++        match('E')
++        parse_H()
++        parse_H()
++    elif pos < len(tokens) and tokens[pos].startswith('~'):
++        match('~')
++        parse_A()
+@@ def parse_X():
+-    while pos < len(tokens) and tokens[pos].startswith('2'):
+-        match('2')
+-        parse_X()
+-        parse_P()
+-        match('|')
++    # <X> ::= '2' <X> <P> '|' <X> | ε
++    if pos < len(tokens) and tokens[pos].startswith('2'):
++        match('2')
++        parse_X()
++        parse_P()
++        match('|')
++        parse_X()
+@@ def parse_K():
+-    while pos < len(tokens) and tokens[pos].startswith('5'):
+-        match('5')
+-        parse_A()
+-        parse_H()
+-        parse_P()
+-        parse_H()
++    # <K> ::= '5' <A> <H> <P> <H> <K> | ε
++    if pos < len(tokens) and tokens[pos].startswith('5'):
++        match('5')
++        parse_A()
++        parse_H()
++        parse_P()
++        parse_H()
++        parse_K()
+@@ def parse_I():
+-    while pos < len(tokens) and tokens[pos].startswith('y'):
+-        match('y')
+-        parse_I()
+-        parse_J()
+-        parse_X()
++    # <I> ::= 'y' <I> <J> <X> <I> | ε
++    if pos < len(tokens) and tokens[pos].startswith('y'):
++        match('y')
++        parse_I()
++        parse_J()
++        parse_X()
++        parse_I()
+@@ def parse_R():
+-    while pos < len(tokens) and tokens[pos].startswith('V'):
+-        match('V')
+-        parse_Y()
+-        match('_')
+-        parse_X()
+-        match('i')
++    # <R> ::= 'V' <Y> '_' <X> 'i' <R> | ε
++    if pos < len(tokens) and tokens[pos].startswith('V'):
++        match('V')
++        parse_Y()
++        match('_')
++        parse_X()
++        match('i')
++        parse_R()
+@@ def parse_T():
+-    while pos < len(tokens) and tokens[pos].startswith('N'):
+-        match('N')
+-        parse_X()
+-        parse_T()
++    # <T> ::= 'N' <X> <T> <T> | ε
++    if pos < len(tokens) and tokens[pos].startswith('N'):
++        match('N')
++        parse_X()
++        parse_T()
++        parse_T()
+@@ def parse_J():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in J")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('9'):
+-        match('9')
+-        parse_H()
+-        match('4')
+-    else:
+-        error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['9', '']))
++    # <J> ::= '9' <H> <J> | ε
++    if pos < len(tokens) and tokens[pos].startswith('9'):
++        match('9')
++        parse_H()
++        parse_J()
+@@ def parse_P():
+-    while pos < len(tokens) and tokens[pos].startswith('Q'):
+-        match('Q')
+-        parse_H()
+-        match('{')
+-        parse_R()
++    # <P> ::= 'Q' <H> '{' <R> <P> | ε
++    if pos < len(tokens) and tokens[pos].startswith('Q'):
++        match('Q')
++        parse_H()
++        match('{')
++        parse_R()
++        match('}')
++        parse_P()

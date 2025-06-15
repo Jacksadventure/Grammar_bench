@@ -1,0 +1,8 @@
+@@ -89,7 +89,7 @@ def parse_A():
+         match('1')
+         match("'")
+-        parse_E()
++        match(']')
+         match('p')
+     elif lookahead.startswith('?'):
+         match('?')

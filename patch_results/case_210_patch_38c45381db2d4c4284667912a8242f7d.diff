@@ -1,0 +1,8 @@
+@@ -125,7 +125,7 @@ def parse_N():
+         match(';')
+         match('$')
+-        parse_E()
++        match('<')
+         parse_Z()
+         parse_G()
+     elif lookahead.startswith('o'):

@@ -1,0 +1,29 @@
+@@ -79,10 +79,10 @@ def parse_O():
+-    if lookahead.startswith('{'):
+-        match('{')
+-    elif lookahead.startswith('/'):
+-        match('/')
++    if lookahead.startswith('{'):
++        match('{')
++    elif lookahead.startswith('R'):
++        match('R')
+         match(':')
+         match('{')
+         match('(')
+         match('P')
+-    else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['{', '/']))
++    else:
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['{', 'R']))
+@@
+-    elif lookahead.startswith('J'):
++    elif lookahead.startswith(('S', 'M', 'y', '%', '_')):
+         parse_J()
+         parse_I()
+         parse_O()
+         parse_F()
+@@
+-    else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join([',', '{', 'J', 'C']))
++    else:
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join([',', '{', 'S', 'M', 'y', '%', '_', 'C']))

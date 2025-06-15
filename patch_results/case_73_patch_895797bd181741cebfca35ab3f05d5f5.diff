@@ -1,0 +1,89 @@
+@@ -23,34 +23,6 @@
+         match('N')
+-        while pos < len(tokens) and tokens[pos].startswith('I'):
+-            match('I')
+-            parse_A()
++        parse_C()
+         match('P')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('!'):
+-            match('!')
+-            parse_A()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-            parse_A()
+-            match('O')
+-            match('3')
+-            parse_X()
+-        elif lookahead.startswith('w'):
+-            match('w')
+-            parse_A()
+-            match('I')
+-            match('?')
+-            parse_A()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-            match('<')
+-            parse_X()
+-            match(']')
+-            match('}')
+-        elif lookahead.startswith(')'):
+-            match(')')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['!', '0', 'w', '`', ')']))
++        parse_W()
+         match('|')
+     elif lookahead.startswith('0'):
+         match('0')
+@@ -62,0 +33,39 @@
++
++def parse_C():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('I'):
++        match('I')
++        parse_A()
++        parse_C()
++
++def parse_W():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in W")
++    lookahead = tokens[pos]
++    if lookahead.startswith('!'):
++        match('!')
++        parse_A()
++    elif lookahead.startswith('0'):
++        match('0')
++        parse_A()
++        match('O')
++        match('3')
++        parse_X()
++    elif lookahead.startswith('w'):
++        match('w')
++        parse_A()
++        match('I')
++        match('?')
++        parse_A()
++    elif lookahead.startswith('`'):
++        match('`')
++        match('<')
++        parse_X()
++        match(']')
++        match('}')
++    elif lookahead.startswith(')'):
++        match(')')
++    else:
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['!', '0', 'w', '`', ')']))
+@@ -67,2 +76,2 @@
+-    if lookahead.startswith('E'):
+-        match('E')
++    if lookahead.startswith('/'):
++        match('/')
+@@ -77,1 +86,1 @@
+-    elif lookahead.startswith('X'):
++    elif lookahead.startswith('N') or lookahead.startswith('0'):
+@@ -83,1 +92,1 @@
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['E', '3', '4', 'X']))
++        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['/', '3', '4', 'N', '0']))

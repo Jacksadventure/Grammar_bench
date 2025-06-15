@@ -1,0 +1,134 @@
+@@ -21,115 +21,26 @@
+     lookahead = tokens[pos]
+-    if lookahead.startswith('L'):
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('m'):
+-            match('m')
+-            parse_E()
+-        elif lookahead.startswith('I'):
+-            match('I')
+-            match('N')
+-            match('0')
+-            match('R')
+-        elif lookahead.startswith(';'):
+-            match(';')
+-            match('K')
+-            parse_L()
+-            match('7')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        elif lookahead.startswith('/'):
+-            match('/')
+-            parse_L()
+-            parse_L()
+-            parse_U()
+-            match('4')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['m', 'I', ';', '*', '/']))
++    if lookahead.startswith(('m', 'I', ';', '*', '/')):
++        parse_L()
+         match('.')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Z'):
+-            match('Z')
+-            match('^')
+-            match('g')
+-            match('v')
+-        elif lookahead.startswith('p'):
+-            match('p')
+-            parse_A()
+-            parse_A()
+-            parse_U()
+-        elif lookahead.startswith('{'):
+-            match('{')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['Z', 'p', '{']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(','):
+-            match(',')
+-            match(',')
+-            match('w')
+-            match('7')
+-        elif lookahead.startswith('5'):
+-            match('5')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join([',', '5']))
++        parse_E()
++        parse_U()
+     elif lookahead.startswith('u'):
+         match('u')
+         match('+')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
+-            match('q')
+-            match('q')
+-            match('V')
+-        elif lookahead.startswith('K'):
+-            match('K')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['.', 'K']))
++        parse_A()
+     elif lookahead.startswith(','):
+         match(',')
+         match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('m'):
+-            match('m')
+-            parse_E()
+-        elif lookahead.startswith('I'):
+-            match('I')
+-            match('N')
+-            match('0')
+-            match('R')
+-        elif lookahead.startswith(';'):
+-            match(';')
+-            match('K')
+-            parse_L()
+-            match('7')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        elif lookahead.startswith('/'):
+-            match('/')
+-            parse_L()
+-            parse_L()
+-            parse_U()
+-            match('4')
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['m', 'I', ';', '*', '/']))
++        parse_L()
+         match('<')
+         match('m')
+     elif lookahead.startswith('}'):
+         match('}')
+         match('h')
+         match('9')
+         match('m')
+         match('M')
+     elif lookahead.startswith('9'):
+         match('9')
+     else:
+-        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['L', 'u', ',', '}', '9']))
++        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['m', 'I', ';', '*', '/', 'u', ',', '}', '9']))
+ 
+@@ -209,6 +120,6 @@
+         match('7')
+-    elif lookahead.startswith('5'):
+-        match('5')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join([',', '5']))
++    elif lookahead.startswith('8'):
++        match('8')
++    else:
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join([',', '8']))
+ 

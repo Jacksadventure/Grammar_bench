@@ -1,0 +1,18 @@
+@@ -27,8 +27,6 @@ def parse_Z():
+         if lookahead.startswith('N'):
+             match('N')
+             parse_Z()
+-            match('4')
+-            match('g')
+-            parse_U()
+         elif lookahead.startswith('z'):
+             match('z')
+         else:
+@@ -78,5 +76,7 @@ def parse_U():
+     elif lookahead.startswith(','):
+         match(',')
++    elif lookahead.startswith('g'):
++        match('g')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', ',']))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['B', '?', 'g']))

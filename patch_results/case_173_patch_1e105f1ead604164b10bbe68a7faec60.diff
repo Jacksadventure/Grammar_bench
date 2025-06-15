@@ -1,0 +1,16 @@
+@@ -105,7 +105,7 @@ def parse_M():
+     while pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+-        match('C')
++        parse_N()
+         match('t')
+         match('d')
+         match('v')
+@@ -92,7 +92,7 @@ def parse_N():
+         while pos < len(tokens) and tokens[pos].startswith("'"):
+             match("'")
+-            match('C')
++            parse_N()
+             match('t')
+             match('d')
+             match('v')

@@ -1,0 +1,79 @@
+@@
+-def parse_G():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('v'):
+-        match('v')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            parse_B()
+-        elif lookahead.startswith('k'):
+-            match('k')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['u', 'k']))
++def parse_G():
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # epsilon
++    lookahead = tokens[pos]
++    if lookahead == 'v':
++        match('v')
++        parse_E()
++        parse_G()
++    elif lookahead == 'S':
++        match('S')
++        parse_N()
++    else:
++        # epsilon production
++        return
++
++def parse_E():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in E")
++    lookahead = tokens[pos]
++    if lookahead == 'u':
++        match('u')
++        parse_B()
++    elif lookahead == 'k':
++        match('k')
++    else:
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['u', 'k']))
+ 
+ def parse_N():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('/'):
+-        match('/')
+-        parse_N()
++    if pos < len(tokens) and tokens[pos] == '/':
++        match('/')
++        parse_N()
++        parse_N()
++    # else epsilon
+ 
+ def parse_B():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in B")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('f'):
+-        match('f')
+-        match('z')
+-    else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['f', '']))
++    while pos < len(tokens) and tokens[pos] == 'f':
++        match('f')
++    # epsilon if no 'f'
+ 
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)
+     pos = 0
+-    parse_G()
+-    print("Input accepted.")
++    parse_G()
++    if pos != len(tokens):
++        error("Unexpected token " + tokens[pos] + " after parsing completed")
++    print("Input accepted.")

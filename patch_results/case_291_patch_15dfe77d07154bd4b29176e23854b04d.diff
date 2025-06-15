@@ -1,0 +1,119 @@
+@@ -17,53 +17,20 @@
+ 
+ def parse_Q():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('6'):
+-        match('6')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            match("'")
+-            match('2')
+-        elif lookahead.startswith('J'):
+-            match('J')
+-            parse_E()
+-            parse_A()
+-            match('>')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            match('C')
+-        elif lookahead.startswith('q'):
+-            match('q')
+-            parse_N()
+-            parse_G()
+-            parse_A()
+-        elif lookahead.startswith('3'):
+-            match('3')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['(', 'J', 'd', 'q', '3']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            match("'")
+-            match('2')
+-        elif lookahead.startswith('J'):
+-            match('J')
+-            parse_E()
+-            parse_A()
+-            match('>')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            match('C')
+-        elif lookahead.startswith('q'):
+-            match('q')
+-            parse_N()
+-            parse_G()
+-            parse_A()
+-        elif lookahead.startswith('3'):
+-            match('3')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['(', 'J', 'd', 'q', '3']))
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # ε-production
++    lookahead = tokens[pos]
++    if lookahead.startswith('6'):
++        match('6')
++        parse_E()
++        parse_E()
++        parse_Q()
++    elif lookahead.startswith('x'):
++        match('x')
++        parse_Z()
++    # ε-production for all other lookaheads
+@@
+ def parse_A():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('C'):
+-        match('C')
+-        parse_E()
+-        parse_E()
+-        parse_Q()
+-        parse_K()
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # ε-production
++    lookahead = tokens[pos]
++    if lookahead.startswith('C'):
++        match('C')
++        parse_E()
++        parse_E()
++        parse_Q()
++        parse_K()
++        parse_A()
++    elif lookahead.startswith('0'):
++        match('0')
++        parse_T()
++    # ε-production otherwise
+@@
+ def parse_Z():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('X'):
+-        match('X')
+-        parse_Z()
+-        parse_S()
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # ε-production
++    if tokens[pos].startswith('X'):
++        match('X')
++        parse_Z()
++        parse_S()
++        parse_Z()
++    # ε-production otherwise
+@@
+ def parse_S():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('~'):
+-        match('~')
+-        parse_K()
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('v'):
++        match('v')
++        parse_K()
++        parse_S()
++    # ε-production otherwise

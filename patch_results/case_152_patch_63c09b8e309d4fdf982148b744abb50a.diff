@@ -1,0 +1,15 @@
+@@ -208,7 +208,7 @@ def parse_D():
+     elif lookahead.startswith('g'):
+         match('g')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['k', '!', 'e', 'g']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['k', '!', 'e', 'J']))
+
+@@ -208,6 +208,8 @@ def parse_D():
+     elif lookahead.startswith('g'):
+         match('g')
++    elif lookahead.startswith('J'):
++        match('J')
+     else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['k', '!', 'e', 'g']))
++        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['k', '!', 'e', 'J']))

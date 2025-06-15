@@ -1,0 +1,81 @@
+@@ -17,40 +17,26 @@ def parse_Y():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('M'):
+-        match('M')
+-    elif lookahead.startswith('*'):
+-        match('*')
+-        while pos < len(tokens) and tokens[pos].startswith('w'):
+-            match('w')
+-            parse_L()
+-            match('_')
+-    elif lookahead.startswith('D'):
+-        match('D')
+-        while pos < len(tokens) and tokens[pos].startswith('w'):
+-            match('w')
+-            parse_L()
+-            match('_')
+-        match('<')
+-    elif lookahead.startswith('A'):
+-        match('A')
+-        while pos < len(tokens) and tokens[pos].startswith('p'):
+-            match('p')
+-            parse_O()
+-            match('<')
+-            parse_J()
+-    elif lookahead.startswith('0'):
+-        match('0')
+-        while pos < len(tokens) and tokens[pos].startswith('!'):
+-            match('!')
+-        while pos < len(tokens) and tokens[pos].startswith('w'):
+-            match('w')
+-            parse_L()
+-            match('_')
+-        while pos < len(tokens) and tokens[pos].startswith('p'):
+-            match('p')
+-            parse_O()
+-            match('<')
+-            parse_J()
++    if lookahead.startswith('M'):
++        match('M')
++    elif lookahead.startswith('*'):
++        match('*')
++        parse_J()
++    elif lookahead.startswith('D'):
++        match('D')
++        parse_J()
++        match('<')
++    elif lookahead.startswith('A'):
++        match('A')
++        parse_L()
++    elif lookahead.startswith('0'):
++        match('0')
++        parse_N()
++        parse_J()
++        parse_L()
+     else:
+         error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['M', '*', 'D', 'A', '0']))
+ 
+@@
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in O")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('$'):
+-        match('$')
+-        match(':')
+-    else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['$', '']))
++    global pos, tokens
++    # <O> -> "$" <O> | ε
++    while pos < len(tokens) and tokens[pos].startswith('$'):
++        match('$')
++
++    # epsilon production: nothing else to do
+ 
++def parse_N():
++    global pos, tokens
++    # <N> -> "!" <N> | ε
++    while pos < len(tokens) and tokens[pos].startswith('!'):
++        match('!')
++
+@@

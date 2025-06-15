@@ -1,0 +1,81 @@
+--- a/parser.py
++++ b/parser.py
+@@ -22,41 +22,11 @@ def parse_T():
+     lookahead = tokens[pos]
+     if lookahead.startswith('-'):
+         match('-')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_T()
+-        elif lookahead.startswith('G'):
+-            match('G')
+-            parse_U()
+-            parse_S()
+-        elif lookahead.startswith('t'):
+-            match('t')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['-', 'G', 't']))
+-    elif lookahead.startswith('G'):
+-        match('G')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            match('E')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['?', "'"]))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('5'):
+-            match('5')
+-            parse_T()
+-            parse_T()
+-        elif lookahead.startswith('T'):
+-            parse_T()
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['5', 'T']))
+-    elif lookahead.startswith('t'):
++        parse_T()
++    elif lookahead.startswith('G'):
++        match('G')
++        parse_U()
++        parse_S()
++    elif lookahead.startswith('t'):
+         match('t')
+     else:
+         error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['-', 'G', 't']))
+@@ -75,13 +45,13 @@ def parse_S():
+         match('5')
+         parse_T()
+         parse_T()
+-    elif lookahead.startswith('T'):
+-        parse_T()
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['5', 'T']))
++        parse_T()
+ 
+ def parse_U():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in U")
+     lookahead = tokens[pos]
+     if lookahead.startswith('?'):
+         match('?')
+         match('E')
+-    elif lookahead.startswith("'"):
+-        match("'")
++    elif lookahead.startswith('8'):
++        match('8')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['?', "'"]))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['?', '8']))
+ 
+ def parse_input(input_str):
+     global tokens, pos

@@ -1,0 +1,10 @@
+@@ -63,8 +63,8 @@ def parse_Q():
+         match('A')
+         parse_H()
+-    elif lookahead.startswith('|'):
+-        match('|')
++    elif lookahead.startswith('3'):
++        match('3')
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['R', '8', 'A', '|']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['R', '8', 'A', '3']))

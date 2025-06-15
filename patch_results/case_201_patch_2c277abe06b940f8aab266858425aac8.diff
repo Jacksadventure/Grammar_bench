@@ -1,0 +1,219 @@
+@@ -24,6 +24,1 @@
+-        while pos < len(tokens) and tokens[pos].startswith('0'):
+-            match('0')
+-            parse_K()
+-            match('N')
+-            match('e')
+-            match(':')
++        parse_M()
+@@ -32,23 +27,1 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('b'):
+-            match('b')
+-            parse_M()
+-            match('%')
+-            match(')')
+-            parse_D()
+-        elif lookahead.startswith('B'):
+-            match('B')
+-            parse_O()
+-            match('<')
+-            parse_O()
+-            parse_M()
+-        elif lookahead.startswith('Q'):
+-            match('Q')
+-            match('s')
+-            parse_K()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-        else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['b', 'B', 'Q', '`']))
++        parse_D()
+@@ -57,12 +30,1 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('5'):
+-            match('5')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('[')
+-            parse_O()
+-            parse_M()
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['5', '_']))
++        parse_O()
+@@ -70,12 +33,1 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('5'):
+-            match('5')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('[')
+-            parse_O()
+-            parse_M()
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['5', '_']))
++        parse_O()
+@@ -82,6 +35,1 @@
+-        while pos < len(tokens) and tokens[pos].startswith('0'):
+-            match('0')
+-            parse_K()
+-            match('N')
+-            match('e')
+-            match(':')
++        parse_M()
+@@ -91,30 +39,1 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('%'):
+-            match('%')
+-            parse_O()
+-            parse_H()
+-            match('n')
+-            parse_X()
+-        elif lookahead.startswith('j'):
+-            match('j')
+-            match("'")
+-            match('>')
+-            match('#')
+-        elif lookahead.startswith('G'):
+-            match('G')
+-            match('9')
+-            match('+')
+-            parse_M()
+-            match('q')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        elif lookahead.startswith('N'):
+-            match('N')
+-            parse_M()
+-            match('e')
+-            match('!')
+-            parse_K()
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['%', 'j', 'G', '*', 'N']))
++        parse_K()
+@@ -143,15 +61,3 @@
+ def parse_H():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('3'):
+-        match('3')
+-        match('_')
+-        match('0')
+-        match('<')
+-        parse_K()
+-
+-def parse_K():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in K")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('%'):
+-        match('%')
+-        parse_O()
+-        parse_H()
+-        match('n')
+-        parse_X()
+-    elif lookahead.startswith('j'):
+-        match('j')
+-        match("'")
+-        match('>')
+-        match('#')
+-    elif lookahead.startswith('G'):
+-        match('G')
+-        match('9')
+-        match('+')
+-        parse_M()
+-        match('q')
+-    elif lookahead.startswith('*'):
+-        match('*')
+-    elif lookahead.startswith('N'):
+-        match('N')
+-        parse_M()
+-        match('e')
+-        match('!')
+-        parse_K()
+-    else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['%', 'j', 'G', '*', 'N']))
+-
+-def parse_M():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('0'):
+-        match('0')
+-        parse_K()
+-        match('N')
+-        match('e')
+-        match(':')
+-
+-def parse_X():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
+-        match('^')
+-        match('g')
+-        match(']')
+-        match('k')
+-        match(':')
++        match('3')
+@@ -161,3 +67,40 @@
+         match('<')
+         parse_K()
+         parse_H() # Added recursive call for H
++
++def parse_K():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in K")
++    lookahead = tokens[pos]
++    if lookahead.startswith('%'):
++        match('%')
++        parse_O()
++        parse_H()
++        match('n')
++        parse_X()
++    elif lookahead.startswith('j'):
++        match('j')
++        match("'")
++        match('>')
++        match('#')
++    elif lookahead.startswith('G'):
++        match('G')
++        match('9')
++        match('+')
++        parse_M()
++        match('q')
++    elif lookahead.startswith('*'):
++        match('*')
++    elif lookahead.startswith('N'):
++        match('N')
++        parse_M()
++        match('e')
++        match('!')
++        parse_K()
++    else:
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['%', 'j', 'G', '*', 'N']))
++
++def parse_M():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('0'):
++        match('0')
++        parse_K()
++        match('N')
++        match('e')
++        match(':')
++        # parse_M() # For the recursive M, handled by while
++
++def parse_X():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('^'):
++        match('^')
++        match('g')
++        match(']')
++        match('k')
++        parse_X()
++        parse_X()

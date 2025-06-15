@@ -1,0 +1,5 @@
+@@ -67,7 +67,7 @@ def parse_N():
+     while pos < len(tokens) and tokens[pos].startswith('h'):
+-        match('h')
++        match('b')
+         parse_R()

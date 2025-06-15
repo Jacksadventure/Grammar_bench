@@ -1,0 +1,14 @@
+--- a/parser.py
++++ b/parser.py
+@@ -139,8 +139,8 @@
+         match('i')
+         match('o')
+         match('9')
+-    elif lookahead.startswith('E'):
+-        match('E')
++    elif lookahead.startswith('4'):
++        match('4')
+         parse_L()
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['R', 'O', 'E']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['R', 'O', '4']))

@@ -1,0 +1,50 @@
+@@ -17,13 +17,22 @@ def parse_I():
+ def parse_I():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
++    if pos < len(tokens) and tokens[pos].startswith('+'):
+         match('+')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(']'):
+-            match(']')
+-            parse_R()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join([']', '']))
++        parse_R()
+         match("'")
++        parse_I()
++    elif pos < len(tokens) and tokens[pos].startswith('~'):
++        parse_R()
++        parse_W()
++    else:
++        # epsilon production
++        pass
++
++def parse_W():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('z'):
++        match('z')
++        parse_R()
++        parse_H()
++        match('.')
++        parse_N()
++        parse_W()
+@@ -53,4 +62,6 @@ def parse_R():
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(']'):
+-        match(']')
++    if pos < len(tokens) and tokens[pos].startswith('~'):
++        match('~')
++        parse_R()
++    # else epsilon production
+@@ -65,6 +76,4 @@ def parse_P():
+     while pos < len(tokens) and tokens[pos].startswith('Z'):
+         match('Z')
+         parse_R()
+         parse_P()
+         match('b')
+         parse_H()
++        parse_P()

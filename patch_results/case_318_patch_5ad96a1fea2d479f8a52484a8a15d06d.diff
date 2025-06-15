@@ -1,0 +1,34 @@
+--- parser.py
++++ parser.py
+@@ -47,8 +47,6 @@ def parse_D():
+             parse_Y()
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['w', '']))
+         match('_')
+@@ -86,7 +84,7 @@ def parse_P():
+     if lookahead.startswith('g'):
+         match('g')
+-        match('9')
++        parse_P()
+     else:
+         error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['g', '']))
+@@ -126,1 +124,1 @@ def parse_V():
+-    while pos < len(tokens) and tokens[pos].startswith('P'):
++    while pos < len(tokens) and tokens[pos].startswith('g'):
+@@ -115,11 +113,8 @@ def parse_W():
+     elif lookahead.startswith('6'):
+         match('6')
+         parse_P()
+         parse_D()
+         parse_I()
+         parse_H()
+-    elif lookahead.startswith('Y'):
+-        parse_Y()
+-        match('0')
+-        parse_P()
+-    else:
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['U', \"'\", '6', 'Y'])) 
++    else:
++        parse_Y()
++        match('0')
++        parse_P()

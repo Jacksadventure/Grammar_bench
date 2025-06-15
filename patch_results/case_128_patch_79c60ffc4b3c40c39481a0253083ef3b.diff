@@ -1,0 +1,95 @@
+--- a/parser.py
++++ b/parser.py
+@@ -23,38 +23,7 @@
+     if lookahead.startswith('|'):
+         match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-        elif lookahead.startswith('2'):
+-            match('2')
+-            match('u')
+-            parse_J()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            parse_U()
+-            parse_X()
+-            match('M')
+-            match(')')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['e', '2', '0', '<']))
++        parse_I()
+         match("'")
+         match('q')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('y'):
+-            match('y')
+-            parse_Z()
+-            match('*')
+-            parse_Z()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['y', '9']))
++        parse_Z()
+     elif lookahead.startswith('Q'):
+         match('Q')
+     else:
+         error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['|', 'Q']))
+ 
++def parse_I():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in I")
++    lookahead = tokens[pos]
++    if lookahead.startswith('e'):
++        match('e')
++    elif lookahead.startswith('2'):
++        match('2')
++        match('u')
++        parse_J()
++    elif lookahead.startswith('0'):
++        match('0')
++    elif lookahead.startswith('<'):
++        match('<')
++        parse_U()
++        parse_X()
++        match('M')
++        match(')')
++    else:
++        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['e', '2', '0', '<']))
++
+ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('S'):
++    if pos < len(tokens) and tokens[pos].startswith('S'):
+         match('S')
+         parse_W()
+         match('q')
+         parse_Z()
++        parse_U()
+ 
+ def parse_W():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in W")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('F'):
+-        match('F')
++    if lookahead.startswith('^'):
++        match('^')
+         parse_J()
+     elif lookahead.startswith('C'):
+         match('C')
+     else:
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['F', 'C']))
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['^', 'C']))
+ 
+ def parse_Z():
+     global pos, tokens

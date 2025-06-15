@@ -1,0 +1,41 @@
+@@ -17,32 +17,13 @@ def parse_F():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
+-        match('?')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('o'):
+-            match('o')
+-            match('o')
+-            parse_O()
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['o', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_G()
+-            parse_D()
+-            parse_O()
+-            match('A')
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['-', '']))
+-        match('>')
++    while pos < len(tokens) and tokens[pos].startswith('?'):
++        match('?')
++        parse_O()
++        parse_Z()
++        match('>')
+ 
+@@
+-    elif lookahead.startswith('Y'):
+-        match('Y')
+-        match('f')
++    elif lookahead.startswith('Y'):
++        match('Y')
++        parse_D()
+     else:
+         error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['j', '0', 'Y']))

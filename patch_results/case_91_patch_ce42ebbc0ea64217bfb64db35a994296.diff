@@ -1,0 +1,52 @@
+@@ -27,7 +27,7 @@ def parse_B():
+         match('`')
+         match('_')
+         match('l')
+     elif lookahead.startswith('k'):
+         match('k')
++        parse_A()
++        parse_H()
+-        while pos < len(tokens) and tokens[pos].startswith(']'):
+-            match(']')
+-            match('s')
+-            match('&')
+-        while pos < len(tokens) and tokens[pos].startswith(')'):
+-            match(')')
+-            match('(')
+-            match('@')
+     else:
+         error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['?', 'i', 'k']))
+
++def parse_A():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith(']'):
++        match(']')
++        match('s')
++        match('&')
++    if pos < len(tokens) and tokens[pos].startswith('$'):
++        match('$')
++        parse_S()
++        parse_C()
++
++def parse_S():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('z'):
++        match('z')
++        match('N')
++        match('d')
++
++def parse_C():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('('):
++        match('(')
++        parse_H()
++    elif pos < len(tokens) and tokens[pos].startswith('+'):
++        match('+')
++
+ def parse_H():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith(')'):
+         match(')')
+         match('(')
+-        match('@')
++        match("'")

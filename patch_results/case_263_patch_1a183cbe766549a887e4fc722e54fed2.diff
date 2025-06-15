@@ -1,0 +1,75 @@
+Looking at the parser code and grammar, I can see several issues that need to be fixed:
+
+1. In `parse_K()`, the `<D>` production is not being handled correctly - it should handle all three alternatives: `{<O><H><M><D>}`, `ε` (empty), and `i<E>`
+2. In `parse_D()`, it's missing the closing `}` and the `i<E>` alternative
+3. In `parse_L()`, it should handle the recursive case `0<L>` and empty case
+4. Error messages and logic need correction
+
+@@ -17,18 +17,25 @@
+ def parse_K():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('V'):
+         match('V')
+         parse_D()
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('{'):
+-            match('{')
+-            parse_O()
+-            parse_H()
+-            parse_M()
+-            parse_D()
+-        elif lookahead.startswith('i'):
+-            match('i')
+-            parse_E()
+-        else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['{', '', 'i']))
++
++def parse_D():
++    global pos, tokens
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('{'):
++            match('{')
++            parse_O()
++            parse_H()
++            parse_M()
++            parse_D()
++            match('}')
++        elif lookahead.startswith('i'):
++            match('i')
++            parse_E()
++    # Empty production is handled by not doing anything
+ 
+ def parse_H():
+@@ -60,12 +67,6 @@
+         parse_L()
+ 
+-def parse_D():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('{'):
+-        match('{')
+-        parse_O()
+-        parse_H()
+-        parse_M()
+-
+ def parse_O():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('('):
+@@ -89,11 +90,12 @@
+ def parse_L():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in L")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('0'):
+-        match('0')
+-        match('<')
+-    else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['0', '']))
++    while pos < len(tokens) and tokens[pos].startswith('0'):
++        match('0')
++    # Empty production is handled by the while loop condition
+ 
+ def parse_A():

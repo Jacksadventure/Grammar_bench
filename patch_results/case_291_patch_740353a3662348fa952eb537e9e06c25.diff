@@ -1,0 +1,11 @@
+@@ -155,5 +155,6 @@ def parse_K():
+     while pos < len(tokens) and tokens[pos].startswith('T'):
++        match('T')
+         parse_T()
+         parse_I()
+         parse_Q()
+@@ -170,3 +171,3 @@ def parse_S():
+     while pos < len(tokens) and tokens[pos].startswith('~'):
+-        match('~')
++        match('v')
+         parse_K()

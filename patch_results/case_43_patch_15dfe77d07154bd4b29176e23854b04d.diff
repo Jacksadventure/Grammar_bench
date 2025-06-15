@@ -1,0 +1,28 @@
+@@ -27,9 +27,9 @@
+         if lookahead.startswith('d'):
+             match('d')
+             parse_Q()
+             parse_Q()
+-        elif lookahead.startswith('='):
+-            match('=')
++        elif lookahead.startswith('<'):
++            match('<')
+         else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '<']))
+@@
+-        elif lookahead.startswith('='):
+-            match('=')
++        elif lookahead.startswith('<'):
++            match('<')
+@@
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '<']))
+@@
+-        elif lookahead.startswith('='):
+-            match('=')
++        elif lookahead.startswith('<'):
++            match('<')
+@@
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '=']))
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['d', '<']))

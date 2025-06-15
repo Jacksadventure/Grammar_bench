@@ -1,0 +1,14 @@
+@@ -97,6 +97,8 @@ def parse_B():
+     elif lookahead.startswith('&'):
+         match('&')
+         match('{')
++        parse_K()
++    elif pos >= len(tokens) or not any(tokens[pos].startswith(t) for t in ['J', '&']):
++        return  # empty production
+     elif lookahead.startswith('&'):
+         match('&')
+-        match('{')
++        parse_K()
+     else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['J', '&', '&']))
++        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['J', '&']))

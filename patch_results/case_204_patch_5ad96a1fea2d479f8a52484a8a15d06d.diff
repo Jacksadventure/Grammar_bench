@@ -1,0 +1,19 @@
+@@ -166,7 +166,7 @@ def parse_V():
+-    elif lookahead.startswith('p'):
++    elif lookahead.startswith('c'):
+@@ -167,7 +167,7 @@ def parse_V():
+-        match('p')
++        match('c')
+@@ -168,7 +168,7 @@ def parse_V():
+-        match('c')
++        match('c')
+@@ -170,7 +170,7 @@ def parse_V():
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['t', 'Z', \"'\", 'W', 'p']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['t', 'Z', \"'\", 'W', 'c']))
+
+@@ -195,7 +195,7 @@ def parse_H():
+-    elif lookahead.startswith('O'):
++    elif lookahead.startswith('=') or lookahead.startswith('X'):
+@@ -198,7 +198,7 @@ def parse_H():
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['C', 'O']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['C', '=', 'X']))

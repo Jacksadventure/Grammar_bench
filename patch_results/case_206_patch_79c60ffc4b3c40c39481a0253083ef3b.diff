@@ -1,0 +1,82 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,43 +21,9 @@
+     if lookahead.startswith('A'):
+         match('A')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('i'):
+-            match('i')
+-            parse_Y()
+-            match('X')
+-            parse_B()
+-            match('<')
+-        elif lookahead.startswith('/'):
+-            match('/')
+-            parse_Y()
+-            match('(')
+-        elif lookahead.startswith('D'):
+-            match('D')
+-            parse_Q()
+-        elif lookahead.startswith('_'):
+-            match('_')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['i', '/', 'D', '_']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('D'):
+-            match('D')
+-            match('n')
+-            parse_O()
+-        elif lookahead.startswith('C'):
+-            match('C')
+-            match('g')
+-            parse_K()
+-            parse_G()
+-            parse_B()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['D', 'C', '2']))
+-        while pos < len(tokens) and tokens[pos].startswith('G'):
+-            parse_G()
+-            parse_Y()
+-            parse_F()
++        parse_Y()
++        parse_F()
++        parse_B()
+     elif lookahead.startswith('='):
+         match('=')
+     elif lookahead.startswith('}'):
+@@ -95,7 +61,8 @@
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(')'):
++    if pos < len(tokens) and tokens[pos].startswith(')'):
+         match(')')
+         parse_Q()
++        parse_Q()
+ 
+ def parse_G():
+@@ -126,7 +93,11 @@
+ 
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('G'):
++    while pos < len(tokens) and (tokens[pos].startswith('U') or \
++                                  tokens[pos].startswith('m') or \
++                                  tokens[pos].startswith('e') or \
++                                  tokens[pos].startswith('c') or \
++                                  tokens[pos].startswith('(')):
+         parse_G()
+         parse_Y()
+         parse_F()
+@@ -161,5 +132,5 @@
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('/'):
+-        match('/')
++    while pos < len(tokens) and tokens[pos].startswith('e'):
++        match('e')

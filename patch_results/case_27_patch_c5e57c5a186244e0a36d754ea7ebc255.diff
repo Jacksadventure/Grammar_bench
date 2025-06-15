@@ -1,0 +1,13 @@
+@@ -19,11 +19,11 @@ def parse_E():
+18:     global pos, tokens
+19:     if pos >= len(tokens):
+20:         error("Unexpected end of input in E")
+21:     lookahead = tokens[pos]
+22:     if lookahead.startswith('^'):
+23:         match('^')
+24:     else:
+25:         error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['^']))
+22:     if lookahead.startswith('j'):
+23:         match('j')
+24:     else:
+25:         error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['j']))

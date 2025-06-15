@@ -1,0 +1,40 @@
+@@ -37,20 +37,12 @@ def parse_H():
+-    elif lookahead.startswith('s'):
+-        match('s')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('F'):
+-            match('F')
+-            match(']')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-            match('`')
+-            match('3')
+-            match('L')
+-        elif lookahead.startswith('+'):
+-            match('+')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['F', '*', '+']))
+-    elif lookahead.startswith('s'):
+-        match('s')
++    elif lookahead.startswith('s'):
++        match('s')
++        # Decide whether to parse the optional <N>
++        if pos < len(tokens):
++            lookahead = tokens[pos]
++            if lookahead.startswith(('F', '*', 'B')):
++                parse_N()
+     else:
+         error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['E', 's', 's']))
+@@ -68,8 +60,8 @@ def parse_N():
+         match('`')
+         match('3')
+         match('L')
+-    elif lookahead.startswith('+'):
+-        match('+')
++    elif lookahead.startswith('B'):
++        match('B')
+     else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['F', '*', '+']))
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['F', '*', 'B']))

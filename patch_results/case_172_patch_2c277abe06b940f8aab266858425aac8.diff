@@ -1,0 +1,11 @@
+@@ -73,7 +73,7 @@
+         match(';')
+         match('d')
+         match('y')
+-    elif lookahead.startswith('d'):
+-        match('d')
++    elif lookahead.startswith('`'):
++        match('`')
+     else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['%', 'd']))
++        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['%', '`']))

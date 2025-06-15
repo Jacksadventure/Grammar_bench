@@ -1,0 +1,14 @@
+@@ -59,10 +59,10 @@ def parse_R():
+ def parse_R():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in R")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('{'):
++    while pos < len(tokens) and tokens[pos].startswith('{'):
+         match('{')
+         parse_N()
+-        match('?')
+-    else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['{', '']))
++        parse_R()

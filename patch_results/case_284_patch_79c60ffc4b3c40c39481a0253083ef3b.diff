@@ -1,0 +1,74 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,37 +17,11 @@
+ def parse_Y():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        match('A')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith("'"):
+-            match("'")
+-            match('Z')
+-            match('/')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(["'", '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('r'):
+-            match('r')
+-            parse_K()
+-        elif lookahead.startswith('$'):
+-            match('$')
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['r', '$']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('&'):
+-            match('&')
+-            parse_K()
+-            parse_O()
+-            parse_K()
+-            parse_W()
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['&', '']))
++    if pos < len(tokens) and tokens[pos].startswith('A'):
++        match('A')
++        parse_U()
++        parse_K()
++        parse_W()
++        parse_Y()
+ 
+ def parse_O():
+@@ -78,11 +52,11 @@
+ 
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
++    if pos < len(tokens) and tokens[pos].startswith('&'):
+         match('&')
+         parse_K()
+         parse_O()
+         parse_K()
++        parse_W()
+ 
+ def parse_U():
+@@ -87,13 +61,9 @@
+ def parse_U():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in U")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         match('Z')
+-        match('/')
+-    else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(["'", '']))
++        parse_U()
+ 
+ def parse_input(input_str):

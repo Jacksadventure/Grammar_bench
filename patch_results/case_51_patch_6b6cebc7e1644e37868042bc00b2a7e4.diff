@@ -1,0 +1,60 @@
+@@ 23,41 @@ def parse_W():
+-        match('N')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('1'):
+-            match('1')
+-            match('p')
+-            parse_W()
+-            match('-')
+-            parse_V()
+-        elif lookahead.startswith('7'):
+-            match('7')
+-        elif lookahead.startswith('g'):
+-            match('g')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['1', '7', 'g']))
++        match('N')
++        parse_I()
+
+@@ 41,62 @@ def parse_W():
+-    elif lookahead.startswith('}'):
+-        match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(':'):
+-            match(':')
+-            match('a')
+-            match('N')
+-            parse_I()
+-        elif lookahead.startswith('}'):
+-            match('}')
+-            parse_W()
+-        elif lookahead.startswith('m'):
+-            match('m')
+-            match(']')
+-            match('.')
+-            match('_')
+-        elif lookahead.startswith('w'):
+-            match('w')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join([':', '}', 'm', 'w']))
++    elif lookahead.startswith('}'):
++        match('}')
++        parse_W()
+
+@@ 93,100 @@ def parse_V():
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
+-        match('M')
+-        parse_W()
+-        match('^')
+-        match('v')
+-        match('b')
++    while pos < len(tokens) and tokens[pos].startswith('M'):
++        match('M')
++        match('+')
++        match('^')
++        match('v')
++        match('b')

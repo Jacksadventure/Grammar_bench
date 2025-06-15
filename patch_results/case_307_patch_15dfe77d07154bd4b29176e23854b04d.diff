@@ -1,0 +1,20 @@
+@@ -117,9 +117,13 @@
+ def parse_T():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
+-        match('>')
+-        match('#')
+-        match('v')
+-        parse_T()
+-        parse_U()
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        match('#')
++        match('E')
++        # First recursive <T> as per grammar
++        parse_T()
++        # <U> follows the first <T>
++        parse_U()
++        # Second recursive <T> as per grammar
++        parse_T()

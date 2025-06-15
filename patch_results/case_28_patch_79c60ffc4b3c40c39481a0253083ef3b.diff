@@ -1,0 +1,45 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -13,6 +13,19 @@
+         pos += 1
+     else:
+         error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
+ 
++def parse_G():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in G")
++    lookahead = tokens[pos]
++    if lookahead.startswith('y'):
++        match('y')
++        match('>')
++        match('&')
++        match('*')
++    elif lookahead.startswith('D'):
++        match('D')
++    else:
++        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['y', 'D']))
++
+ def parse_B():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -21,19 +34,7 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('~'):
+         match('~')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('y'):
+-            match('y')
+-            match('>')
+-            match('&')
+-            match('*')
+-        elif lookahead.startswith('6'):
+-            match('6')
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['y', '6']))
++        parse_G()
+     elif lookahead.startswith('`'):
+         match('`')
+         match('c')

@@ -1,0 +1,65 @@
+Looking at the parser code and grammar, I can identify several issues:
+
+1. Line 19: The condition checks for `}` but should check for `}`, `M`, or `U` tokens since A can start with these
+2. Line 76: Missing `Q` token after `I` in parse_Z
+3. Line 91: Should call `match('Z')` instead of `parse_Z()` when lookahead is 'Z'
+4. Line 42: The error message shows empty string in expected tokens, should show actual expected tokens
+5. The parser is missing logic to handle the `M` and `U` productions in parse_A
+
+@@ -17,26 +17,43 @@ def parse_A():
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('}'):
++    if pos < len(tokens) and tokens[pos].startswith('}'):
+         match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('C'):
+-            match('C')
+-            parse_A()
+-            match('x')
+-            parse_F()
+-            parse_J()
+-        elif lookahead.startswith('5'):
+-            match('5')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['C', '5']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('I'):
+-            match('I')
+-            parse_E()
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['I', '']))
++        parse_Y()
++        parse_Z()
++        parse_A()
++    elif pos < len(tokens) and tokens[pos].startswith('/'):
++        parse_M()
++        parse_U()
++    # epsilon production - do nothing
++
++def parse_U():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('O'):
++        match('O')
++        parse_Y()
++        match('L')
++        match('u')
+@@ -74,5 +91,6 @@ def parse_Z():
+ def parse_Z():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('I'):
+         match('I')
++        match('Q')
+-        parse_E()
++        # This should be parse_Z() for recursion, but since we're in a while loop, continue
+@@ -90,4 +108,4 @@ def parse_E():
+         parse_M()
+     elif lookahead.startswith('Z'):
+-        parse_Z()
++        match('Z')
+     else

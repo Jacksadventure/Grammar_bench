@@ -1,0 +1,74 @@
+```diff
+@@ -18,34 +18,8 @@
+ def parse_J():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('<'):
+-        match('<')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('w'):
+-            match('w')
+-            match('C')
+-            match('{')
+-            parse_R()
+-            parse_P()
+-        elif lookahead.startswith('p'):
+-            match('p')
+-            match('M')
+-            parse_Z()
+-            parse_Z()
+-            match('m')
+-        elif lookahead.startswith('g'):
+-            match('g')
+-            match('/')
+-            parse_Y()
+-        elif lookahead.startswith('J'):
+-            parse_J()
+-            parse_P()
+-        elif lookahead.startswith('H'):
+-            parse_H()
+-            match('x')
+-            parse_P()
+-        elif lookahead.startswith('i'):
+-            match('i')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['w', 'p', 'g', 'J', 'H', 'i']))
++        match('<')
++        parse_R()
+         match(']')
+ 
+ def parse_L():
+@@ -103,19 +77,19 @@
+         match('g')
+         match('/')
+         parse_Y()
+-    elif lookahead.startswith('J'):
++    elif lookahead.startswith('<') or lookahead.startswith('h'):
+         parse_J()
+         parse_P()
+-    elif lookahead.startswith('H'):
++    elif lookahead.startswith('+') or lookahead.startswith("'") or lookahead.startswith('[') or lookahead.startswith('o') or lookahead.startswith('A'):
+         parse_H()
+         match('x')
+         parse_P()
+     elif lookahead.startswith('i'):
+         match('i')
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['w', 'p', 'g', 'J', 'H', 'i']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['w', 'p', 'g', '<', 'h', '+', "'", '[', 'o', 'A', 'i']))
+ 
+ def parse_H():
+     global pos, tokens
+@@ -172,8 +146,8 @@
+ 
+ def parse_Y():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('p'):
+-        match('p')
++    while pos < len(tokens) and tokens[pos].startswith('|'):
++        match('|')
+ 
+ def parse_input(input_str):
+     global tokens, pos
+```

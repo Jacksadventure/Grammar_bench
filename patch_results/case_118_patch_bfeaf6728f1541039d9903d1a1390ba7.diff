@@ -1,0 +1,9 @@
+@@ -117,7 +117,7 @@ def parse_C():
+-    if lookahead.startswith('D'):
++    if lookahead.startswith('e'):
+@@ -118,7 +118,7
+-        match('D')
++        match('e')
+@@ -120,7 +120,7
+-        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['D']))
++        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['e']))

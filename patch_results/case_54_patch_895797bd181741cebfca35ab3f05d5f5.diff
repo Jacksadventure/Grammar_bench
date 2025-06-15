@@ -1,0 +1,50 @@
+@@ -22,37 +22,9 @@
+     if lookahead.startswith('M'):
+         match('M')
+         match('9')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in O")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('b'):
+-            match('b')
+-            match('W')
+-            parse_O()
+-        elif lookahead.startswith('|'):
+-            match('|')
+-            match('S')
+-        elif lookahead.startswith('*'):
+-            match('*')
+-        else:
+-            error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['b', '|', '*']))
+-        match('b')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('3'):
+-            match('3')
+-        elif lookahead.startswith(','):
+-            match(',')
+-            parse_V()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-            match('o')
+-            parse_L()
+-            match('A')
+-            parse_O()
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['3', ',', 'N']))
++        parse_O()
++        match('b')
++        parse_V()
+     elif lookahead.startswith('s'):
+         match('s')
+     elif lookahead.startswith('z'):
+@@ -72,7 +44,7 @@ def parse_O():
+         parse_O()
+     elif lookahead.startswith('|'):
+         match('|')
+-        match('S')
++        match('7')
+     elif lookahead.startswith('*'):
+         match('*')
+     else:

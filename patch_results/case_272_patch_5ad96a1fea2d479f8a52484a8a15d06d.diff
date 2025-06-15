@@ -1,0 +1,63 @@
+@@ -22,26 +22,4 @@ def parse_T():
+         match('Q')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Y'):
+-            match('Y')
+-            match('N')
+-            match('Q')
+-            parse_T()
+-        elif lookahead.startswith('c'):
+-            match('c')
+-            parse_B()
+-            match('7')
+-        elif lookahead.startswith('z'):
+-            match('z')
+-            parse_V()
+-            parse_C()
+-            match('N')
+-            match('3')
+-        elif lookahead.startswith('{'):
+-            match('{')
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['Y', 'c', 'z', '{']))
++        parse_T()
+
+@@ -48,7 +48,5 @@ def parse_T():
+         match('c')
+-        while pos < len(tokens) and tokens[pos].startswith('y'):
+-            match('y')
+-            match('$')
+-            parse_B()
++        parse_B()
+         match('7')
+
+@@ -55,9 +55,5 @@ def parse_T():
+         match('z')
+-        while pos < len(tokens) and tokens[pos].startswith('O'):
+-            match('O')
+-            match(':')
+-        while pos < len(tokens) and tokens[pos].startswith('y'):
+-            match('y')
+-            match('W')
+-            parse_F()
++        parse_V()
++        parse_C()
+         match('N')
+         match('3')
+
+@@ -73,4 +73,5 @@ def parse_B():
+-    while pos < len(tokens) and tokens[pos].startswith('y'):
+-        match('y')
+-        match('$')
+-        parse_B()
++    if pos < len(tokens) and tokens[pos].startswith('y'):
++        match('y')
++        match('$')
++        parse_B()
++        parse_B()
+
+@@ -81,3 +81,3 @@ def parse_F():
+-        match(',')
++        match('k')

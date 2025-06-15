@@ -1,0 +1,58 @@
+@@
+-def parse_O():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('@'):
+-        match('@')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('a'):
+-            match('a')
+-            match('}')
+-            parse_V()
+-        elif lookahead.startswith(':'):
+-            match(':')
+-            parse_Y()
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['a', '', ':']))
++def parse_O():
++    global pos, tokens
++    # <O> ::= "@" <V> <O> | ε
++    if pos < len(tokens) and tokens[pos].startswith('@'):
++        match('@')
++        parse_V()
++        parse_O()
+@@
+-def parse_V():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('a'):
+-        match('a')
+-        match('}')
++def parse_V():
++    global pos, tokens
++    # <V> ::= "a" "}" <V> | ":" <Y> | ε
++    if pos >= len(tokens):
++        return  # ε
++    lookahead = tokens[pos]
++    if lookahead.startswith('a'):
++        match('a')
++        match('}')
++        parse_V()
++    elif lookahead.startswith(':'):
++        match(':')
++        parse_Y()
++    # else ε
+@@
+-    if lookahead.startswith('i'):
+-        match('i')
+-        match('|')
++    if lookahead.startswith('i'):
++        match('i')
++        parse_Y()
+@@
+-    parse_O()
+-    print("Input accepted.")
++    parse_O()
++    if pos != len(tokens):
++        error("Unexpected extra input at position " + str(pos))
++    print("Input accepted.")

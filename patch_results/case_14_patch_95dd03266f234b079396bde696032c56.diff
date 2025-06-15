@@ -1,0 +1,36 @@
+@@ -12,7 +12,7 @@ def match(expected):
+-    if pos < len(tokens) and tokens[pos].startswith(expected):
++    if pos < len(tokens) and tokens[pos] == expected:
+     pos += 1
+ else:
+     error("Expected " + expected + ", got " + (tokens[pos] if pos < len(tokens) else "EOF"))
+
+@@ -21,8 +21,9 @@ def parse_M():
+-    if lookahead.startswith('T'):
+-        match('T')
+-        match("'")
+-    elif lookahead.startswith('*'):
++    if lookahead == 'T':
++        match('T')
++        parse_K()
++    elif lookahead == '*':
+         match('*')
+     else:
+         error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['T', '*']))
+
+@@ -29,3 +30,7 @@ def parse_M():
+     else:
+         error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['T', '*']))
+
++def parse_K():
++    global pos, tokens
++    match("'")
++
+
+@@ -33,7 +38,10 @@ def parse_input(input_str):
+     pos = 0
+-    parse_M()
++    parse_M()
++    if pos != len(tokens):
++        error("Unexpected input at end")
+     print("Input accepted.")

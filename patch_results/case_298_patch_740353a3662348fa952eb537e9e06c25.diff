@@ -1,0 +1,89 @@
+@@ -22,8 +22,7 @@ def parse_D():
+     if lookahead.startswith('i'):
+         match('i')
+-        while pos < len(tokens) and tokens[pos].startswith('-'):
+-            match('-')
++        parse_G()
+     elif lookahead.startswith('&'):
+         match('&')
+-        while pos < len(tokens) and tokens[pos].startswith('&'):
+-            match('&')
+-            parse_F()
++        parse_F()
++        parse_B()
+         if pos >= len(tokens):
+@@ -32,15 +31,6 @@ def parse_D():
+         lookahead = tokens[pos]
+-        if lookahead.startswith('G'):
+-            parse_G()
+-            parse_W()
+-            parse_H()
+-            match('-')
+-            match("'")
+-        elif lookahead.startswith('?'):
+-            match('?')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['G', '?']))
+         match('(')
+     elif lookahead.startswith('Q'):
+@@ -50,7 +40,7 @@ def parse_D():
+         lookahead = tokens[pos]
+-        if lookahead.startswith('N'):
+-            match('N')
+-            parse_B()
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['N', '']))
++        parse_U()
+         match("'")
+         match('>')
+@@ -64,2 +54,6 @@ def parse_D():
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
+-        match('^')
++    if pos < len(tokens) and tokens[pos].startswith('^'):
++        match('^')
++        parse_W()
++    elif pos < len(tokens) and tokens[pos].startswith('f'):
++        match('f')
++        parse_E()
+@@ -69,2 +63,4 @@ def parse_W():
+ def parse_G():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('-'):
+-        match('-')
++    if pos < len(tokens) and tokens[pos].startswith('-'):
++        match('-')
++        parse_G()
+@@ -74,4 +70,4 @@ def parse_G():
+ def parse_F():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
++    if pos < len(tokens) and tokens[pos].startswith('&'):
+         match('&')
+         parse_F()
++        parse_F()
+@@ -84,6 +80,6 @@ def parse_U():
+     if lookahead.startswith('N'):
+         match('N')
+-        parse_B()
++        parse_U()
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['N', '']))
++        pass
+@@ -91,6 +87,6 @@ def parse_U():
+ def parse_H():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
++    if pos < len(tokens) and tokens[pos].startswith('M'):
+         match('M')
+         parse_U()
+         parse_G()
+         parse_D()
++        parse_H()
+@@ -103,6 +99,6 @@ def parse_E():
+     if lookahead.startswith('D'):
+-        parse_D()
++        match('D')
+         parse_F()
+     elif lookahead.startswith('Q'):

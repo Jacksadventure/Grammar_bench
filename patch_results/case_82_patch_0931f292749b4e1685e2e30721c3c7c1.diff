@@ -1,0 +1,48 @@
+@@ -21,31 +21,5 @@ def parse_E():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('W'):
+-        match('W')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            parse_N()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-            parse_X()
+-            parse_U()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['T', 'n', '2']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('T'):
+-            match('T')
+-            parse_N()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-            parse_X()
+-            parse_U()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['T', 'n', '2']))
++    if lookahead.startswith('W'):
++        match('W')
++        parse_N()
++        parse_N()
+     elif lookahead.startswith('&'):
+         match('&')
+     else:
+@@ -69,8 +69,8 @@ def parse_X():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('c'):
+-        match('c')
++    if lookahead.startswith('o'):
++        match('o')
+     else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['c']))
++        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['o']))

@@ -1,0 +1,59 @@
+@@ -16,0 +17,9 @@
++def parse_E():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos] == 'u':
++        match('u')
++        parse_B()
++    elif pos < len(tokens) and tokens[pos] == 'k':
++        match('k')
++    else:
++        error("Expected 'u' or 'k' in E, got " + (tokens[pos] if pos < len(tokens) else "EOF"))
++
+@@ -17,15 +26,9 @@ def parse_G():
+-    while pos < len(tokens) and tokens[pos].startswith('v'):
+-        match('v')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('u'):
+-            match('u')
+-            parse_B()
+-        elif lookahead.startswith('k'):
+-            match('k')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['u', 'k']))
++    if pos < len(tokens) and tokens[pos] == 'v':
++        match('v')
++        parse_E()
++        parse_G()
++    elif pos < len(tokens) and tokens[pos] == 'S':
++        match('S')
++        parse_N()
++    else:
++        return
+
+@@ -33,3 +42,7 @@ def parse_N():
+-    while pos < len(tokens) and tokens[pos].startswith('/')
+-        match('/')
+-        parse_N()
++    if pos < len(tokens) and tokens[pos] == '/':
++        match('/')
++        parse_N()
++        parse_N()
++    else:
++        return
+
+@@ -38,10 +51,8 @@ def parse_B():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in B")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('f'):
+-        match('f')
+-        match('z')
+-    else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['f', '']))
++    if pos < len(tokens) and tokens[pos] == 'f':
++        match('f')
++        parse_B()
++    else:
++        return

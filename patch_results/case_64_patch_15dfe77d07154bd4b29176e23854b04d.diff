@@ -1,0 +1,11 @@
+@@ -138,9 +138,9 @@ def parse_R():
+         match('H')
+         match('=')
+         parse_E()
+-    elif lookahead.startswith('F'):
+-        parse_F()
++    elif lookahead.startswith('h'):
++        match('h')
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(["'", 'F']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(["'", 'h']))

@@ -1,0 +1,139 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -17,52 +17,17 @@
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('6'):
+-        match('6')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            match("'")
+-            match('2')
+-        elif lookahead.startswith('J'):
+-            match('J')
+-            parse_E()
+-            parse_A()
+-            match('>')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            match('C')
+-        elif lookahead.startswith('q'):
+-            match('q')
+-            parse_N()
+-            parse_G()
+-            parse_A()
+-        elif lookahead.startswith('3'):
+-            match('3')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['(', 'J', 'd', 'q', '3']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            match("'")
+-            match('2')
+-        elif lookahead.startswith('J'):
+-            match('J')
+-            parse_E()
+-            parse_A()
+-            match('>')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            match('C')
+-        elif lookahead.startswith('q'):
+-            match('q')
+-            parse_N()
+-            parse_G()
+-            parse_A()
+-        elif lookahead.startswith('3'):
+-            match('3')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['(', 'J', 'd', 'q', '3']))
++    if pos >= len(tokens):
++        return # Epsilon production
++
++    lookahead = tokens[pos]
++    if lookahead.startswith('6'):
++        match('6')
++        parse_E()
++        parse_E()
++        parse_Q()
++    elif lookahead.startswith('x'):
++        match('x')
++        parse_Z()
++    # Else, it's the epsilon production, do nothing.
+ 
+ def parse_T():
+     global pos, tokens
+@@ -122,9 +87,17 @@
+ 
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('C'):
+-        match('C')
+-        parse_E()
+-        parse_E()
+-        parse_Q()
+-        parse_K()
++    if pos >= len(tokens):
++        return # Epsilon production
++
++    lookahead = tokens[pos]
++    if lookahead.startswith('C'):
++        match('C')
++        parse_E()
++        parse_E()
++        parse_Q()
++        parse_K()
++        parse_A()
++    elif lookahead.startswith('0'):
++        match('0')
++        parse_T()
++    # Else, it's the epsilon production, do nothing.
+ 
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('X'):
+-        match('X')
+-        parse_Z()
+-        parse_S()
++    if pos >= len(tokens):
++        return # Epsilon production
++
++    lookahead = tokens[pos]
++    if lookahead.startswith('X'):
++        match('X')
++        parse_Z()
++        parse_S()
++        parse_Z()
++    # Else, it's the epsilon production, do nothing.
+ 
+ def parse_N():
+     global pos, tokens
+@@ -154,7 +127,10 @@
+ 
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('T'):
++    while pos < len(tokens) and \
++          (tokens[pos].startswith('W') or \
++           tokens[pos].startswith('{') or \
++           tokens[pos].startswith('a')):
+         parse_T()
+         parse_I()
+         parse_Q()
+@@ -169,7 +145,7 @@
+ 
+ def parse_S():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('~'):
+-        match('~')
++    while pos < len(tokens) and tokens[pos].startswith('v'):
++        match('v')
+         parse_K()
+ 
+ def parse_input(input_str):

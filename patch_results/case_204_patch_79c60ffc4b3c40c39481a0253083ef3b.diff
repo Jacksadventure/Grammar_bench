@@ -1,0 +1,53 @@
+--- a/parser.py
++++ b/parser.py
+@@ -24,43 +24,2 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('C'):
+-            match('C')
+-            match('c')
+-            parse_O()
+-        elif lookahead.startswith('O'):
+-            parse_O()
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['C', 'O']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
+-            match('b')
+-            match('h')
+-            match('W')
+-            parse_V()
+-        elif lookahead.startswith('c'):
+-            match('c')
+-            match('a')
+-            parse_G()
+-            parse_G()
+-            parse_V()
+-        elif lookahead.startswith('T'):
+-            match('T')
+-            parse_L()
+-            match('p')
+-            match('f')
+-            match('P')
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            match('4')
+-            match('i')
+-        elif lookahead.startswith('D'):
+-            match('D')
+-            match('`')
+-        elif lookahead.startswith('0'):
+-            match('0')
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['j', 'c', 'T', 'd', 'D', '0']))
++        parse_H()
++        parse_G()
+@@ -167,3 +126,3 @@
+-    elif lookahead.startswith('p'):
+-        match('p')
++    elif lookahead.startswith('c'):
++        match('c')

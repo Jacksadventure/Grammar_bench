@@ -1,0 +1,60 @@
+--- a/parser.py
++++ b/parser.py
+@@ -84,10 +84,18 @@
+ def parse_E():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('k'):
++    if pos >= len(tokens):
++        return
++
++    lookahead = tokens[pos]
++    if lookahead.startswith('k'):
+         match('k')
+         match('3')
+         match('[')
+         parse_S()
+         match('+')
++        parse_E()
++    elif lookahead.startswith(')'):
++        match(')')
++        parse_R()
+ 
+ def parse_H():
+     global pos, tokens
+     if pos >= len(tokens):
+-        error("Unexpected end of input in H")
++        return # H can be empty
+     lookahead = tokens[pos]
+     if lookahead.startswith('G'):
+         match('G')
+         match('m')
+         match('m')
+         match(':')
+-        match('#')
+-    else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['G', '']))
++        parse_H()
++    # No 'else' block needed, as the rule can be empty.
++    # If no 'G' is found, it implicitly matches epsilon by doing nothing.
+ 
+ def parse_I():
+     global pos, tokens
+@@ -177,6 +185,18 @@
+         error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['5', 'o']))
+ 
++def parse_R():
++    global pos, tokens
++    if pos >= len(tokens):
++        return # R can be empty
++
++    lookahead = tokens[pos]
++    if lookahead.startswith('~'):
++        match('~')
++        parse_Q()
++        parse_R()
++    # No 'else' block needed, as the rule can be empty.
++    # If no '~' is found, it implicitly matches epsilon by doing nothing.
++
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)

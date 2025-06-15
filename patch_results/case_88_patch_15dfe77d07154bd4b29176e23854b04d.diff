@@ -1,0 +1,34 @@
+@@ -24,17 +24,18 @@ def parse_J():
+         if pos >= len(tokens):
+             error("Unexpected end of input in H")
+         lookahead = tokens[pos]
+         if lookahead.startswith('h'):
+             match('h')
+-        elif lookahead.startswith('O'):
++        elif lookahead.startswith('?') or lookahead.startswith('D'):
+             parse_O()
+             match('D')
+             match('g')
+         elif lookahead.startswith('.'):
+             match('.')
+         elif lookahead.startswith('b'):
+             match('b')
+         else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['h', 'O', '.', 'b']))
++            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['h', '?', 'D', '.', 'b']))
+@@
+-        while pos < len(tokens) and tokens[pos].startswith('?'):
+-            match('?')
+-            parse_J()
+-            match('@')
++        # Parse optional <O> after <R>
++        parse_O()
+@@
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
+-        match('?')
+-        parse_J()
+-        match('@')
++    while pos < len(tokens) and tokens[pos].startswith('?'):
++        match('?')
++        parse_J()
++        match('r')

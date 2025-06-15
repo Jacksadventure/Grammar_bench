@@ -1,0 +1,31 @@
+--- parser.py
++++ parser.py
+@@ -42,15 +42,6 @@ def parse_X():
+         match("'")
+         match('q')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('y'):
+-            match('y')
+-            parse_Z()
+-            match('*')
+-            parse_Z()
+-        elif lookahead.startswith('9'):
+-            match('9')
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['y', '9']))
++        parse_Z()
+     elif lookahead.startswith('Q'):
+         match('Q')
+@@ -75,9 +66,9 @@ def parse_W():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('F'):
+-        match('F')
+-        parse_J()
++    if lookahead.startswith('^'):
++        match('^')
++        parse_J()
+     elif lookahead.startswith('C'):
+         match('C')
+     else:

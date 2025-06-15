@@ -1,0 +1,146 @@
+Looking at the grammar and the parser code, I can see several issues:
+
+1. In `parse_H()`, the parser expects 'z' as an alternative, but the grammar shows 's' as the second alternative for `<H>`.
+
+2. In `parse_I()`, the parser tries to call `parse_Z()` for the 'Z' case, but according to the grammar, `<I>` starts with `<Z>` which means it should just call `parse_Z()` without checking for a 'Z' token first.
+
+3. The `parse_Z()` and `parse_W()` functions are implemented as loops, but they should handle the recursive grammar rules properly.
+
+@@ -83,7 +83,7 @@ def parse_H():
+     elif lookahead.startswith('z'):
+         match('z')
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 'z']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 's']))
+
+@@ -82,2 +82,2 @@ def parse_H():
+         match("'")
+-    elif lookahead.startswith('z'):
+-        match('z')
++    elif lookahead.startswith('s'):
++        match('s')
+
+@@ -147,12 +147,18 @@ def parse_S():
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('h'):
++    if pos < len(tokens) and tokens[pos].startswith('h'):
+         match('h')
+         match("'")
++        parse_Z()
+
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         match(',')
+         parse_H()
++        parse_W()
+
+@@ -164,8 +170,7 @@ def parse_I():
+     lookahead = tokens[pos]
+     if lookahead.startswith('Z'):
+-        parse_Z()
+-        parse_W()
+-    elif lookahead.startswith('i'):
++        error("Unexpected token " + lookahead + " in I")
++    elif lookahead.startswith('h') or (pos >= len(tokens)) or not any(tokens[pos].startswith(t) for t in ['i', 'D', 'd', '8', 'F']):
++        parse_Z()
++        parse_W()
++    elif lookahead.startswith('i'):
+
+@@ -164,7 +164,10 @@ def parse_I():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('Z'):
++    if lookahead.startswith('h') or (pos < len(tokens) and tokens[pos].startswith("'")):
+         parse_Z()
+         parse_W()
++    elif not (pos < len(tokens)):
++        parse_Z()
++        parse_W()
+     elif lookahead.startswith('i'):
+
+Let me reconsider this more carefully:
+
+@@ -82,2 +82,2 @@ def parse_H():
+         match("'")
+-    elif lookahead.startswith('z'):
+-        match('z')
++    elif lookahead.startswith('s'):
++        match('s')
+
+@@ -85,1 +85,1 @@ def parse_H():
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 'z']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 's']))
+
+@@ -147,12 +147,18 @@ def parse_Z():
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('h'):
++    if pos < len(tokens) and tokens[pos].startswith('h'):
+         match('h')
+         match("'")
++        parse_Z()
+
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         match(',')
+         parse_H()
++        parse_W()
+
+@@ -164,8 +170,10 @@ def parse_I():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('Z'):
++    if (pos < len(tokens) and tokens[pos].startswith('h')) or (pos >= len(tokens)) or (pos < len(tokens) and tokens[pos].startswith("'")):
+         parse_Z()
+         parse_W()
++    elif pos >= len(tokens):
++        parse_Z()
++        parse_W()
+     elif lookahead.startswith('i'):
+
+Actually, let me be more precise about the I rule:
+
+@@ -82,2 +82,2 @@ def parse_H():
+         match("'")
+-    elif lookahead.startswith('z'):
+-        match('z')
++    elif lookahead.startswith('s'):
++        match('s')
+
+@@ -85,1 +85,1 @@ def parse_H():
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 'z']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['8', 's']))
+
+@@ -147,5 +147,8 @@ def parse_S():
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('h'):
++    if pos < len(tokens) and tokens[pos].startswith('h'):
+         match('h')
+         match("'")
++        parse_Z()
+
+@@ -153,5 +156,8 @@ def parse_Z():
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         match(',')
+         parse_H()
++        parse_W()
+
+@@ -164,9 +170,11 @@ def parse_I():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('Z'):
++    if not (lookahead.startswith('i') or lookahead.startswith('D') or lookahead.startswith('d') or lookahead.startswith('8') or lookahead.startswith('F')):
+         parse_Z()
+         parse_W()
+     elif lookahead.startswith('i'):

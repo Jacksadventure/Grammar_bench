@@ -1,0 +1,48 @@
+@@ -17,33 +17,19 @@ def parse_I():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in I")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('-'):
+-        match('-')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_I()
+-        elif lookahead.startswith('O'):
+-            match('O')
+-            parse_D()
+-        elif lookahead.startswith('O'):
+-            match('O')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['-', 'O', 'O']))
+-    elif lookahead.startswith('O'):
+-        match('O')
+-        while pos < len(tokens) and tokens[pos].startswith('S'):
+-            match('S')
+-            match('4')
+-            match('x')
+-    elif lookahead.startswith('O'):
+-        match('O')
+-    else:
+-        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['-', 'O', 'O']))
++    if pos >= len(tokens):
++        error("Unexpected end of input in I")
++    if tokens[pos].startswith('-'):
++        match('-')
++        parse_I()
++    elif tokens[pos].startswith('O'):
++        match('O')
++        parse_D()
++    else:
++        error("Unexpected token " + tokens[pos] + \" in I, expected '-' or 'O'\")
+ 
+@@ -49,7 +35,7 @@ def parse_D():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('S'):
+         match('S')
+-        match('4')
++        match(':')
+         match('x')

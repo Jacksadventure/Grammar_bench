@@ -1,0 +1,58 @@
+@@ -34,12 +34,12 @@ def parse_O():
+         if lookahead.startswith('4'):
+             match('4')
+             match('c')
+-        elif lookahead.startswith('^'):
+-            match('^')
++        elif lookahead.startswith('v'):
++            match('v')
+         else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['4', '^']))
++            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['4', 'v']))
+@@
+     if lookahead.startswith('4'):
+         match('4')
+         match('c')
+-    elif lookahead.startswith('^'):
+-        match('^')
++    elif lookahead.startswith('v'):
++        match('v')
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['4', '^']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['4', 'v']))
+ 
+@@
+-def parse_E():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('['):
+-        match('[')
+-        parse_V()
++def parse_E():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('['):
++        match('[')
++        parse_V()
++        parse_E()
++    elif pos < len(tokens) and tokens[pos].startswith('a'):
++        match('a')
++        parse_T()
++    # epsilon: do nothing
++
++def parse_T():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('^'):
++        match('^')
+ 
+-def parse_P():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('e'):
+-        match('e')
++def parse_P():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('e'):
++        while pos < len(tokens) and tokens[pos].startswith('e'):
++            match('e')
++    elif pos < len(tokens) and tokens[pos].startswith('j'):
++        match('j')
++        parse_A()
++    # epsilon: do nothing

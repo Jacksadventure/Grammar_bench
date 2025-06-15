@@ -1,0 +1,60 @@
+--- parser.py
++++ parser.py
+@@ -23,8 +23,4 @@ def parse_R():
+-        match('H')
+-        while pos < len(tokens) and tokens[pos].startswith('L'):
+-            parse_L()
+-            parse_G()
+-        while pos < len(tokens) and tokens[pos].startswith('a'):
+-            match('a')
+-            parse_V()
+-            parse_I()
++        match('H')
++        parse_G()
++        parse_Q()
+@@ -38,3 +38,4 @@ def parse_B():
+         match('$')
+         parse_B()
+         parse_B()
++        parse_B()
+@@ -45,3 +45,11 @@ def parse_G():
+-    while pos < len(tokens) and tokens[pos].startswith('L'):
+-        parse_L()
+-        parse_G()
++    if pos < len(tokens) and tokens[pos].startswith('L'):
++        parse_L()
++        parse_G()
++        parse_G()
++    elif pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        parse_V()
++        parse_J()
++    # else epsilon
+@@ -53,10 +53,7 @@ def parse_L():
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('G'):
+-        parse_G()
+-        parse_R()
+-        match('0')
+-    else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['G', '']))
++    if pos < len(tokens) and (tokens[pos].startswith('L') or tokens[pos].startswith('>')):
++        parse_G()
++        parse_R()
++        parse_L()
++    # else epsilon
+@@ -63,6 +63,10 @@ def parse_Y():
+-    while pos < len(tokens) and tokens[pos].startswith('w'):
+-        match('w')
+-        parse_Q()
+-        parse_L()
+-        match('-')
+-        parse_Y()
++    if pos < len(tokens) and tokens[pos].startswith('w'):
++        match('w')
++        parse_Q()
++        parse_L()
++        match('-')
++        parse_Y()
++        parse_Y()
++    # else epsilon

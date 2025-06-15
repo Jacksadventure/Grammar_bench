@@ -1,0 +1,6 @@
+@@ -102,7 +102,7 @@ def parse_G():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('b'):
+         match('b')
+-        match('C')
++        match('p')

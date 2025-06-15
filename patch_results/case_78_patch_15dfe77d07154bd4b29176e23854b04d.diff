@@ -1,0 +1,18 @@
+--- a/parser.py
++++ b/parser.py
+@@
+-        elif lookahead.startswith('n'):
+-            match('n')
++        elif lookahead.startswith('f'):
++            match('f')
+@@
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['j', '0', 'n']))
++            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['j', '0', 'f']))
+@@
+-    elif lookahead.startswith('n'):
+-        match('n')
++    elif lookahead.startswith('f'):
++        match('f')
+@@
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['j', '0', 'n']))
++        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['j', '0', 'f']))

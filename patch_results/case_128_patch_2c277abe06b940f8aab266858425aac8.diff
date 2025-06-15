@@ -1,0 +1,14 @@
+@@ -72,10 +72,10 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in W")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('F'):
+-        match('F')
++    if lookahead.startswith('^'):
++        match('^')
+         parse_J()
+     elif lookahead.startswith('C'):
+         match('C')
+     else:
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['F', 'C']))
++        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['^', 'C']))

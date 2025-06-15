@@ -1,0 +1,66 @@
+@@ -19,26 +19,7 @@ def parse_M():
+-    while pos < len(tokens) and tokens[pos].startswith('h'):
+-        match('h')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('2'):
+-            match('2')
+-            match('V')
+-            match('l')
+-            parse_N()
+-        elif lookahead.startswith(','):
+-            match(',')
+-            parse_O()
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['2', '', ',']))
+-        match('2')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in W")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('_'):
+-            match('_')
+-            parse_W()
+-            match('S')
+-        else:
+-            error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['_', '']))
+-        match(',')
++    while pos < len(tokens) and tokens[pos] == 'h':
++        match('h')
++        parse_N()
++        match('2')
++        parse_W()
++        match(',')
+
+@@ -60,5 +60,8 @@ def parse_N():
+-    while pos < len(tokens) and tokens[pos].startswith('2'):
+-        match('2')
+-        match('V')
+-        match('l')
++    while pos < len(tokens) and tokens[pos] == '2':
++        match('2')
++        match('V')
++        match('l')
++    if pos < len(tokens) and tokens[pos] == ',':
++        match(',')
++        parse_O()
+
+@@ -48,9 +48,6 @@ def parse_W():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in W")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('_'):
+-        match('_')
+-        parse_W()
+-        match('S')
+-    else:
+-        error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['_', '']))
++    if pos < len(tokens) and tokens[pos] == '_':
++        match('_')
++        parse_W()
++        parse_W()
+ # epsilon
+
+@@ -72,7 +72,7 @@ def parse_X():
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
++    while pos < len(tokens) and tokens[pos] == 'h':

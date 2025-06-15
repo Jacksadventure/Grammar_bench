@@ -1,0 +1,9 @@
+@@ -57,7 +57,7 @@ def parse_S():
+-    if lookahead.startswith('6'):
++    if lookahead.startswith('g'):
+@@ -58,7 +58,7 @@ def parse_S():
+-        match('6')
++        match('g')
+@@ -60,7 +60,7 @@ def parse_S():
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['6']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['g']))

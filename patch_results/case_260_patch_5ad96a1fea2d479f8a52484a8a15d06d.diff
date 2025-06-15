@@ -1,0 +1,108 @@
+@@ -17,19 +17,10 @@ def parse_Q():
+-    while pos < len(tokens) and tokens[pos].startswith('1'):
+-        match('1')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in T")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(')'):
+-            match(')')
+-            match('m')
+-            parse_X()
+-            parse_T()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-            parse_M()
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join([')', '', 'N']))
++    if pos < len(tokens) and tokens[pos] == '1':
++        match('1')
++        parse_T()
++        parse_Q()
++    elif pos < len(tokens) and tokens[pos] == '#':
++        match('#')
++        parse_Q()
++        parse_K()
++# else epsilon
+
+@@ -36,7 +27,13 @@ def parse_T():
+-    while pos < len(tokens) and tokens[pos].startswith(')'):
+-        match(')')
+-        match('m')
+-        parse_X()
++    if pos < len(tokens) and tokens[pos] == ')':
++        match(')')
++        match('m')
++        parse_X()
++        parse_T()
++    elif pos < len(tokens) and tokens[pos] == 'N':
++        match('N')
++        parse_M()
++        parse_Z()
++# else epsilon
+
+@@ -43,7 +41,7 @@ def parse_C():
+-    while pos < len(tokens) and tokens[pos].startswith('g'):
+-        match('g')
+-        match(';')
+-        match('x')
++    while pos < len(tokens) and tokens[pos] == 'g':
++        match('g')
++        match('+')
++        match('x')
+
+@@ -75,6 +73,9 @@ def parse_Z():
+-    while pos < len(tokens) and tokens[pos].startswith('&'):
+-        match('&')
+-        parse_Z()
+-        match('|')
+-        match('V')
++    if pos < len(tokens) and tokens[pos] == '&':
++        match('&')
++        parse_Z()
++        match('|')
++        match('V')
++        parse_Z()
++# else epsilon
+
+@@ -81,6 +82,10 @@ def parse_K():
+-    while pos < len(tokens) and tokens[pos].startswith('+'):
+-        match('+')
+-        match('}')
+-        match('y')
+-        match('y')
+-        match('0')
++    while pos < len(tokens) and tokens[pos] == '+':
++        match('+')
++        match('}')
++        match('y')
++        match('y')
++        match('0')
++    if pos < len(tokens) and tokens[pos] == 'i':
++        match('i')
++        parse_Y()
++# else epsilon
+
+@@ -98,6 +103,34 @@ def parse_input(input_str):
+     parse_Q()
+     print("Input accepted.")
++
++def parse_Y():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos] == '&':
++        parse_Z()
++        match('c')
++        parse_C()
++        match(']')
++        parse_Y()
++    elif pos < len(tokens) and tokens[pos] == 'W':
++        match('W')
++        parse_L()
++# else epsilon
++
++def parse_L():
++    global pos, tokens
++    while pos + 1 < len(tokens) and tokens[pos] == 'g' and tokens[pos+1] == 'G':
++        match('g')
++        match('G')
++# else epsilon

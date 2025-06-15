@@ -1,0 +1,99 @@
+@@ -17,25 +17,11 @@ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('m'):
+-        match('m')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('A'):
+-            match('A')
+-            match(',')
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['A', '']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('-'):
+-            match('-')
+-            parse_M()
+-        elif lookahead.startswith('y'):
+-            match('y')
+-            parse_Y()
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['-', '', 'y']))
++    if pos < len(tokens) and tokens[pos] == 'm':
++        match('m')
++        parse_Z()
++        parse_M()
++        parse_U()
++    elif pos < len(tokens) and tokens[pos] == 'y':
++        parse_Y()
++        parse_G()
++        parse_V()
++    else:
++        return
+@@ -52,4 +52,10 @@ def parse_G():
+-    while pos < len(tokens) and tokens[pos].startswith('O'):
+-        match('O')
+-        parse_U()
++    if pos < len(tokens) and tokens[pos] == 'O':
++        match('O')
++        parse_U()
++        parse_G()
++    elif pos < len(tokens) and tokens[pos] == 'C':
++        match('C')
++        parse_N()
++        parse_S()
++    else:
++        return
+@@ -58,2 +64,7 @@ def parse_M():
+-    while pos < len(tokens) and tokens[pos].startswith('-'):
+-        match('-')
++    if pos < len(tokens) and tokens[pos] == '-':
++        match('-')
++        parse_M()
++    elif pos < len(tokens) and tokens[pos] == 'y':
++        parse_Y()
++    else:
++        return
+@@ -63,2 +74,7 @@ def parse_T():
+-    while pos < len(tokens) and tokens[pos].startswith('Z'):
+-        parse_Z()
++    if pos < len(tokens) and tokens[pos] == '^':
++        parse_Z()
++        parse_T()
++    else:
++        return
+@@ -73,2 +89,8 @@ def parse_S():
+-    while pos < len(tokens) and tokens[pos].startswith('T'):
+-        parse_T()
++    if pos < len(tokens) and tokens[pos] == '^':
++        parse_T()
++        parse_S()
++    else:
++        return
+@@ -78,6 +100,11 @@ def parse_Y():
+-    while pos < len(tokens) and tokens[pos].startswith('y'):
+-        match('y')
+-        parse_L()
+-        parse_M()
+-        parse_M()
+-        parse_T()
++    if pos < len(tokens) and tokens[pos] == 'y':
++        match('y')
++        parse_L()
++        parse_M()
++        parse_M()
++        parse_T()
++        parse_Y()
++    else:
++        return
+@@ -113,3 +140,6 @@ def parse_Z():
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        match('A')
+-        match(',')
++    while pos < len(tokens) and tokens[pos] == '^':
++        match('^')
++        match(',')
++    # empty production for Z is handled by exiting loop

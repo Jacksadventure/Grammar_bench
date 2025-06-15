@@ -1,0 +1,27 @@
+@@ -86,7 +86,8 @@ def parse_P():
+         match('g')
+-        match('9')
++        parse_P()
+     else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['g', '']))
++        # Empty production - no error needed
++        pass
+ 
+ def parse_Y():
+@@ -97,1 +98,1 @@ def parse_Y():
+-        parse_P()
++        parse_Y()
+ 
+ def parse_W():
+@@ -117,1 +119,1 @@ def parse_W():
+     elif lookahead.startswith('Y'):
+-        parse_Y()
++        match('Y')
+         match('0')
+@@ -126,3 +128,4 @@ def parse_V():
+     while pos < len(tokens) and tokens[pos].startswith('P'):
+-        parse_P()
++        match('P')
+         parse_P()
++        parse_P()
+         match('O')

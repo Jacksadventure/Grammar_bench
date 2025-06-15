@@ -1,0 +1,43 @@
+@@ -40,11 +40,11 @@ def parse_V():
+         lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
++        if lookahead.startswith('4'):
++            match('4')
+             parse_N()
+         elif lookahead.startswith('<'):
+             match('<')
+         else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['.', '<']))
++            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['4', '<']))
+@@ -63,11 +63,11 @@ def parse_V():
+         lookahead = tokens[pos]
+-        if lookahead.startswith('.'):
+-            match('.')
++        if lookahead.startswith('4'):
++            match('4')
+             parse_N()
+         elif lookahead.startswith('<'):
+             match('<')
+         else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['.', '<']))
++            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['4', '<']))
+@@ -78,11 +78,11 @@ def parse_N():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('.'):
+-        match('.')
++    if lookahead.startswith('4'):
++        match('4')
+         parse_N()
+     elif lookahead.startswith('<'):
+         match('<')
+     else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['.', '<']))
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['4', '<']))
+@@ -90,4 +90,7 @@ def parse_input(input_str):
+     tokens = list(input_str)
+     pos = 0
+     parse_V()
++    if pos != len(tokens):
++        error("Unexpected extra input after parsing")
+     print("Input accepted.")

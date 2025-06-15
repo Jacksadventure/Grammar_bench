@@ -1,0 +1,51 @@
+@@ -22,10 +22,6 @@ def parse_R():
+     if lookahead.startswith('m'):
+         match('m')
+-        while pos < len(tokens) and tokens[pos].startswith('7'):
+-            match('7')
+-            match('e')
+-            match('<')
+-            match('7')
++        parse_Z()
++        parse_G()
+-        while pos < len(tokens) and tokens[pos].startswith('r'):
+-            match('r')
+-            match('S')
+-            match('4')
+     elif lookahead.startswith('I'):
+@@ -34,10 +30,6 @@ def parse_R():
+         match('I')
+-        while pos < len(tokens) and tokens[pos].startswith('7'):
+-            match('7')
+-            match('e')
+-            match('<')
+-            match('7')
++        parse_Z()
+         match('^')
+@@ -58,7 +50,7 @@ def parse_R():
+             error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['m', 'I', '7']))
+     elif lookahead.startswith('7'):
+         match('7')
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['m', 'I', '7']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['m', 'I', 'P']))
+ 
+ def parse_G():
+     global pos, tokens
+@@ -66,13 +58,16 @@ def parse_G():
+     while pos < len(tokens) and tokens[pos].startswith('r'):
+         match('r')
+         match('S')
+         match('4')
++        parse_G()
+ 
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('7'):
+-        match('7')
++    while pos < len(tokens) and tokens[pos].startswith('P'):
++        match('P')
+         match('e')
+         match('<')
+         match('7')
++        parse_Z()

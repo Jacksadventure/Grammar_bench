@@ -1,0 +1,105 @@
+@@ -17,49 +17,18 @@ def parse_N():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in N")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('='):
+-        match('=')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('>'):
+-            match('>')
+-            match('q')
+-            parse_T()
+-            match('-')
+-            match('H')
+-        elif lookahead.startswith('#'):
+-            match('#')
+-            parse_X()
+-            match('L')
+-            match('!')
+-            match('J')
+-        elif lookahead.startswith('W'):
+-            match('W')
+-            parse_M()
+-            match(':')
+-        elif lookahead.startswith(']'):
+-            match(']')
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['>', '#', 'W', ']']))
+-        match('?')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('='):
+-            match('=')
+-            parse_U()
+-            match('?')
+-            parse_N()
+-            match('E')
+-        elif lookahead.startswith('~'):
+-            match('~')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['=', '~']))
+-        match('E')
+-    elif lookahead.startswith('~'):
+-        match('~')
+-    else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['=', '~']))
++    if pos >= len(tokens):
++        error("Unexpected end of input in N")
++    lookahead = tokens[pos]
++    if lookahead.startswith('='):
++        match('=')
++        parse_U()
++        match('?')
++        parse_N()
++        match('E')
++    elif lookahead.startswith('~'):
++        match('~')
++    else:
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['=', '~']))
+@@
+ def parse_X():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in X")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('@'):
+-        match('@')
+-        match("'")
+-        match('(')
+-        match('3')
+-    else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['@', '']))
++    if pos < len(tokens) and tokens[pos].startswith('@'):
++        match('@')
++        match("'")
++        match('(')
++        parse_X()
++    # Epsilon production: do nothing if the next token is not '@'
+@@
+ def parse_I():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in I")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('j'):
+-        match('j')
+-        match('j')
+-        match("'")
+-        match('3')
+-    elif lookahead.startswith('j'):
+-        match('j')
+-    else:
+-        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['j', 'j']))
++    if pos >= len(tokens):
++        error("Unexpected end of input in I")
++    if tokens[pos].startswith('j'):
++        match('j')
++        if pos < len(tokens) and tokens[pos].startswith('j'):
++            match('j')
++            match("'")
++            match('3')
++    else:
++        error("Unexpected token " + (tokens[pos] if pos < len(tokens) else "EOF") + " in I, expected one of: " + ", ".join(['j']))

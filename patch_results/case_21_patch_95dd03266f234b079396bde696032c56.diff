@@ -1,0 +1,17 @@
+@@ -22,14 +22,4 @@ def parse_P():
+-        match('4')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in P")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('4'):
+-            match('4')
+-            parse_P()
+-            match('Q')
+-        elif lookahead.startswith('J'):
+-            match('J')
+-        else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['4', 'J']))
+-        match('Q')
++        match('4')
++        parse_P()
++        match('Q')

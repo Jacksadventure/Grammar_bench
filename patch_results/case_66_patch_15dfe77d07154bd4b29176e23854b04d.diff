@@ -1,0 +1,26 @@
+@@ -97,11 +97,11 @@ def parse_S():
+     if pos >= len(tokens):
+         error("Unexpected end of input in S")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('O'):
++    if lookahead.startswith('6') or lookahead.startswith('j'):
+         parse_O()
+         parse_O()
+         match(',')
+         match('Q')
+@@
+-    elif lookahead.startswith('m'):
+-        match('m')
++    elif lookahead.startswith('2'):
++        match('2')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['O', '_', ',', 'E', 'm']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['6', 'j', '_', ',', 'E', '2']))
+ 
+@@
+     tokens = list(input_str)
+     pos = 0
+     parse_T()
++    if pos != len(tokens):
++        error("Extra input after valid parse")
+     print("Input accepted.")

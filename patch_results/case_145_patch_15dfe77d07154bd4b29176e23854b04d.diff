@@ -1,0 +1,17 @@
+@@ -95,10 +95,10 @@ def parse_E():
+-    if lookahead.startswith('s'):
+-        match('s')
+-        match('*')
+-        match('a')
+-    elif lookahead.startswith('n'):
+-        match('n')
+-    else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['s', 'n']))
++    if lookahead.startswith('s'):
++        match('s')
++        match('*')
++        match('a')
++    elif lookahead.startswith(']'):
++        match(']')
++    else:
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['s', ']']))

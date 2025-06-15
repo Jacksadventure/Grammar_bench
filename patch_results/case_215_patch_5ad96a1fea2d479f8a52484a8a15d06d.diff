@@ -1,0 +1,64 @@
+@@ -19,33 +19,4 @@ def parse_J():
+-    while pos < len(tokens) and tokens[pos].startswith('<'):
+-        match('<')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('w'):
+-            match('w')
+-            match('C')
+-            match('{')
+-            parse_R()
+-            parse_P()
+-        elif lookahead.startswith('p'):
+-            match('p')
+-            match('M')
+-            parse_Z()
+-            parse_Z()
+-            match('m')
+-        elif lookahead.startswith('g'):
+-            match('g')
+-            match('/')
+-            parse_Y()
+-        elif lookahead.startswith('J'):
+-            parse_J()
+-            parse_P()
+-        elif lookahead.startswith('H'):
+-            parse_H()
+-            match('x')
+-            parse_P()
+-        elif lookahead.startswith('i'):
+-            match('i')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['w', 'p', 'g', 'J', 'H', 'i']))
+-        match(']')
++    while pos < len(tokens) and tokens[pos].startswith('<'):
++        match('<')
++        parse_R()
++        match(']')
+
+@@ -82,3 +53,6 @@ def parse_F():
+-    while pos < len(tokens) and tokens[pos].startswith('.'):
+-        match('.')
+-        match('(')
++    while pos < len(tokens) and tokens[pos].startswith('.'):
++        match('.')
++        match('(')
++        parse_F()
++        match(')')
+
+@@ -107,7 +111,7 @@ def parse_R():
+-    elif lookahead.startswith('J'):
++    elif lookahead.startswith('<'):
+         parse_J()
+         parse_P()
+
+@@ -117,1 +121,1 @@ def parse_R():
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['w', 'p', 'g', 'J', 'H', 'i']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['w', 'p', 'g', '<', 'H', 'i']))
+
+@@ -176,2 +180,2 @@ def parse_Y():
+-    while pos < len(tokens) and tokens[pos].startswith('p'):
+-        match('p')
++    while pos < len(tokens) and tokens[pos].startswith('|'):
++        match('|')

@@ -1,0 +1,9 @@
+@@ -22,4 +22,4 @@ def parse_A():
+-    if lookahead.startswith('&'):
+-        match('&')
+-    else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['&']))
++    if lookahead.startswith('V'):
++        match('V')
++    else:
++        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['V']))

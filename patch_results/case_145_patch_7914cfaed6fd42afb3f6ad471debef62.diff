@@ -1,0 +1,8 @@
+@@ -99,7 +99,7 @@ def parse_E():
+     elif lookahead.startswith('n'):
+         match('n')
++    elif lookahead.startswith(']'):
++        match(']')
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['s', 'n']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['s', ']']))

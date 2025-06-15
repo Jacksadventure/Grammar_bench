@@ -1,0 +1,20 @@
+@@ -41,7 +41,11 @@ def parse_O():
+         while pos < len(tokens) and tokens[pos].startswith("'"):
+             match("'")
+             parse_O()
+             match('(')
+             match("'")
++        while pos < len(tokens) and tokens[pos].startswith('3'):
++            match('3')
++            match('k')
++            parse_Y()
++            parse_O()
++            parse_Z()
+     elif lookahead.startswith('d'):
+         match('d')
+     else:
+@@ -143,5 +147,6 @@ def parse_W():
+     while pos < len(tokens) and tokens[pos].startswith('j'):
+         match('j')
+-        match('D')
++        match('f')

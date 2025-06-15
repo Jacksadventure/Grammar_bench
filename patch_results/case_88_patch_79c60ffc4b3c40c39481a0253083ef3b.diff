@@ -1,0 +1,23 @@
+--- a/parser_original.py
++++ b/parser_fixed.py
+@@ -55,8 +55,7 @@
+         else:
+             error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['n', ')', '}']))
+-        while pos < len(tokens) and tokens[pos].startswith('?'):
+-            match('?')
+-            parse_J()
+-            match('@')
++        parse_O()
+     elif lookahead.startswith('r'):
+         match('r')
+         match('P')
+@@ -67,8 +66,9 @@
+ def parse_O():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
++    if pos < len(tokens) and tokens[pos].startswith('?'):
+         match('?')
+         parse_J()
+-        match('@')
++        match('r')
++        parse_O()

@@ -1,0 +1,45 @@
+@@ -85,9 +85,15 @@
+ def parse_E():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('k'):
+-        match('k')
+-        match('3')
+-        match('[')
+-        parse_S()
+-        match('+')
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('k'):
++        match('k')
++        match('3')
++        match('[')
++        parse_S()
++        match('+')
++        parse_E()
++    elif lookahead.startswith(')'):
++        match(')')
++        parse_R()
+@@ -94,11 +100,13 @@
+ def parse_H():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in H")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('G'):
++    if pos < len(tokens) and tokens[pos].startswith('G'):
+         match('G')
+         match('m')
+         match('m')
+         match(':')
+-        match('#')
+-    else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['G', '']))
++        parse_H()
++
++def parse_R():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('~'):
++        match('~')
++        parse_Q()
++        parse_R()

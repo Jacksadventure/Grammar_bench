@@ -1,0 +1,52 @@
+--- parser.py
++++ parser.py
+@@ -67,13 +67,8 @@ def parse_Q():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in Q")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith(';'):
+-        match(';')
+-        match('C')
+-        match('&')
+-        match('F')
+-        match('?')
+-    else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([';', '']))
++    while pos < len(tokens) and tokens[pos].startswith(';'):
++        match(';')
++        match('C')
++        match('&')
++        match('F')
+@@ -132,11 +127,14 @@ def parse_V():
+     if lookahead.startswith('!'):
+         match('!')
++    # W starts with '`' or 'E'
+     elif lookahead.startswith('W'):
+-        parse_W()
++        parse_W()
+         match('Y')
+         parse_A()
+-    elif lookahead.startswith('D'):
++    # D (in <V>) starts with '%'
+     elif lookahead.startswith('D'):
+         parse_D()
+         parse_O()
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['!', 'W', 'D']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['!', '`', 'E', '%']))
+@@ -149,7 +147,7 @@ def parse_O():
+-    if lookahead.startswith('N'):
++    if lookahead.startswith('t'):
+         parse_N()
+         parse_G()
+     elif lookahead.startswith('@'):
+@@ -154,7 +152,7 @@ def parse_O():
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['N', '@']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['t', '@']))
+@@ -161,7 +159,8 @@ def parse_N():
+         match('J')
+         parse_Q()
+         parse_D()
+-        parse_N()
++        parse_N()
++        parse_N()

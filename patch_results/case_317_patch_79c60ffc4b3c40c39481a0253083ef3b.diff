@@ -1,0 +1,69 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -18,34 +18,9 @@
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('n'):
+         match('n')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_H()
+-            match('7')
+-            match('[')
+-            parse_H()
+-        elif lookahead.startswith('('):
+-            match('(')
+-            parse_N()
+-            parse_S()
+-            match('n')
+-            parse_Y()
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['9', '(', ',']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('h'):
+-            match('h')
+-            parse_G()
+-            match('*')
+-            match(',')
+-            match('9')
+-            parse_X()
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['h', '']))
++        parse_H()
++        parse_X()
+ 
+ def parse_H():
+     global pos, tokens
+@@ -91,7 +66,7 @@
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('^'):
+         match('^')
+-        parse_S()
++        match('|')
+ 
+ def parse_A():
+     global pos, tokens
+@@ -110,7 +85,7 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in N")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('T'):
++    if lookahead.startswith('1'):
+         parse_T()
+         parse_W()
+         parse_S()
+@@ -124,7 +99,7 @@
+     elif lookahead.startswith('~'):
+         match('~')
+     else:
+-        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['T', 'o', '~']))
++        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['1', 'o', '~']))
+ 
+ def parse_Y():
+     global pos, tokens

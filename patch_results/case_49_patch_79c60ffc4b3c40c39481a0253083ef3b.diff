@@ -1,0 +1,21 @@
+--- a/parser.py
++++ b/parser.py
+@@ -25,5 +25,1 @@
+-        while pos < len(tokens) and tokens[pos].startswith('L'):
+-            match('L')
+-            match('`')
+-            match('^')
+-            parse_K()
++        parse_K()
+@@ -37,5 +33,6 @@
+-    while pos < len(tokens) and tokens[pos].startswith('L'):
+-        match('L')
+-        match('`')
+-        match('^')
+-        parse_K()
++    if pos < len(tokens) and tokens[pos].startswith('L'):
++        match('L')
++        parse_I()
++        match('^')
++        parse_K()
++        parse_K()

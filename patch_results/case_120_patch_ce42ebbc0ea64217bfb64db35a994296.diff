@@ -1,0 +1,66 @@
+@@ -153,7 +153,7 @@ def parse_W():
+     if lookahead.startswith("'"):
+         match("'")
+         match('!')
+-        match('/')
++        match('_')
+     elif lookahead.startswith('a'):
+         match('a')
+     else:
+@@ -40,7 +40,7 @@ def parse_X():
+         if lookahead.startswith("'"):
+             match("'")
+             match('!')
+-            match('/')
++            match('_')
+         elif lookahead.startswith('a'):
+             match('a')
+         else:
+@@ -85,7 +85,7 @@ def parse_X():
+         if lookahead.startswith("'"):
+             match("'")
+             match('!')
+-            match('/')
++            match('_')
+         elif lookahead.startswith('a'):
+             match('a')
+         else:
+@@ -97,7 +97,7 @@ def parse_X():
+         if lookahead.startswith("'"):
+             match("'")
+             match('!')
+-            match('/')
++            match('_')
+         elif lookahead.startswith('a'):
+             match('a')
+         else:
+@@ -175,7 +175,7 @@ def parse_I():
+     if lookahead.startswith('F'):
+         parse_F()
+         match('N')
+         parse_F()
+     elif lookahead.startswith('u'):
+@@ -175,6 +175,7 @@ def parse_I():
+     if lookahead.startswith('F'):
++        match('F')
+         parse_F()
+         match('N')
+         parse_F()
+@@ -162,10 +162,12 @@ def parse_W():
+ 
+ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('|'):
+-        match('|')
+-        match('2')
+-        match(']')
+-        match('z')
++    if pos < len(tokens) and tokens[pos].startswith('|'):
++        while pos < len(tokens) and tokens[pos].startswith('|'):
++            match('|')
++            match('2')
++            match(']')
++            match('z')
++    elif pos < len(tokens) and tokens[pos].startswith('q'):
++        match('q')
++        parse_P()

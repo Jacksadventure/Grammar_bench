@@ -1,0 +1,86 @@
+--- parser.py
++++ parser.py
+@@ -22,65 +22,11 @@ def parse_I():
+-    if lookahead.startswith('v'):
+-        match('v')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('t'):
+-            match('t')
+-            parse_A()
+-            parse_Q()
+-            parse_W()
+-        elif lookahead.startswith('q'):
+-            match('q')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['t', 'q']))
+-        match('S')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('v'):
+-            match('v')
+-            parse_J()
+-            match('S')
+-            parse_I()
+-            parse_I()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            match('H')
+-            match('m')
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            match('k')
+-            match('/')
+-            match('2')
+-        elif lookahead.startswith('T'):
+-            match('T')
+-            match('`')
+-        elif lookahead.startswith('>'):
+-            match('>')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['v', '~', '<', 'T', '>']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in I")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('v'):
+-            match('v')
+-            parse_J()
+-            match('S')
+-            parse_I()
+-            parse_I()
+-        elif lookahead.startswith('~'):
+-            match('~')
+-            match('H')
+-            match('m')
+-        elif lookahead.startswith('<'):
+-            match('<')
+-            match('k')
+-            match('/')
+-            match('2')
+-        elif lookahead.startswith('T'):
+-            match('T')
+-            match('`')
+-        elif lookahead.startswith('>'):
+-            match('>')
+-        else:
+-            error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['v', '~', '<', 'T', '>']))
++    if lookahead.startswith('v'):
++        match('v')
++        parse_J()
++        match('S')
++        parse_I()
++        parse_I()
++    elif lookahead.startswith('~'):
+         match('~')
+         match('H')
+         match('m')
+@@ -185,6 +185,8 @@ def parse_N():
+     elif lookahead.startswith(';'):
+         match(';')
++    elif lookahead.startswith('@'):
++        match('@')
+     elif lookahead.startswith('m'):
+         match('m')
+         parse_J()

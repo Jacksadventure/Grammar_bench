@@ -1,0 +1,54 @@
+@@ -22,13 +22,8 @@ def parse_G():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('y'):
+-        match('y')
+-        while pos < len(tokens) and tokens[pos].startswith('.'):
+-            match('.')
+-            parse_L()
+-            parse_O()
+-            parse_D()
++    if lookahead.startswith('y'):
++        match('y')
++        parse_O()
+     elif lookahead.startswith('='):
+         match('=')
+     elif lookahead.startswith('a'):
+@@ -36,12 +31,14 @@ def parse_D():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in D")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('+'):
+-        match('+')
+-        match('W')
+-    else:
+-        error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['+', '']))
++    if pos >= len(tokens):
++        # Epsilon production
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('+'):
++        match('+')
++        parse_D()
++    # Epsilon for any other token
+ 
+ def parse_O():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('.'):
+-        match('.')
+-        parse_L()
+-        parse_O()
+-        parse_D()
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('.'):
++        match('.')
++        parse_L()
++        parse_O()
++        parse_D()
++        parse_O()
++    elif lookahead.startswith('s'):
++        match('s')
++        parse_V()
++    # Epsilon production for any other token

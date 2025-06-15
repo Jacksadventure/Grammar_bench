@@ -1,0 +1,72 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,27 +17,15 @@
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('$'):
+-        match('$')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('O'):
+-            match('O')
+-            parse_B()
+-            parse_D()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['O', '0']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('O'):
+-            match('O')
+-            parse_B()
+-            parse_D()
+-        elif lookahead.startswith('0'):
+-            match('0')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['O', '0']))
+-        match('(')
++    # <B> -> $ <X> <X> ( <B> | e <I> | epsilon
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('$'):
++            match('$')
++            parse_X()
++            parse_X()
++            match('(')
++            parse_B()
++        elif lookahead.startswith('e'):
++            match('e')
++            parse_I()
++        # else: epsilon production, do nothing
+ 
++def parse_X():
++    global pos, tokens
++    # <X> -> O <B> <D> | 0
++    if pos >= len(tokens):
++        error("Unexpected end of input in X")
++    lookahead = tokens[pos]
++    if lookahead.startswith('O'):
++        match('O')
++        parse_B()
++        parse_D()
++    elif lookahead.startswith('0'):
++        match('0')
++    else:
++        error("Unexpected token " + lookahead + " in X, expected one of: O, 0")
++
+ def parse_I():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -64,7 +52,7 @@
+ 
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('!'):
+-        match('!')
++    while pos < len(tokens) and tokens[pos].startswith('1'):
++        match('1')
+         match('H')
+```

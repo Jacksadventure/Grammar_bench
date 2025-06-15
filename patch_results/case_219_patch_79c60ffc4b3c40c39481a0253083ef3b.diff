@@ -1,0 +1,86 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,18 +17,13 @@
+ 
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('%'):
++    if pos < len(tokens) and tokens[pos].startswith('%'):
+         match('%')
+         match('e')
+         match('@')
+         match('=')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('i'):
+-            match('i')
+-        elif lookahead.startswith('='):
+-            match('=')
+-            parse_W()
+-            parse_V()
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['i', '=']))
++        parse_L()
++        parse_D()
+ 
+ def parse_K():
+     global pos, tokens
+@@ -37,10 +32,11 @@
+ 
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(':'):
++    if pos < len(tokens) and tokens[pos].startswith(':'):
+         match(':')
+         match('Y')
+         parse_N()
+         parse_Q()
++        parse_K()
+ 
+ def parse_W():
+     global pos, tokens
+@@ -59,9 +55,10 @@
+ 
+ def parse_G():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('9'):
++    if pos < len(tokens) and tokens[pos].startswith('9'):
+         match('9')
+         match('!')
+         match('R')
+         parse_A()
+         parse_A()
++        parse_G()
+ 
+ def parse_Q():
+     global pos, tokens
+@@ -69,14 +66,10 @@
+         error("Unexpected end of input in Q")
+     lookahead = tokens[pos]
+     if lookahead.startswith(';'):
++    if pos < len(tokens) and tokens[pos].startswith(';'):
+         match(';')
+         match('C')
+         match('&')
+         match('F')
+-        match('?')
+-    else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([';', '']))
++        parse_Q()
+ 
+ def parse_L():
+     global pos, tokens
+@@ -158,10 +151,11 @@
+ 
+ def parse_N():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('t'):
++    if pos < len(tokens) and tokens[pos].startswith('t'):
+         match('t')
+         match('J')
+         parse_Q()
+         parse_D()
+-        parse_N()
++        parse_N()
++        parse_N()

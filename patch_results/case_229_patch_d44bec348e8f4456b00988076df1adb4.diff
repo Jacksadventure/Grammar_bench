@@ -1,0 +1,26 @@
+@@ -25,8 +25,6 @@ def parse_A():
+         while pos < len(tokens) and tokens[pos].startswith('&'):
+             match('&')
+-        while pos < len(tokens) and tokens[pos].startswith('&'):
+-            match('&')
+         if pos >= len(tokens):
+             error("Unexpected end of input in Z")
+         lookahead = tokens[pos]
+@@ -111,7 +109,14 @@ def parse_G():
+     if lookahead.startswith('.'):
+         match('.')
+         parse_G()
+-        match("'")
+-        match('4')
++        match("'")
++        parse_G()
++    elif lookahead.startswith(''):
++        # Empty production
++        pass
+     else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['.', '']))
++        # This is an empty production case - no error needed
++        # G can be empty according to the grammar
++        pass
++
++def parse_C():

@@ -1,0 +1,48 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,26 +21,8 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('}'):
+         match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('^'):
+-            match('^')
+-            parse_B()
+-            parse_P()
+-            parse_B()
+-            parse_P()
+-        elif lookahead.startswith('J'):
+-            match('J')
+-            parse_U()
+-            parse_Z()
+-            parse_S()
+-            parse_H()
+-        elif lookahead.startswith('v'):
+-            match('v')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['^', 'J', 'v']))
++        parse_B()
+     elif lookahead.startswith('?'):
+         match('?')
+     else:
+@@ -73,15 +55,12 @@
+ 
+ def parse_S():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in S")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('#'):
++    # S can be empty (epsilon rule)
++    # No check for end of input or explicit error for unexpected token if not '#'
++    if pos < len(tokens) and tokens[pos].startswith('#'):
+         match('#')
+         match('%')
+         match('j')
+         match('<')
+-        parse_P()
+-    else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['#', '']))
++        parse_S()

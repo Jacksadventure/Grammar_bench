@@ -1,0 +1,18 @@
+@@ -153,10 +153,7 @@
+-def parse_G():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in G")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('S'):
+-        match('S')
+-        match('<')
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['S', '']))
++def parse_G():
++    global pos, tokens
++    # <G> ::= 'S' <G> | ε
++    if pos < len(tokens) and tokens[pos].startswith('S'):
++        match('S')
++        parse_G()
++    # epsilon production: do nothing when the next token is not 'S'

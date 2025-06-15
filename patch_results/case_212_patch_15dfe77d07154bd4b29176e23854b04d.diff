@@ -1,0 +1,97 @@
+@@ -22,6 +22,7 @@ def parse_X():
+         match('g')
+         match('R')
+         match('6')
+-        while pos < len(tokens) and tokens[pos].startswith("'"):
+-            match("'")
++        parse_J()
+     elif lookahead.startswith('|'):
+         match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('`'):
+-            match('`')
+-            match('9')
+-            match('c')
+-            parse_X()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-            match('n')
+-            parse_Q()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['`', 'n', 'N']))
+-        match('*')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('>'):
+-            match('>')
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            parse_Q()
+-            parse_Q()
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['>', 'A']))
+-        match('=')
++        parse_Q()
++        match('*')
++        parse_M()
++        match('=')
+     elif lookahead.startswith('5'):
+         match('5')
+     else:
+         error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['g', '|', '5']))
+@@ -69,7 +70,7 @@ def parse_Q():
+     if lookahead.startswith('`'):
+         match('`')
+-        match('9')
++        match('U')
+         match('c')
+         parse_X()
+     elif lookahead.startswith('n'):
+         match('n')
+@@ -82,3 +83,39 @@ def parse_Q():
+     else:
+         error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['`', 'n', 'N']))
+ 
++def parse_M():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in M")
++    lookahead = tokens[pos]
++    if lookahead.startswith('>'):
++        match('>')
++    elif lookahead.startswith('A'):
++        match('A')
++        parse_Q()
++        parse_Q()
++    else:
++        error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['>', 'A']))
++
++
++def parse_H():
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # epsilon
++    lookahead = tokens[pos]
++    if lookahead.startswith('_'):
++        match('_')
++        parse_H()
++    # else epsilon
++
++
++def parse_J():
++    global pos, tokens
++    if pos >= len(tokens):
++        return  # epsilon
++    lookahead = tokens[pos]
++    if lookahead.startswith("'"):
++        match("'")
++        parse_J()
++    elif lookahead.startswith('I'):
++        match('I')
++        parse_H()
++    # else epsilon

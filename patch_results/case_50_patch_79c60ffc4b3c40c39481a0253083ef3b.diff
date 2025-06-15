@@ -1,0 +1,45 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -24,15 +24,7 @@
+         match('-')
+         match('(')
+         match('s')
+         match('=')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in E")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-            parse_T()
+-            match('J')
+-            parse_K()
+-        elif lookahead.startswith('`'):
+-            match('`')
+-        else:
+-            error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['e', '`']))
++        parse_E()
+     elif lookahead.startswith('J'):
+         match('J')
+     else:
+         error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['-', 'J']))
+@@ -59,17 +48,17 @@
+ def parse_K():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in K")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('V'):
+-        match('V')
++    if lookahead.startswith('q'):
++        match('q')
+         parse_E()
+     elif lookahead.startswith('a'):
+         match('a')
+         match('#')
+         match('D')
+         match('R')
+     elif lookahead.startswith('F'):
+         match('F')
+     else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['V', 'a', 'F']))
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['q', 'a', 'F']))

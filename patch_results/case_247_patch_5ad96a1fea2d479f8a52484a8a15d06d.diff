@@ -1,0 +1,26 @@
+@@ -39,7 +39,7 @@ def parse_X():
+         match(',')
+-        elif lookahead.startswith('K'):
++        elif lookahead.startswith('c') or lookahead.startswith('y'):
+             parse_K()
+             match('y')
+             parse_X()
+
+@@ -47,7 +47,7 @@ def parse_X():
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['d', '*', '_', 'K']))
++            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['d', '*', '_', 'c', 'y']))
+
+@@ -114,9 +114,9 @@ def parse_L():
+     if lookahead.startswith('T'):
+         match('T')
+         match('{')
+         match('>')
+         match('f')
+         parse_L()
+-    elif lookahead.startswith('W'):
+-        match('W')
++    elif lookahead.startswith('w'):
++        match('w')
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'W']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'w']))

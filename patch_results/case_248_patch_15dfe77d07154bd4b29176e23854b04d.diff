@@ -1,0 +1,68 @@
+@@ -19,18 +19,8 @@ def parse_R():
+-    while pos < len(tokens) and tokens[pos].startswith('>'):
+-        match('>')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('}'):
+-            match('}')
+-            parse_D()
+-            parse_P()
+-            parse_V()
+-            parse_M()
+-        elif lookahead.startswith('M'):
+-            parse_M()
+-            match('o')
+-        elif lookahead.startswith('7'):
+-            match('7')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['}', 'M', '7']))
++    while pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        parse_S()
+ 
+@@ -54,7 +44,17 @@ def parse_V():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('J'):
+-        match('J')
+-        parse_Z()
+-        parse_Z()
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('J'):
++        match('J')
++        parse_Z()
++        parse_Z()
++        parse_V()
++    elif pos < len(tokens) and tokens[pos].startswith('4'):
++        match('4')
++        parse_Q()
++    else:
++        # epsilon production
++        return
+ 
+@@ -107,10 +107,8 @@ def parse_P():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in P")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('o'):
+-        match('o')
+-        match('|')
+-    else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['o', '']))
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('o'):
++        match('o')
++    # epsilon production allowed
+ 
+@@ -118,6 +116,8 @@ def parse_input(input_str):
+-    tokens = list(input_str)
+-    pos = 0
+-    parse_R()
+-    print("Input accepted.")
++    tokens = list(input_str)
++    pos = 0
++    parse_R()
++    if pos != len(tokens):
++        error("Unexpected trailing input")
++    print("Input accepted.")

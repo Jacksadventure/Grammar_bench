@@ -1,0 +1,69 @@
+@@ -19,14 +19,8 @@
+ def parse_G():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('{'):
+         match('{')
+         match('1')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('q'):
+-            match('q')
+-            match("'")
+-            match('|')
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['q', '']))
++        parse_K()
+         match('R')
++    if pos < len(tokens) and tokens[pos].startswith('Y'):
++        match('Y')
++        parse_Z()
+@@ -33,11 +27,6 @@
+ def parse_K():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in K")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('q'):
++    if pos < len(tokens) and tokens[pos].startswith('q'):
+         match('q')
+         match("'")
+-        match('|')
+-    else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['q', '']))
++        parse_K()
+@@ -45,9 +34,28 @@
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('f'):
++    if pos < len(tokens) and tokens[pos].startswith('f'):
+         match('f')
+         match('|')
+         match('d')
++        parse_Z()
++    elif pos < len(tokens) and tokens[pos].startswith('H'):
++        match('H')
++        parse_E()
++        parse_D()
++
++def parse_D():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('Y'):
++        match('Y')
++        parse_D()
+ 
++def parse_E():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('P'):
++        match('P')
++        parse_G()
++        match('-')
++        parse_G()
++        parse_K()
++    elif pos < len(tokens) and tokens[pos].startswith('b'):
++        match('b')
++    else:
++        parse_Z()
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)

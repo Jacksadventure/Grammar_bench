@@ -1,0 +1,96 @@
+@@ -21,17 +21,7 @@
+         match('e')
+         match('@')
+         match('=')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in L")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('i'):
+-            match('i')
+-        elif lookahead.startswith('='):
+-            match('=')
+-            parse_W()
+-            parse_V()
+-        else:
+-            error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['i', '=']))
++        parse_L()
+ 
+ def parse_K():
+     global pos, tokens
+@@ -66,20 +56,16 @@
+         parse_A()
+ 
+ def parse_Q():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in Q")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith(';'):
++    if pos < len(tokens) and tokens[pos].startswith(';'):
+         match(';')
+         match('C')
+         match('&')
+         match('F')
+-        match('?')
+-    else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([';', '']))
++        parse_Q()
+ 
+ def parse_L():
+     global pos, tokens
+@@ -131,16 +117,19 @@
+         error("Unexpected end of input in V")
+     lookahead = tokens[pos]
+     if lookahead.startswith('!'):
+         match('!')
+-    elif lookahead.startswith('W'):
++    elif lookahead.startswith('`') or lookahead.startswith('E'):
+         parse_W()
+         match('Y')
+         parse_A()
+-    elif lookahead.startswith('D'):
++    elif lookahead.startswith('%') or \
++         lookahead.startswith('t') or \
++         lookahead.startswith('9') or \
++         lookahead.startswith('@'):
+         parse_D()
+         parse_O()
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['!', 'W', 'D']))
++        expected_tokens = ['!', '`', 'E', '%', 't', '9', '@']
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(expected_tokens))
+ 
+ def parse_O():
+     global pos, tokens
+@@ -148,13 +137,13 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in O")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('N'):
++    if lookahead.startswith('t') or lookahead.startswith('9'):
+         parse_N()
+         parse_G()
+     elif lookahead.startswith('@'):
+         match('@')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['N', '@']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['t', '9', '@']))
+ 
+ def parse_N():
+     global pos, tokens
+@@ -162,13 +151,13 @@
+ 
+ def parse_N():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('t'):
++    if pos < len(tokens) and tokens[pos].startswith('t'):
+         match('t')
+         match('J')
+         parse_Q()
+         parse_D()
+         parse_N()
+-
++        parse_N()
+ 
+ def parse_input(input_str):
+     global tokens, pos

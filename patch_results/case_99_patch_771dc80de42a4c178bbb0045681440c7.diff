@@ -1,0 +1,45 @@
+@@ -22,10 +22,9 @@
+     if lookahead.startswith('V'):
+         match('V')
+-        while pos < len(tokens) and tokens[pos].startswith('$'):
+-            match('$')
++        parse_N()
+         if pos >= len(tokens):
+-            error("Unexpected end of input in W")
++            error("Unexpected end of input, expected start of W")
+         lookahead = tokens[pos]
+         if lookahead.startswith('y'):
+             match('y')
+@@ -41,7 +40,7 @@
+         else:
+             error("Unexpected token " + lookahead + " in W, expected one of: " + ", ".join(['y', 'I', 'E', '@']))
+         if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
++            error("Unexpected end of input, expected start of Y")
+         lookahead = tokens[pos]
+         if lookahead.startswith('>'):
+             match('>')
+@@ -66,16 +65,19 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in H")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('L'):
++    if (lookahead.startswith('k') or
++        lookahead.startswith('?') or
++        lookahead.startswith('s') or
++        lookahead.startswith('(') or
++        lookahead.startswith('#')):
+         parse_L()
+         match('V')
+         match(';')
+         match('|')
+-    elif lookahead.startswith('4'):
+-        match('4')
++    elif lookahead.startswith('O'):
++        match('O')
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['L', '4']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['k', '?', 's', '(', '#', 'O']))
+ 
+ def parse_N():
+     global pos, tokens

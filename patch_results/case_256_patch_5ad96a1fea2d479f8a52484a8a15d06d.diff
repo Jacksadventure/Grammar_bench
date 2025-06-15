@@ -1,0 +1,66 @@
+@@ -18,35 +18,5 @@ def parse_Y():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('a'):
+-        match('a')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in U")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('['):
+-            match('[')
+-            match('-')
+-            parse_U()
+-        elif lookahead.startswith('A'):
+-            match('A')
+-            parse_D()
+-        else:
+-            error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['[', '', 'A']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Y'):
+-            parse_Y()
+-            parse_Z()
+-        elif lookahead.startswith(','):
+-            match(',')
+-            parse_C()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['Y', '', ',']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('X'):
+-            match('X')
+-            parse_B()
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['X', '']))
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('a'):
++        match('a')
++        parse_U()
++        parse_Z()
++        parse_B()
+@@ -55,3 +55,7 @@ def parse_U():
+-    while pos < len(tokens) and tokens[pos].startswith('['):
+-        match('[')
+-        match('-')
++    if pos < len(tokens) and tokens[pos].startswith('['):
++        match('[')
++        match('-')
++        parse_U()
++    elif pos < len(tokens) and tokens[pos].startswith('A'):
++        match('A')
++        parse_D()
+@@ -96,2 +96,6 @@ def parse_Z():
+-    while pos < len(tokens) and tokens[pos].startswith('Y'):
+-        parse_Y()
++    if pos < len(tokens) and tokens[pos].startswith('a'):
++        parse_Y()
++        parse_Z()
++    elif pos < len(tokens) and tokens[pos].startswith(','):
++        match(',')
++        parse_C()
+@@ -101,2 +101,2 @@ def parse_B():
+-    while pos < len(tokens) and tokens[pos].startswith('X'):
+-        match('X')
++    while pos < len(tokens) and tokens[pos].startswith('s'):
++        match('s')

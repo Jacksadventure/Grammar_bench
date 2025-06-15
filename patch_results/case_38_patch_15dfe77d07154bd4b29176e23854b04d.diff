@@ -1,0 +1,31 @@
+@@ -21,13 +21,8 @@ def parse_D():
+     lookahead = tokens[pos]
+     if lookahead.startswith('@'):
+         match('@')
+         match('q')
+-        while pos < len(tokens) and tokens[pos].startswith('r'):
+-            match('r')
+-            match(',')
+-            parse_M()
+-            match('Y')
+-            parse_D()
++        parse_M()
+     elif lookahead.startswith(')'):
+         match(')')
+         match('j')
+         match('(')
+@@ -40,8 +35,13 @@ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('r'):
+-        match('r')
+-        match(',')
+-        parse_M()
+-        match('Y')
+-        parse_D()
++    if pos < len(tokens) and tokens[pos].startswith('r'):
++        match('r')
++        match(',')
++        parse_M()
++        match('v')
++        parse_D()
++        parse_M()

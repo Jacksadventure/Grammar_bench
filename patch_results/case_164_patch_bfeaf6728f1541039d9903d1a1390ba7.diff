@@ -1,0 +1,71 @@
+--- parser.py
++++ parser.py
+@@ -19,41 +19,10 @@ def parse_Q():
+-    while pos < len(tokens) and tokens[pos].startswith('<'):
+-        match('<')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-            match('=')
+-            match('P')
+-        elif lookahead.startswith('E'):
+-            match('E')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'E']))
+-        match('U')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('<'):
+-            match('<')
+-            parse_R()
+-            match('U')
+-            parse_Q()
+-            parse_R()
+-            parse_Q()
+-        elif lookahead.startswith('|'):
+-            match('|')
+-            parse_L()
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['<', '', '|']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('e'):
+-            match('e')
+-            match('=')
+-            match('P')
+-        elif lookahead.startswith('E'):
+-            match('E')
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'E']))
++    # <Q> -> '<' <R> 'U' <Q> <R> <Q> | '|' <L> | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('<'):
++        match('<')
++        parse_R()
++        match('U')
++        parse_Q()
++        parse_R()
++        parse_Q()
++    elif pos < len(tokens) and tokens[pos].startswith('|'):
++        match('|')
++        parse_L()
++    # else epsilon
+
+ def parse_R():
+     global pos, tokens
+@@ -69,5 +38,7 @@ def parse_R():
+     lookahead = tokens[pos]
+     if lookahead.startswith('e'):
+         match('e')
+         match('=')
+         match('P')
+-    elif lookahead.startswith('E'):
+-        match('E')
++    elif lookahead.startswith('q'):
++        match('q')
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'E']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['e', 'q']))

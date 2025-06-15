@@ -1,0 +1,10 @@
+@@ -200,7 +200,7 @@ def parse_P():
+     if lookahead.startswith(']'):
+         match(']')
+-    elif lookahead.startswith('K'):
+-        parse_K()
++    elif lookahead.startswith('1'):
++        match('1')
+     else:
+-        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join([']', 'K']))
++        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join([']', '1']))

@@ -1,0 +1,69 @@
+Looking at the grammar and the parser code, I can see several issues:
+
+1. In `parse_S()`, the grammar shows `["^", "|", "<S>"]` but the parser only matches `"^"` 
+2. In `parse_W()`, there's an extra `parse_X()` call at the end that doesn't match the grammar
+3. In `parse_X()`, it's missing the recursive call to `parse_X()`
+4. The `parse_W()` function has incorrect error messages and logic
+
+@@ -17,35 +17,26 @@ def parse_W():
+ def parse_W():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('n'):
+         match('n')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_H()
+-            match('7')
+-            match('[')
+-            parse_H()
+-        elif lookahead.startswith('('):
+-            match('(')
+-            parse_N()
+-            parse_S()
+-            match('n')
+-            parse_Y()
+-        elif lookahead.startswith(','):
+-            match(',')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['9', '(', ',']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('h'):
+-            match('h')
+-            parse_G()
+-            match('*')
+-            match(',')
+-            match('9')
+-            parse_X()
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['h', '']))
++        parse_H()
++        parse_X()
++        parse_W()
+ 
+ def parse_H():
+@@ -81,8 +72,9 @@ def parse_R():
+ def parse_X():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('h'):
+         match('h')
+         parse_G()
+         match('*')
+         match(',')
+         match('9')
++        parse_X()
+ 
+ def parse_S():
+@@ -90,7 +82,8 @@ def parse_S():
+ def parse_S():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('^'):
+         match('^')
++        match('|')
+         parse_S()
+ 
+ def parse_A():

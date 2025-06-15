@@ -1,0 +1,43 @@
+@@ -17,22 +17,22 @@ def parse_P():
+-    while pos < len(tokens) and tokens[pos].startswith('?'):
+-        match('?')
+-        match('h')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in P")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('?'):
+-            match('?')
+-            match('h')
+-            parse_P()
+-            match('W')
+-            parse_P()
+-        elif lookahead.startswith('d'):
+-            match('d')
+-            parse_C()
+-            parse_J()
+-        else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['?', '', 'd']))
+-        match('W')
++    if pos < len(tokens):
++        if tokens[pos].startswith('?'):
++            # Production: ? h P W P
++            match('?')
++            match('h')
++            parse_P()
++            match('W')
++            parse_P()
++        elif tokens[pos].startswith('d'):
++            # Production: d C J
++            match('d')
++            parse_C()
++            parse_J()
++        # else epsilon, do nothing
+ 
+@@ -39,5 +39,5 @@ def parse_C():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('x'):
+-        match('x')
+-        match('G')
++    while pos < len(tokens) and tokens[pos].startswith('x'):
++        match('x')
++        match('N')

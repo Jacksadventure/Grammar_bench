@@ -1,0 +1,11 @@
+--- parser.py
++++ parser.py
+@@ -110,7 +110,7 @@ def parse_V():
+-    if lookahead.startswith('m'):
++    if lookahead.startswith('o'):
+@@ -111,7 +111,7 @@ def parse_V():
+-        match('m')
++        match('o')
+@@ -119,7 +119,7 @@ def parse_V():
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['m', 'w']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['o', 'w']))

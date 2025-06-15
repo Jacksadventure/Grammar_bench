@@ -1,0 +1,143 @@
+--- a/parser.py
++++ b/parser.py
+@@ -17,63 +17,12 @@
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('#'):
+-        match('#')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in M")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('I'):
+-            parse_I()
+-        else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['I']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(':'):
+-            match(':')
+-            match('+')
+-            parse_I()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        elif lookahead.startswith('s'):
+-            match('s')
+-            parse_Z()
+-            match('K')
+-            match('Y')
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            match('c')
+-            match('`')
+-            parse_B()
+-        elif lookahead.startswith('$'):
+-            match('$')
+-            match('p')
+-            match('J')
+-            parse_P()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join([':', 'z', 's', '9', '$']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in R")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(':'):
+-            match(':')
+-            match('+')
+-            parse_I()
+-        elif lookahead.startswith('z'):
+-            match('z')
+-        elif lookahead.startswith('s'):
+-            match('s')
+-            parse_Z()
+-            match('K')
+-            match('Y')
+-        elif lookahead.startswith('9'):
+-            match('9')
+-            match('c')
+-            match('`')
+-            parse_B()
+-        elif lookahead.startswith('$'):
+-            match('$')
+-            match('p')
+-            match('J')
+-            parse_P()
+-        else:
+-            error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join([':', 'z', 's', '9', '$']))
++    if pos < len(tokens) and tokens[pos].startswith('#'):
++        match('#')
++        parse_M()
++        parse_R()
++        parse_R()
++        parse_A()
+ 
+ def parse_B():
+     global pos, tokens
+@@ -87,9 +36,38 @@
+         match('s')
+         parse_Q()
+-
+-def parse_Z():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('H'):
+-        match('H')
+-        parse_M()
+-
++        parse_B()
++
++def parse_R():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in R")
++    lookahead = tokens[pos]
++    if lookahead.startswith(':'):
++        match(':')
++        match('+')
++        parse_I()
++    elif lookahead.startswith('z'):
++        match('z')
++    elif lookahead.startswith('s'):
++        match('s')
++        parse_Z()
++        match('K')
++        match('Y')
++    elif lookahead.startswith('9'):
++        match('9')
++        match('c')
++        match('`')
++        parse_B()
++    elif lookahead.startswith('$'):
++        match('$')
++        match('p')
++        match('J')
++        parse_P()
++    else:
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join([':', 'z', 's', '9', '$']))
++
++def parse_Z():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('H'):
++        match('H')
++        parse_M()
++        parse_Z()
+ 
+ def parse_P():
+@@ -166,13 +140,7 @@
+     elif lookahead.startswith('@'):
+         match('@')
+     else:
+         error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['4', 'N', '>', '3', '@']))
+ 
+ def parse_M():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in M")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('I'):
+-        parse_I()
+-    else:
+-        error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['I']))
++    match('j')
+ 
+ def parse_Q():
+     global pos, tokens

@@ -1,0 +1,44 @@
+--- a/parser_original.py
++++ b/parser_modified.py
+@@ -23,13 +23,7 @@
+         match('c')
+-        while pos < len(tokens) and tokens[pos].startswith('#'):
+-            match('#')
+-            match('m')
+-            match('3')
+-            match('L')
+-            match('P')
++        parse_Y()
+         match('3')
+-        while pos < len(tokens) and tokens[pos].startswith('F'):
+-            match('F')
+-            match('s')
+-            match('`')
++        parse_Z()
+         match('|')
+     elif lookahead.startswith('['):
+         match('[')
+@@ -38,3 +32,30 @@
+         error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['c', '[']))
+ 
++def parse_Y():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('#'):
++        match('#')
++        match('!')
++        match('3')
++        match('L')
++        match('P')
++        parse_Y()
++
++def parse_Z():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('F'):
++        match('F')
++        match('s')
++        match('`')
++        parse_Z()
++
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)

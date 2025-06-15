@@ -1,0 +1,94 @@
+--- a/parser.py
++++ b/parser.py
+@@ -26,36 +26,5 @@
+         match('(')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('}'):
+-            match('}')
+-            parse_F()
+-            match('_')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            match('R')
+-        elif lookahead.startswith('R'):
+-            match('R')
+-            match('8')
+-        elif lookahead.startswith('j'):
+-            match('j')
+-        elif lookahead.startswith('A'):
+-            parse_A()
+-            match('p')
+-            parse_U()
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['}', "'", 'R', 'j', 'A']))
+-        match('h')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in P")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('w'):
+-            match('w')
+-            match('m')
+-        elif lookahead.startswith('='):
+-            match('=')
+-            match('4')
+-        elif lookahead.startswith('G'):
+-            match('G')
+-        else:
+-            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['w', '=', 'G']))
++        parse_S()
++        match('h')
++        parse_P()
+     elif lookahead.startswith('I'):
+         match('I')
+@@ -63,36 +32,5 @@
+     elif lookahead.startswith('I'):
+         match('I')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('}'):
+-            match('}')
+-            parse_F()
+-            match('_')
+-        elif lookahead.startswith("'"):
+-            match("'")
+-            match('R')
+-        elif lookahead.startswith('R'):
+-            match('R')
+-            match('8')
+-        elif lookahead.startswith('j'):
+-            match('j')
+-        elif lookahead.startswith('A'):
+-            parse_A()
+-            match('p')
+-            parse_U()
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['}', "'", 'R', 'j', 'A']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('4'):
+-            match('4')
+-            parse_A()
+-            parse_B()
+-            parse_B()
+-            match(';')
+-        elif lookahead.startswith('t'):
+-            match('t')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['4', 't']))
++        parse_S()
++        parse_A()
+     elif lookahead.startswith('z'):
+         match('z')
+@@ -173,7 +141,7 @@
+     if lookahead.startswith('M'):
+         match('M')
+     elif lookahead.startswith('='):
+-        match('=')
++        match('|')
+         parse_T()
+     else:
+         error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['M', '=']))

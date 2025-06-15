@@ -1,0 +1,111 @@
+@@ -20,38 +20,4 @@
+     while pos < len(tokens) and tokens[pos].startswith('<'):
+         match('<')
+-            if pos >= len(tokens):
+-                error("Unexpected end of input in G")
+-            lookahead = tokens[pos]
+-            if lookahead.startswith('w'):
+-                match('w')
+-            elif lookahead.startswith('V'):
+-                match('V')
+-                parse_O()
+-                parse_R()
+-                parse_G()
+-            elif lookahead.startswith('H'):
+-                match('H')
+-            else:
+-                error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['w', 'V', 'H']))
+-            if pos >= len(tokens):
+-                error("Unexpected end of input in E")
+-            lookahead = tokens[pos]
+-            if lookahead.startswith('+'):
+-                match('+')
+-                parse_R()
+-                parse_E()
+-                parse_O()
+-            elif lookahead.startswith('G'):
+-                parse_G()
+-            elif lookahead.startswith('8'):
+-                match('8')
+-                parse_E()
+-                parse_R()
+-            elif lookahead.startswith('M'):
+-                match('M')
+-                parse_G()
+-                parse_U()
+-                parse_P()
+-                parse_K()
+-            else:
+-                error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['+', 'G', '8', 'M']))
++            parse_G()
++            parse_E()
+         match('}')
+@@ -66,7 +32,7 @@
+         parse_R()
+         parse_E()
+         parse_O()
+-    elif lookahead.startswith('G'):
++    elif lookahead.startswith('w') or lookahead.startswith('V') or lookahead.startswith('H'):
+         parse_G()
+     elif lookahead.startswith('8'):
+         match('8')
+@@ -79,7 +45,7 @@
+         parse_P()
+         parse_K()
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['+', 'G', '8', 'M']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['+', 'w', 'V', 'H', '8', 'M']))
+ 
+ def parse_G():
+     global pos, tokens
+@@ -100,10 +66,9 @@
+ 
+ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('a'):
++    if pos < len(tokens) and tokens[pos].startswith('a'):
+         match('a')
++        parse_U()
+ 
+ def parse_O():
+     global pos, tokens
+@@ -127,7 +92,7 @@
+         match('b')
+         parse_R()
+         match('?')
+-        parse_U()
+-    elif lookahead.startswith('E'):
++        parse_U() # O -> b R ? U
++    elif lookahead.startswith('w') or lookahead.startswith('V') or lookahead.startswith('H') or lookahead.startswith('8') or lookahead.startswith('M'): # O -> E R G U O (First(E) - '+')
+         parse_E()
+         parse_R()
+         parse_G()
+@@ -137,29 +102,29 @@
+     elif lookahead.startswith('%'):
+         match('%')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['+', 'J', '(', 'b', 'E', '%']))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['+', 'J', '(', 'b', 'w', 'V', 'H', '8', 'M', '%']))
+ 
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('M'):
++    if pos < len(tokens) and tokens[pos].startswith('M'):
+         match('M')
+         match('c')
+         parse_O()
++        parse_R()
+ 
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+         match('}')
+-        match('i')
++        parse_P()
+         match('o')
++        parse_K()
+ 
+ def parse_input(input_str):
+     global tokens, pos

@@ -1,0 +1,29 @@
+@@ -22,8 +22,6 @@ def parse_U():
+         match('6')
+-        while pos < len(tokens) and tokens[pos].startswith('2'):
+-            match('2')
+-            parse_N()
+-            match('F')
+     elif lookahead.startswith('('):
+         match('(')
+
+@@ -37,7 +35,7 @@ def parse_N():
+         match('D')
+-        match(']')
++        parse_O()
+         match('K')
+         parse_U()
+         match('}')
+
+@@ -42,6 +40,12 @@ def parse_N():
+     match('}')
+ 
+ def parse_input(input_str):
++def parse_O():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('2'):
++        match('2')
++        parse_N()
++        match('F')
++
+ def parse_input(input_str):

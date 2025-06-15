@@ -1,0 +1,28 @@
+--- a/parser.py
++++ b/parser.py
+@@ -23,21 +23,9 @@
+         match('y')
+         match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in H")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('/'):
+-            match('/')
+-            match('y')
+-            match("'")
+-            parse_H()
+-            match('Z')
+-        elif lookahead.startswith('L'):
+-            match('L')
+-        else:
+-            error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['/', 'L']))
+-        match('Z')
+-    elif lookahead.startswith('L'):
+-        match('L')
++        parse_H()
++        match('Z')
++    elif lookahead.startswith('s'):
++        match('s')
+     else:
+-        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['/', 'L']))
++        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['/', 's']))

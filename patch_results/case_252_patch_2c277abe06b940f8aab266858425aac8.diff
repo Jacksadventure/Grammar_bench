@@ -1,0 +1,134 @@
+```diff
+@@ -24,55 +24,4 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_C()
+-            parse_F()
+-            parse_N()
+-        elif lookahead.startswith('r'):
+-            match('r')
+-            parse_R()
+-            parse_R()
+-            parse_Y()
+-        elif lookahead.startswith('?'):
+-            match('?')
+-            parse_Y()
+-            parse_C()
+-        elif lookahead.startswith('b'):
+-            match('b')
+-            parse_D()
+-            match(']')
+-        elif lookahead.startswith('A'):
+-            match('A')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['9', 'r', '?', 'b', 'A']))
+-        while pos < len(tokens) and tokens[pos].startswith(','):
+-            match(',')
+-            parse_Y()
+-            parse_S()
+-        match('y')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_C()
+-            parse_F()
+-            parse_N()
+-        elif lookahead.startswith('r'):
+-            match('r')
+-            parse_R()
+-            parse_R()
+-            parse_Y()
+-        elif lookahead.startswith('?'):
+-            match('?')
+-            parse_Y()
+-            parse_C()
+-        elif lookahead.startswith('b'):
+-            match('b')
+-            parse_D()
+-            match(']')
+-        elif lookahead.startswith('A'):
+-            match('A')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['9', 'r', '?', 'b', 'A']))
++        parse_N()
++        parse_K()
++        match('y')
++        parse_N()
+@@ -81,44 +30,4 @@
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('Q'):
+-            match('Q')
+-            parse_Y()
+-        elif lookahead.startswith('f'):
+-            match('f')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['Q', 'f']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in N")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('9'):
+-            match('9')
+-            parse_C()
+-            parse_F()
+-            parse_N()
+-        elif lookahead.startswith('r'):
+-            match('r')
+-            parse_R()
+-            parse_R()
+-            parse_Y()
+-        elif lookahead.startswith('?'):
+-            match('?')
+-            parse_Y()
+-            parse_C()
+-        elif lookahead.startswith('b'):
+-            match('b')
+-            parse_D()
+-            match(']')
+-        elif lookahead.startswith('A'):
+-            match('A')
+-        else:
+-            error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['9', 'r', '?', 'b', 'A']))
+-        while pos < len(tokens) and tokens[pos].startswith('%'):
+-            match('%')
+-            match('t')
+-            match('3')
+-            match('G')
+-            parse_E()
+-        while pos < len(tokens) and tokens[pos].startswith('+'):
+-            match('+')
+-            parse_E()
++        parse_F()
++        parse_N()
++        parse_R()
++        parse_U()
+@@ -160,2 +69,8 @@
+ 
++def parse_U():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('+'):
++        match('+')
++        parse_E()
++
+ def parse_F():
+@@ -231,10 +145,11 @@
+ def parse_E():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('B'):
+-        match('B')
++    while pos < len(tokens) and tokens[pos].startswith('z'):
++        match('z')
+         parse_E()
+         parse_C()
++        parse_E()
+ 
+ def parse_input(input_str):
+     global tokens, pos
+
+```

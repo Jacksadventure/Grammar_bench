@@ -1,0 +1,45 @@
+@@ -62,18 +62,4 @@ def parse_X():
+-    elif lookahead.startswith('n'):
+-        match('n')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('0'):
+-            match('0')
+-            match('0')
+-            parse_A()
+-            match('H')
+-            parse_E()
+-        elif lookahead.startswith('n'):
+-            match('n')
+-            parse_X()
+-        elif lookahead.startswith('d'):
+-            match('d')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['0', 'n', 'd']))
++    elif lookahead.startswith('n'):
++        match('n')
++        parse_X()
+@@ -80,7 +66,8 @@ def parse_X():
+     elif lookahead.startswith('d'):
+         match('d')
+     else:
+-        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['0', 'n', 'd']))
++        error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['0', 'n', 'd']))
+ 
+ def parse_A():
+@@ -127,10 +103,8 @@ def parse_E():
+ def parse_F():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in F")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('>'):
+-        match('>')
+-        match('~')
+-    else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['>', '']))
++    if pos < len(tokens) and tokens[pos].startswith('>'):
++        match('>')
++        parse_F()
++    # epsilon: do nothing

@@ -1,0 +1,100 @@
+--- a/parser.py
++++ b/parser.py
+@@ -21,7 +21,7 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith(')'):
+         match(')')
+-        while pos < len(tokens) and tokens[pos].startswith(';'):
+-            match(';')
+-            match('J')
+-            parse_Y()
++        parse_B()
+     elif lookahead.startswith('.'):
+         match('.')
+     else:
+@@ -57,11 +57,18 @@
+ 
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(';'):
+-        match(';')
+-        match('J')
+-        parse_Y()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith(';'):
++            match(';')
++            match('J')
++            parse_Y()
++            parse_B()
++        elif lookahead.startswith('U'):
++            match('U')
++            parse_T()
+ 
+ def parse_Y():
+     global pos, tokens
+@@ -88,11 +95,29 @@
+         error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['S', '_', ';', 'd', 'N']))
+ 
++def parse_Z():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in Z")
++    lookahead = tokens[pos]
++    if lookahead.startswith('j'):
++        match('j')
++        parse_M()
++    elif lookahead.startswith('0') or lookahead.startswith('$') or lookahead.startswith('{'):
++        parse_O()
++    elif lookahead.startswith('S'):
++        match('S')
++        parse_F()
++    else:
++        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['j', '0', '$', '{', 'S']))
++
++
+ def parse_T():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in T")
+     lookahead = tokens[pos]
+@@ -103,7 +132,7 @@
+         parse_T()
+         match('N')
+         match(']')
+         match('9')
+     elif lookahead.startswith('-'):
+         match('-')
+     elif lookahead.startswith('{'):
+         match('{')
+-    elif lookahead.startswith('O'):
++    elif lookahead.startswith('0') or lookahead.startswith('$') or lookahead.startswith('{'):
+         parse_O()
+         match('@')
+         match('!')
+@@ -124,14 +153,19 @@
+         match('$')
+         match('S')
+         match('+')
+-    elif lookahead.startswith("'"):
+-        match("'")
++    elif lookahead.startswith('{'):
++        match('{')
+     else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['0', '$', "'"]))
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['0', '$', '{']))
+ 
+ def parse_H():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('b'):
+-        match('b')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('b'):
++            match('b')
++            parse_H()
++        elif lookahead.startswith('='):
++            match('=')
++            parse_Z()
+ 
+ def parse_F():

@@ -1,0 +1,60 @@
+@@ -22,14 +22,8 @@ def parse_K():
+     if lookahead.startswith('8'):
+         match('8')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('8'):
+-            match('8')
+-            parse_K()
+-            match("'")
+-            parse_C()
+-        elif lookahead.startswith('D'):
+-            match('D')
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['8', 'D']))
++        parse_K()
+         match("'")
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('@'):
+-            match('@')
+-            match('!')
+-        elif lookahead.startswith('o'):
+-            match('o')
+-            match('m')
+-        elif lookahead.startswith('^'):
+-            match('^')
+-            match('i')
+-            parse_B()
+-            match('u')
+-        elif lookahead.startswith(':'):
+-            match(':')
+-            match("'")
+-            match('M')
+-        elif lookahead.startswith('6'):
+-            match('6')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['@', 'o', '^', ':', '6']))
++        parse_C()
+@@ -151,5 +145,7 @@ def parse_Q():
+         parse_F()
+     elif lookahead.startswith('f'):
+         match('f')
++    elif lookahead.startswith('t'):
++        match('t')
+     elif lookahead.startswith('m'):
+         match('m')
+@@ -160,4 +156,4 @@ def parse_Q():
+         parse_C()
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['j', 'f', 'm', 'R']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['j', 'f', 't', 'm', 'R']))
+@@ -164,4 +160,8 @@ def parse_I():
+     while pos < len(tokens) and tokens[pos].startswith('e'):
+         match('e')
+         parse_Q()
++        parse_I()
++        break
++    # Empty production - do nothing if no 'e' found

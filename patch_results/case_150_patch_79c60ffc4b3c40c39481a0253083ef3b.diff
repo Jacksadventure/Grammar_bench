@@ -1,0 +1,140 @@
+--- a/parser.py
++++ b/parser.py
+@@ -23,24 +23,17 @@
+     if lookahead.startswith('6'):
+         match('6')
+-        while pos < len(tokens) and tokens[pos].startswith('d'):
+-            match('d')
+-            parse_S()
+-            match('(')
+-            parse_W()
+-            match("'")
++        parse_T()
+     elif lookahead.startswith('5'):
+         match('5')
+-        while pos < len(tokens) and tokens[pos].startswith('^'):
+-            match('^')
+-            parse_W()
+-            match('*')
+-        while pos < len(tokens) and tokens[pos].startswith('F'):
+-            match('F')
+-            match('u')
+-            match('/')
+-            match('o')
++        parse_W()
++        parse_M()
+         match('+')
+     elif lookahead.startswith('I'):
+         match('I')
+         match(',')
+     elif lookahead.startswith('h'):
+         match('h')
+         match('=')
+     elif lookahead.startswith('s'):
+         match('s')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('#'):
+-            match('#')
+-            match('8')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['#', '']))
++        parse_S()
+         match('B')
+         match('r')
+     elif lookahead.startswith('e'):
+         match('e')
+     else:
+         error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['6', '5', 'I', 'h', 's', 'e']))
+ 
+ def parse_S():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in S")
+     lookahead = tokens[pos]
+     if lookahead.startswith('#'):
+         match('#')
+-        match('8')
+-    else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['#', '']))
++        parse_S()
+ 
+ def parse_T():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('d'):
++    if pos < len(tokens) and tokens[pos].startswith('d'):
+         match('d')
+         parse_S()
+         match('(')
+         parse_W()
+         match("'")
++        parse_T()
+ 
+ def parse_P():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('g'):
++    if pos < len(tokens) and tokens[pos].startswith('g'):
+         match('g')
++        parse_P()
+ 
+ def parse_E():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('d'):
++    if pos < len(tokens) and tokens[pos].startswith('d'):
+         match('d')
+         parse_S()
+         match("'")
+         parse_O()
+         match('U')
++        parse_E()
+ 
+ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('F'):
++    if pos < len(tokens) and tokens[pos].startswith('F'):
+         match('F')
+         match('u')
+         match('/')
+         match('o')
++        parse_M()
+ 
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('^'):
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('^'):
+             match('^')
+             parse_W()
+             match('*')
++            parse_W()
++        elif lookahead.startswith('Y'):
++            match('Y')
++            parse_O()
+ 
+ def parse_O():
+     global pos, tokens
+@@ -128,11 +121,17 @@
+     elif lookahead.startswith('#'):
+         match('#')
+-    elif lookahead.startswith('T'):
++    elif lookahead.startswith('d') or \
++         lookahead.startswith('6') or \
++         lookahead.startswith('5') or \
++         lookahead.startswith('I') or \
++         lookahead.startswith('h') or \
++         lookahead.startswith('s') or \
++         lookahead.startswith('e'):
+         parse_T()
+         parse_K()
+     elif lookahead.startswith('c'):
+         match('c')
+         parse_P()
+         parse_M()
+         match('v')
+         match('A')
+-    else:
+-        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['X', 'x', '#', 'T', 'c']))
++    else: # This block is reached for non-matching tokens or EOF
++        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['X', 'x', '#', 'd', '6', '5', 'I', 'h', 's', 'e', 'c']))

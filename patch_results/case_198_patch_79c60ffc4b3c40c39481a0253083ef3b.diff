@@ -1,0 +1,37 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,26 +19,4 @@
+     while pos < len(tokens) and tokens[pos].startswith('P'):
+         match('P')
+         match('e')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in K")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('H'):
+-            match('H')
+-            parse_A()
+-            parse_B()
+-            match('i')
+-        elif lookahead.startswith('B'):
+-            parse_B()
+-            parse_C()
+-            parse_C()
+-            parse_F()
+-        elif lookahead.startswith('k'):
+-            match('k')
+-            match('o')
+-            parse_U()
+-            match('D')
+-            match('2')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-        else:
+-            error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['H', 'B', 'k', '_']))
++        parse_K()
+@@ -137,6 +115,6 @@ def parse_A():
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('z'):
+-        match('z')
++    while pos < len(tokens) and tokens[pos].startswith('?'):
+         match('?')

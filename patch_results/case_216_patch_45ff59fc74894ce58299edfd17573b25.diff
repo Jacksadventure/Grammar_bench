@@ -1,0 +1,46 @@
+@@ -43,9 +43,6 @@ def parse_Y():
+         else:
+             error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['L', "'", '`', 'k']))
+-        while pos < len(tokens) and tokens[pos].startswith('8'):
+-            match('8')
+-            match('z')
+-            parse_T()
++        parse_B()
+     elif lookahead.startswith('k'):
+         match('k')
+         match('{')
+@@ -144,10 +141,10 @@ def parse_F():
+ def parse_T():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('S'):
++    if pos < len(tokens) and tokens[pos].startswith('S'):
+         match('S')
+         parse_X()
+         parse_C()
+         parse_U()
++        parse_T()
+ 
+ def parse_B():
+@@ -152,9 +152,9 @@ def parse_B():
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('8'):
++    if pos < len(tokens) and tokens[pos].startswith('8'):
+         match('8')
+-        match('z')
++        parse_B()
+         parse_T()
++        parse_B()
+ 
+ def parse_C():
+@@ -159,10 +159,10 @@ def parse_C():
+ def parse_C():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('W'):
++    if pos < len(tokens) and tokens[pos].startswith('W'):
+         match('W')
+         match('>')
+         parse_T()
+         parse_J()
+         parse_B()
++        parse_C()

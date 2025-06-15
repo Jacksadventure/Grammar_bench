@@ -1,0 +1,8 @@
+@@ -183,7 +183,7 @@ def parse_E():
+     elif lookahead.startswith('}'):
+         match('}')
++    elif lookahead.startswith('z'):
++        match('z')
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['?', '}']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['?', '}', 'z']))

@@ -1,0 +1,21 @@
+@@ -59,8 +59,6 @@
+     elif lookahead.startswith(';'):
+         match(';')
+         match('|')
+         parse_B()
+-        parse_N()
+-        match('*')
+     elif lookahead.startswith('W'):
+         match('W')
+         match('|')
+@@ -165,9 +163,9 @@ def parse_E():
+     if pos >= len(tokens):
+         error("Unexpected end of input in E")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('?'):
+-        match('?')
++    if lookahead.startswith('1'):
++        match('1')
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['?']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['1']))

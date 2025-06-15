@@ -1,0 +1,21 @@
+@@ -22,16 +22,10 @@ def parse_C():
+     if lookahead.startswith('='):
+         match('=')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in C")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('='):
+-            match('=')
+-            parse_C()
+-        elif lookahead.startswith('G'):
+-            match('G')
+-        else:
+-            error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['=', 'G']))
+-    elif lookahead.startswith('G'):
+-        match('G')
++        parse_C()
++    elif lookahead.startswith('.'):
++        match('.')
+     else:
+-        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['=', 'G']))
++        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['=', '.']))

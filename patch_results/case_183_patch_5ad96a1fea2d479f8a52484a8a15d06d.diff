@@ -1,0 +1,66 @@
+@@ -19,17 +19,10 @@ def parse_D():
+-    while pos < len(tokens) and tokens[pos].startswith('W'):
+-        match('W')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in D")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('W'):
+-            match('W')
+-            parse_D()
+-            parse_D()
+-        elif lookahead.startswith('?'):
+-            match('?')
+-            parse_R()
+-            parse_H()
+-            parse_A()
+-        else:
+-            error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['W', '', '?']))
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('W'):
++            match('W')
++            parse_D()
++            parse_D()
++        elif lookahead.startswith('?'):
++            match('?')
++            parse_R()
++            parse_H()
++            parse_A()
++        # else epsilon, do nothing
+
+@@ -38,9 +38,6 @@ def parse_A():
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in A")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('9'):
+-        match('9')
+-        parse_D()
+-        match('?')
+-    else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['9', '']))
++    while pos < len(tokens) and tokens[pos].startswith('9'):
++        match('9')
++        parse_D()
++    # epsilon, do nothing
+
+@@ -58,9 +58,12 @@ def parse_R():
+-    if lookahead.startswith('x'):
+-        match('x')
+-        parse_G()
+-    elif lookahead.startswith('('):
+-        match('(')
+-        parse_D()
+-    elif lookahead.startswith('x'):
+-        match('x')
+-    else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['x', '(', 'x']))
++    if lookahead.startswith('x'):
++        match('x')
++        if pos < len(tokens) and (tokens[pos].startswith('S') or tokens[pos].startswith('s')):
++            parse_G()
++    elif lookahead.startswith('('):
++        match('(')
++        parse_D()
++        match(')')
++    else:
++        error("Unexpected token " + lookahead + " in R, expected one of: x, (")

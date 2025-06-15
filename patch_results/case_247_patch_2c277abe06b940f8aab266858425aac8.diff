@@ -1,0 +1,36 @@
+@@ -37,14 +37,14 @@
+             match('<')
+             match('<')
+             match(',')
+-        elif lookahead.startswith('K'):
++        elif lookahead.startswith('c') or lookahead.startswith('y'):
+             parse_K()
+             match('y')
+             parse_X()
+             match('c')
+             match('y')
+         else:
+-            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['d', '*', '_', 'K']))
++            error("Unexpected token " + lookahead + " in M, expected one of: " + ", ".join(['d', '*', '_', 'c', 'y']))
+     elif lookahead.startswith('N'):
+         match('N')
+     else:
+@@ -55,5 +55,6 @@
+-    while pos < len(tokens) and tokens[pos].startswith(')'):
++    if pos < len(tokens) and tokens[pos].startswith(')'):
+         match(')')
+         parse_E()
+         match('g')
++        parse_I()
+ 
+@@ -111,7 +111,7 @@
+         match('>')
+         match('f')
+         parse_L()
+-    elif lookahead.startswith('W'):
+-        match('W')
++    elif lookahead.startswith('w'):
++        match('w')
+     else:
+-        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'W']))
++        error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['T', 'w']))

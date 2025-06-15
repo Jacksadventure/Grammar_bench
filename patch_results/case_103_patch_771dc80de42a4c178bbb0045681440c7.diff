@@ -1,0 +1,88 @@
+```diff
+--- a/parser.py
++++ b/parser.py
+@@ -17,21 +17,8 @@
+ def parse_C():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(']'):
++    if pos < len(tokens) and tokens[pos].startswith(']'):
+         match(']')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('*'):
+-            match('*')
+-            match("'")
+-            parse_T()
+-            match('{')
+-            parse_V()
+-            parse_V()
+-        elif lookahead.startswith('['):
+-            match('[')
+-            parse_M()
+-            parse_K()
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['*', '', '[']))
++        parse_V()
++        parse_C()
++    # else: epsilon rule, do nothing
+ 
+@@ -42,26 +29,28 @@
+         error("Unexpected end of input in T")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('W'):
+-        match('W')
++    if lookahead.startswith('@'):
++        match('@')
+     elif lookahead.startswith('k'):
+         match('k')
+     else:
+-        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['W', 'k']))
++        error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['@', 'k']))
+ 
+ def parse_V():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('*'):
+-        match('*')
+-        match("'")
+-        parse_T()
+-        match('{')
+-        parse_V()
++    # V -> * ' T { V V | [ M K | epsilon
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('*'):
++            match('*')
++            match("'")
++            parse_T()
++            match('{')
++            parse_V()
++            parse_V()
++        elif lookahead.startswith('['):
++            match('[')
++            parse_M()
++            parse_K()
++        # else: Epsilon production, do nothing.
++    # else: Epsilon production (EOF reached and V is nullable), do nothing.
+ 
+ def parse_M():
+     global pos, tokens
+@@ -110,13 +99,14 @@
+         match('?')
+         match('/')
+         match('*')
+-    elif lookahead.startswith('C'):
++    # K -> <C>~<G>. Chosen if lookahead is ']' (from C) or '~' (C is epsilon).
++    elif lookahead.startswith(']') or lookahead.startswith('~'):
+         parse_C()
+         match('~')
+         parse_G()
+     elif lookahead.startswith('_'):
+         match('_')
+     else:
+-        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['P', '?', 'C', '_']))
++        error("Unexpected token " + lookahead + " in K, expected one of: " + ", ".join(['P', '?', ']', '~', '_']))
+ 
+ def parse_input(input_str):
+
+```

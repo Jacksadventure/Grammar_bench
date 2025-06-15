@@ -1,0 +1,26 @@
+@@ -27,9 +27,9 @@
+         lookahead = tokens[pos]
+-        if lookahead.startswith('j'):
+-            match('j')
++        if lookahead.startswith('u'):
++            match('u')
+         match('#')
+         elif lookahead.startswith('3'):
+             match('3')
+         else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['j', '3']))
++            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['u', '3']))
+         match('v')
+
+@@ -79,9 +79,9 @@ def parse_A():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('j'):
+-        match('j')
++    if lookahead.startswith('u'):
++        match('u')
+     match('#')
+     elif lookahead.startswith('3'):
+         match('3')
+     else:
+-        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['j', '3']))
++        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['u', '3']))

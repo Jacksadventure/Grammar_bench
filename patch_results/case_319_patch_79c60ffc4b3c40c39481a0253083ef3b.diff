@@ -1,0 +1,154 @@
+--- a/parser.py
++++ b/parser.py
+@@ -24,34 +24,18 @@
+         match('7')
+-        while pos < len(tokens) and tokens[pos].startswith('-'):
+-            match('-')
+-            match('6')
+-            parse_X()
+-            parse_L()
+-            parse_D()
+-        while pos < len(tokens) and tokens[pos].startswith('1'):
+-            match('1')
+-            match('>')
+-        while pos < len(tokens) and tokens[pos].startswith('!'):
+-            match('!')
+-            match('q')
+-            match("'")
+-            parse_L()
+-            match('G')
++        parse_C()
++        parse_D()
++        parse_B()
+         match('w')
+     elif lookahead.startswith('8'):
+         match('8')
+-        while pos < len(tokens) and tokens[pos].startswith('*'):
+-            match('*')
+-            parse_T()
+-            parse_X()
+-            match('j')
+-            parse_V()
+-        while pos < len(tokens) and tokens[pos].startswith('*'):
+-            match('*')
+-            parse_T()
+-            parse_X()
+-            match('j')
+-            parse_V()
+-        while pos < len(tokens) and tokens[pos].startswith(';'):
+-            match(';')
+-            match("'")
++        parse_Q()
++        parse_Q()
++        parse_T()
+     elif lookahead.startswith('>'):
+         match('>')
+@@ -62,7 +46,11 @@
+ def parse_L():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('w'):
+-        match('w')
+-        match('3')
+-        match('6')
++    # Rule: L -> w 3 6 L | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('w'):
++        match('w')
++        match('3')
++        match('6')
++        parse_L()
+@@ -69,7 +73,10 @@
+ def parse_T():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(';'):
+-        match(';')
+-        match("'")
++    # Rule: T -> ; ' T | epsilon
++    if pos < len(tokens) and tokens[pos].startswith(';'):
++        match(';')
++        match("'")
++        parse_T()
+@@ -75,7 +82,10 @@
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('1'):
+-        match('1')
+-        match('>')
++    # Rule: D -> 1 > D | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('1'):
++        match('1')
++        match('>')
++        parse_D()
+@@ -81,9 +91,13 @@
+ def parse_C():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('-'):
+-        match('-')
+-        match('6')
+-        parse_X()
+-        parse_L()
+-        parse_D()
++    # Rule: C -> - 6 X L D C | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('-'):
++        match('-')
++        match('6')
++        parse_X()
++        parse_L()
++        parse_D()
++        parse_C()
+@@ -90,7 +104,11 @@
+ def parse_X():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        match('A')
+-        parse_U()
+-        match('R')
+-        match('v')
++    # Rule: X -> A U R v X | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('A'):
++        match('A')
++        parse_U()
++        match('R')
++        match('v')
++        parse_X()
+@@ -113,12 +128,34 @@
+ def parse_U():
+     global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in U")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith(')'):
++    # Rule: U -> ) r U | epsilon
++    # If the token stream ends, it's an implicit epsilon match.
++    if pos < len(tokens) and tokens[pos].startswith(')'):
+         match(')')
+         match('r')
+-        match('5')
+-    else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join([')', '']))
++        parse_U()
++
++# New functions based on grammar:
++def parse_Q():
++    global pos, tokens
++    # Rule: Q -> * T X j V Q | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('*'):
++        match('*')
++        parse_T()
++        parse_X()
++        match('j')
++        parse_V()
++        parse_Q()
++
++def parse_B():
++    global pos, tokens
++    # Rule: B -> ! q ' L G B | epsilon
++    if pos < len(tokens) and tokens[pos].startswith('!'):
++        match('!')
++        match('q')
++        match("'")
++        parse_L()
++        match('G')
++        parse_B()
+ 
+ def parse_input(input_str):
+     global tokens, pos

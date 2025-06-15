@@ -1,0 +1,62 @@
+@@ -19,40 +19,6 @@ def parse_B():
+-    while pos < len(tokens) and tokens[pos].startswith('}'):
+-        match('}')
+-        match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('<'):
+-            match('<')
+-            match('3')
+-            parse_Z()
+-            match('^')
+-        elif lookahead.startswith('$'):
+-            match('$')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['<', '$']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('<'):
+-            match('<')
+-            match('3')
+-            parse_Z()
+-            match('^')
+-        elif lookahead.startswith('$'):
+-            match('$')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['<', '$']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('<'):
+-            match('<')
+-            match('3')
+-            parse_Z()
+-            match('^')
+-        elif lookahead.startswith('$'):
+-            match('$')
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['<', '$']))
++    while pos < len(tokens) and tokens[pos].startswith('}'):
++        match('}')
++        match('}')
++        parse_X()
++        parse_X()
++        parse_X()
+@@ -83,10 +83,4 @@ def parse_E():
+-    global pos, tokens
+-    if pos >= len(tokens):
+-        error("Unexpected end of input in E")
+-    lookahead = tokens[pos]
+-    if lookahead.startswith('L'):
+-        match('L')
+-        parse_E()
+-        match('^')
+-    else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['L', '']))
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('L'):
++        match('L')
++        parse_E()
++        parse_E()

@@ -1,0 +1,37 @@
+--- a/parser_code.py
++++ b/parser_code.py
+@@ -20,14 +20,9 @@
+         error("Unexpected end of input in O")
+     lookahead = tokens[pos]
+     if lookahead.startswith(']'):
+         match(']')
+-        while pos < len(tokens) and tokens[pos].startswith('8'):
+-            match('8')
+-            match('X')
+-            match('s')
+-            match('p')
+-            parse_O()
++        parse_G()
+     elif lookahead.startswith('4'):
+         match('4')
+     else:
+         error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join([']', '4']))
+@@ -31,7 +26,18 @@
+         match('4')
+     else:
+         error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join([']', '4']))
+ 
++def parse_G():
++    global pos, tokens
++    # G ::= '8' 'X' 's' <G> <O> <G> | <epsilon>
++    if pos < len(tokens) and tokens[pos].startswith('8'):
++        match('8')
++        match('X')
++        match('s')
++        parse_G()
++        parse_O()
++        parse_G()
++
+ def parse_input(input_str):
+     global tokens, pos
+     tokens = list(input_str)

@@ -1,0 +1,11 @@
+@@ -76,9 +76,11 @@ def parse_W():
+ def parse_W():
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('a'):
+         match('a')
+         match('o')
+-        match('{')
++        parse_W()
+         parse_W()
++        parse_X()
++        parse_W()

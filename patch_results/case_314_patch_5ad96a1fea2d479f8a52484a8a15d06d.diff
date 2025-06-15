@@ -1,0 +1,30 @@
+@@ -23,20 +23,6 @@ def parse_Z():
+         match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in B")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('^'):
+-            match('^')
+-            parse_B()
+-            parse_P()
+-            parse_B()
+-            parse_P()
+-        elif lookahead.startswith('J'):
+-            match('J')
+-            parse_U()
+-            parse_Z()
+-            parse_S()
+-            parse_H()
+-        elif lookahead.startswith('v'):
+-            match('v')
+-        else:
+-            error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['^', 'J', 'v']))
++        parse_B()
+
+@@ -83,4 +83,4 @@ def parse_S():
+-        parse_P()
++        parse_S()
+-    else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['#', '']))
++    else:
++        return

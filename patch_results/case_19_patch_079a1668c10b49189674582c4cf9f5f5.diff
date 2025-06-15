@@ -1,0 +1,9 @@
+@@ -22,7 +22,7 @@ def parse_C():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('y'):
+-        match('y')
++    if lookahead.startswith('I'):
++        match('I')
+     else:
+-        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['y']))
++        error("Unexpected token " + lookahead + " in C, expected one of: " + ", ".join(['I']))

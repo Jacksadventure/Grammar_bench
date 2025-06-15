@@ -1,0 +1,10 @@
+@@ -249,6 +249,8 @@ def parse_G():
+     if lookahead.startswith('P'):
+         parse_P()
++        parse_G()
++    elif lookahead == 'x' or pos >= len(tokens):
++        pass
+-        match('x')
+     else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['P', '']))
++        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['P']))

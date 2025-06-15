@@ -1,0 +1,40 @@
+Looking at the grammar and the parser code, I can see several issues:
+
+1. In `parse_P()`, the grammar shows `<P>` should be either `["8", "<P>"]` or `[]` (empty), but the parser only handles the first case with `8 Z` instead of `8 <P>`.
+
+2. In `parse_H()`, the grammar shows `<H>` should be either `["T", "3", "<P>", "<H>"]` or `[]` (empty), but the parser uses a while loop instead of proper recursion.
+
+3. The `parse_W()` function tries to call `parse_V()` but should handle the `V` case properly.
+
+@@ -109,7 +109,9 @@ def parse_P():
+     if lookahead.startswith('8'):
+         match('8')
+-        match('Z')
++        parse_P()
++    elif pos >= len(tokens) or not tokens[pos].startswith('8'):
++        pass  # epsilon production
+     else:
+         error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['8', '']))
+ 
+@@ -170,8 +172,13 @@ def parse_M():
+ def parse_H():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('T'):
++    if pos < len(tokens) and tokens[pos].startswith('T'):
+         match('T')
+         match('3')
+         parse_P()
++        parse_H()
++    elif pos >= len(tokens) or not tokens[pos].startswith('T'):
++        pass  # epsilon production
++    else:
++        error("Unexpected token in H")
+ 
+@@ -180,7 +187,7 @@ def parse_W():
+         error("Unexpected end of input in W")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('V'):
++    if lookahead.startswith('E') or lookahead.startswith('R') or lookahead.startswith('%'):
+         parse_V()
+     elif lookahead.startswith('N'):
+         match('N')

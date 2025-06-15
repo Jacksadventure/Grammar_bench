@@ -1,0 +1,111 @@
+@@ -23,42 +23,4 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('A'):
+         match('A')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('i'):
+-            match('i')
+-            parse_Y()
+-            match('X')
+-            parse_B()
+-            match('<')
+-        elif lookahead.startswith('/'):
+-            match('/')
+-            parse_Y()
+-            match('(')
+-        elif lookahead.startswith('D'):
+-            match('D')
+-            parse_Q()
+-        elif lookahead.startswith('_'):
+-            match('_')
+-        else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['i', '/', 'D', '_']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in F")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('D'):
+-            match('D')
+-            match('n')
+-            parse_O()
+-        elif lookahead.startswith('C'):
+-            match('C')
+-            match('g')
+-            parse_K()
+-            parse_G()
+-            parse_B()
+-        elif lookahead.startswith('2'):
+-            match('2')
+-        else:
+-            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['D', 'C', '2']))
+-        while pos < len(tokens) and tokens[pos].startswith('G'):
+-            parse_G()
+-            parse_Y()
+-            parse_F()
++        parse_Y()
++        parse_F()
++        parse_B()
+     elif lookahead.startswith('='):
+         match('=')
+     elif lookahead.startswith('}'):
+@@ -97,10 +57,11 @@
+ 
+ def parse_Q():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith(')'):
++    # Q -> ) Q Q | epsilon
++    if pos < len(tokens) and tokens[pos].startswith(')'):
+         match(')')
+         parse_Q()
+-
++        parse_Q()
++    # else: epsilon (do nothing)
+ 
+ def parse_G():
+     global pos, tokens
+@@ -112,21 +73,17 @@
+         match('m')
+         match('p')
+         match('*')
+-    elif lookahead.startswith('K'):
+-        parse_K()
+     elif lookahead.startswith('c'):
+         match('c')
+         parse_G()
+         match('V')
+     elif lookahead.startswith('('):
+         match('(')
+         match('u')
+         match('h')
+         parse_I()
+-    else:
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['U', 'm', 'K', 'c', '(']))
+-
++    else: # This branch covers the G -> <K> production. parse_K() handles 'e' or epsilon for K.
++        parse_K()
+ def parse_B():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('G'):
++    # B -> G Y F B | epsilon
++    # FIRST(G Y F) = FIRST_non_epsilon(G) U (if G nullable then FIRST(Y)).
++    # FIRST_non_epsilon(G) = {'U', 'm', 'e', 'c', '('}. K makes G nullable. FIRST(Y) = {'i', '/', 'D', '_'}.
++    first_gyf_chars = ['U', 'm', 'e', 'c', '(', 'i', '/', 'D', '_']
++    if pos < len(tokens) and any(tokens[pos].startswith(char) for char in first_gyf_chars):
+         parse_G()
+         parse_Y()
+         parse_F()
++        parse_B()
++    # else: B is epsilon, do nothing.
+ 
+ def parse_Y():
+     global pos, tokens
+@@ -160,5 +117,6 @@
+ 
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('/'):
+-        match('/')
++    # K -> e K | epsilon
++    while pos < len(tokens) and tokens[pos].startswith('e'):
++        match('e')

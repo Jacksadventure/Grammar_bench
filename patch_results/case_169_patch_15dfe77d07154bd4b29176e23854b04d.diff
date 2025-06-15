@@ -1,0 +1,74 @@
+@@ -19,15 +19,23 @@ def parse_P():
+-    global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('u'):
+-        match('u')
+-        match('9')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in G")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('V'):
+-            match('V')
+-            parse_G()
+-        else:
+-            error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['V', '']))
+-        match('c')
++    global pos, tokens
++    # Handle zero or more occurrences of: u 9 <G> c
++    while pos < len(tokens) and tokens[pos].startswith('u'):
++        match('u')
++        match('9')
++        parse_G()
++        match('c')
++    # Handle the '$' <Z> alternative
++    if pos < len(tokens) and tokens[pos].startswith('$'):
++        match('$')
++        parse_Z()
++    # Epsilon alternative – do nothing
+ 
+@@ -41,6 +49,12 @@ def parse_L():
+-    while pos < len(tokens) and tokens[pos].startswith('V'):
+-        match('V')
+-        parse_I()
+-        match('a')
++    while pos < len(tokens) and tokens[pos].startswith('V'):
++        match('V')
++        parse_I()
++        match('a')
++    # Handle the <P> <W> alternative
++    if pos < len(tokens) and (tokens[pos].startswith('u') or tokens[pos].startswith('$')):
++        parse_P()
++        parse_W()
+ 
+@@ -55,3 +69,3 @@ def parse_G():
+-    while pos < len(tokens) and tokens[pos].startswith('V'):
+-        match('V')
++    while pos < len(tokens) and tokens[pos].startswith('N'):
++        match('N')
+ 
+@@ -64,6 +78,24 @@ def parse_Y():
+     while pos < len(tokens) and tokens[pos].startswith('$'):
+         match('$')
+         parse_U()
+         parse_L()
+ 
++def parse_Z():
++    """
++    Parses non-terminal <Z> according to:
++        <Z> -> M l <Y> y <Z> | ε
++    """
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('M'):
++        match('M')
++        match('l')
++        parse_Y()
++        match('y')
++
++
++def parse_W():
++    """
++    Parses non-terminal <W> according to:
++        <W> -> Q <W> | ε
++    """
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('Q'):
++        match('Q')

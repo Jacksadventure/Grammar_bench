@@ -1,0 +1,21 @@
+@@ -35,13 +35,9 @@ def parse_U():
+          else:
+              error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['n', 'x']))
+-        match('!')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Q")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith(']'):
+-            match(']')
+-        else:
+-            error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']']))
++        match('!')
++        parse_Q()
+@@ -83,8 +79,8 @@ def parse_Q():
+-    if lookahead.startswith(']'):
+-        match(']')
++    if lookahead.startswith('q'):
++        match('q')
+     else:
+-        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join([']']))
++        error("Unexpected token " + lookahead + " in Q, expected one of: " + ", ".join(['q']))

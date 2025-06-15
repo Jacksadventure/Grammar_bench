@@ -1,0 +1,24 @@
+@@ -98,3 +98,5 @@ def parse_Q():
+-    while pos < len(tokens) and tokens[pos].startswith(')'):
+-        match(')')
+-        parse_Q()
++    if pos < len(tokens) and tokens[pos].startswith(')'):
++        match(')')
++        parse_Q()
++        parse_Q()
+
+@@ -113,2 +113,2 @@ def parse_G():
+-    elif lookahead.startswith('K'):
+-        parse_K()
++    elif lookahead.startswith('e'):
++        parse_K()
+
+@@ -125 +125 @@ def parse_G():
+-        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['U', 'm', 'K', 'c', '(']))
++        error("Unexpected token " + lookahead + " in G, expected one of: " + ", ".join(['U', 'm', 'e', 'c', '(']))
+
+@@ -164,2 +164,2 @@ def parse_K():
+-    while pos < len(tokens) and tokens[pos].startswith('/'):
+-        match('/')
++    while pos < len(tokens) and tokens[pos].startswith('e'):
++        match('e')

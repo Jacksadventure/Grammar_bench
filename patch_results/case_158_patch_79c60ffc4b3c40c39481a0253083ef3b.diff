@@ -1,0 +1,69 @@
+--- a/parser.py
++++ b/parser.py
+@@ -19,19 +19,9 @@
+     while pos < len(tokens) and tokens[pos].startswith('f'):
+         match('f')
+         match('g')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in X")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('('):
+-            match('(')
+-            match('g')
+-            match('A')
+-            parse_X()
+-        elif lookahead.startswith('N'):
+-            match('N')
+-            parse_W()
+-            parse_B()
+-            parse_M()
+-        else:
+-            error("Unexpected token " + lookahead + " in X, expected one of: " + ", ".join(['(', '', 'N']))
++        parse_X()
+         match('t')
+         match('G')
+ 
+ def parse_K():
+     global pos, tokens
+@@ -83,7 +73,7 @@
+ 
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('R'):
+-        match('R')
++    while pos < len(tokens) and tokens[pos].startswith('/'):
++        match('/')
+ 
+ def parse_Z():
+     global pos, tokens
+@@ -136,9 +126,16 @@
+ 
+ def parse_X():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('('):
++    # X can be epsilon. If no matching token, it's the epsilon production.
++    if pos >= len(tokens):
++        return
++    lookahead = tokens[pos]
++    if lookahead.startswith('('):
+         match('(')
+         match('g')
+         match('A')
++        parse_X() # Recursive call for X
++    elif lookahead.startswith('N'):
++        match('N')
++        parse_W()
++        parse_B()
++        parse_M()
+ 
+ def parse_M():
+     global pos, tokens
+@@ -149,7 +146,7 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in M")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('B'):
++    if lookahead.startswith('~') or lookahead.startswith(')'):
+         parse_B()
+     elif lookahead.startswith('v'):
+         match('v')

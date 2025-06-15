@@ -1,0 +1,8 @@
+@@
+-    elif lookahead.startswith('7'):
+-        match('7')
++    elif lookahead.startswith('w'):
++        match('w')
+@@
+-        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['E', '7']))
++        error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['E', 'w']))

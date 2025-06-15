@@ -1,0 +1,11 @@
+```
+@@ -21,7 +21,7 @@
+     lookahead = tokens[pos]
+     if lookahead.startswith('T'):
+         match('T')
+-        match("'")
++        parse_K()
+     elif lookahead.startswith('*'):
+         match('*')
+     else:
+```

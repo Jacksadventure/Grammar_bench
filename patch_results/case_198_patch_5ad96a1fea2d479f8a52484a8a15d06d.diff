@@ -1,0 +1,5 @@
+@@ -140,2 +140,2 @@ def parse_A():
+-    while pos < len(tokens) and tokens[pos].startswith('z'):
+-        match('z')
++    while pos < len(tokens) and tokens[pos].startswith('?'):
++        match('?')

@@ -1,0 +1,105 @@
+@@ -25,26 +25,4 @@
+         match('M')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in A")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('v'):
+-            match('v')
+-        elif lookahead.startswith('j'):
+-            match('j')
+-            match('e')
+-            parse_W()
+-        elif lookahead.startswith('t'):
+-            match('t')
+-            match('x')
+-            parse_O()
+-        elif lookahead.startswith('J'):
+-            match('J')
+-            parse_O()
+-            parse_A()
+-            match('h')
+-        else:
+-            error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['v', 'j', 't', 'J']))
+-        while pos < len(tokens) and tokens[pos].startswith('a'):
+-            match('a')
+-            match('`')
+-            match(':')
++        parse_A()
++        parse_K()
+     elif lookahead.startswith("'"):
+@@ -52,17 +30,3 @@
+         match('|')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in S")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('N'):
+-            parse_N()
+-            match('q')
+-        elif lookahead.startswith('k'):
+-            match('k')
+-            match('=')
+-            match(']')
+-            match('=')
+-        elif lookahead.startswith('G'):
+-            match('G')
+-        else:
+-            error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['N', 'k', 'G']))
++        parse_S()
+     elif lookahead.startswith('7'):
+@@ -88,11 +52,11 @@
+         match('q')
+     elif lookahead.startswith('k'):
+         match('k')
+         match('=')
+         match(']')
+         match('=')
+-    elif lookahead.startswith('G'):
+-        match('G')
++    elif lookahead.startswith('7'):
++        match('7')
+     else:
+-        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['N', 'k', 'G']))
++        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['N', 'k', '7']))
+ 
+ def parse_A():
+@@ -148,15 +112,21 @@
+ 
+ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('i'):
++    if pos < len(tokens) and tokens[pos].startswith('i'):
+         match('i')
++        parse_W()
+ 
+ def parse_O():
+@@ -168,11 +138,17 @@
+ 
+ def parse_K():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('a'):
+-        match('a')
+-        match('`')
+-        match(':')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('a'):
++            match('a')
++            match('`')
++            match(':')
++            parse_K()
++        elif lookahead.startswith('i'):
++            match('i')
++            parse_E()
+ 
+ def parse_R():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('8'):
++    if pos < len(tokens) and tokens[pos].startswith('8'):
+         match('8')
+         parse_W()
+         parse_K()
+         parse_R()
+         parse_S()
++        parse_R()
+ 
+ def parse_Y():

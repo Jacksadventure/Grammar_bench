@@ -1,0 +1,77 @@
+@@ -45,6 +45,1 @@ def parse_A():
+-        while pos < len(tokens) and tokens[pos].startswith('4'):
+-            match('4')
+-            match('5')
+-            match("'")
+-            parse_U()
+-            match('z')
++        parse_F()
+@@ -76,4 +71,1 @@ def parse_A():
+-        while pos < len(tokens) and tokens[pos].startswith('T'):
+-            match('T')
+-            match('N')
+-            match('k')
++        parse_U()
+@@ -82,6 +76,1 @@ def parse_A():
+-        while pos < len(tokens) and tokens[pos].startswith('4'):
+-            match('4')
+-            match('5')
+-            match("'")
+-            parse_U()
+-            match('z')
++        parse_F()
+@@ -90 +84 @@ def parse_A():
+-    elif lookahead.startswith('X'):
++    elif lookahead.startswith('_'):
+@@ -91,19 +85,5 @@ def parse_A():
+-        while pos < len(tokens) and tokens[pos].startswith('_'):
+-            match('_')
+-            match('=')
+-            match('u')
+-            match('^')
+-            parse_O()
+-        while pos < len(tokens) and tokens[pos].startswith('4'):
+-            match('4')
+-            match('5')
+-            match("'")
+-            parse_U()
+-            match('z')
+-        while pos < len(tokens) and tokens[pos].startswith('4'):
+-            match('4')
+-            match('5')
+-            match("'")
+-            parse_U()
+-            match('z')
+-        match("'")
+-        match('a')
++        parse_X()
++        parse_F()
++        parse_F()
++        match("'")
++        match('a')
+@@ -183,0 +177,4 @@ def parse_U():
+     while pos < len(tokens) and tokens[pos].startswith('T'):
+         match('T')
+         match('N')
+         match('k')
++    if pos < len(tokens) and tokens[pos].startswith('m'):
++        match('m')
++        parse_X()
++
+@@ -185,0 +180,7
++def parse_X():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('_'):
++        match('_')
++        match('=')
++        match('u')
++        match('^')
++        parse_O()
++        parse_X()
+@@ -192,1 +187,1 @@ def parse_B():
+-        match('4')
++        parse_B()
+@@ -193,2 +188,0 @@ def parse_B():
+-    else:
+-        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['p', '']))
++        pass

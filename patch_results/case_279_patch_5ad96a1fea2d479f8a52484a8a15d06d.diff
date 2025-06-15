@@ -1,0 +1,81 @@
+--- parser.py
++++ parser.py
+@@ -47,8 +47,1 @@ def parse_I():
+         else:
+             error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['4', ']', 'X', '&']))
+-        while pos < len(tokens) and tokens[pos].startswith('A'):
+-            match('A')
+-            parse_N()
+-            parse_W()
++        parse_Z()
+@@ -92,5 +92,12 @@ def parse_W():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('i'):
+-        match('i')
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('i'):
++            match('i')
++            parse_W()
++        elif lookahead.startswith('V'):
++            match('V')
++            parse_T()
++        # else epsilon
+
+@@ -149,4 +149,13 @@ def parse_Z():
+-    while pos < len(tokens) and tokens[pos].startswith('A'):
+-        match('A')
+-        parse_N()
+-        parse_W()
++    if pos < len(tokens):
++        lookahead = tokens[pos]
++        if lookahead.startswith('A'):
++            match('A')
++            parse_N()
++            parse_W()
++            parse_Z()
++        elif lookahead.startswith('*') or lookahead.startswith('%') or lookahead.startswith('q'):
++            parse_I()
++            parse_U()
++        # else epsilon
+
+@@ -139,3 +139,3 @@ def parse_N():
+         match("'")
+-        match('k')
++        match('!')
+
+@@ -153,6 +153,27 @@ def parse_Z():
+         parse_W()
++
++def parse_T():
++    global pos, tokens
++    if pos >= len(tokens):
++        error("Unexpected end of input in T")
++    lookahead = tokens[pos]
++    if lookahead.startswith('n'):
++        match('n')
++        parse_R()
++        parse_P()
++    elif lookahead.startswith('`'):
++        match('`')
++    else:
++        error("Unexpected token " + lookahead + " in T, expected one of: n, `")
++
++def parse_U():
++    global pos, tokens
++    if pos < len(tokens) and (tokens[pos].startswith('A') or tokens[pos].startswith('*') or tokens[pos].startswith('%') or tokens[pos].startswith('q')):
++        parse_Z()
++        match('J')
++        parse_R()
++    elif pos < len(tokens) and tokens[pos].startswith('Y'):
++        match('Y')
++    elif pos < len(tokens) and tokens[pos].startswith('o'):
++        match('o')
++        match('Y')
++        match('J')
++    elif pos < len(tokens) and tokens[pos].startswith('%'):
++        match('%')
++        match('n')
++        match('-')
++    else:
++        error("Unexpected token " + (tokens[pos] if pos < len(tokens) else "EOF") + " in U")

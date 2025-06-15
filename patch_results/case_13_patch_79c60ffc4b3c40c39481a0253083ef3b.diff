@@ -1,0 +1,15 @@
+--- a/parser.py
++++ b/parser.py
+@@ -20,9 +20,9 @@
+     if pos >= len(tokens):
+         error("Unexpected end of input in U")
+     lookahead = tokens[pos]
+-    if lookahead.startswith('Z'):
+-        match('Z')
++    if lookahead.startswith('~'):
++        match('~')
+     else:
+-        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['Z']))
++        error("Unexpected token " + lookahead + " in U, expected one of: " + ", ".join(['~']))
+ 
+ def parse_input(input_str):

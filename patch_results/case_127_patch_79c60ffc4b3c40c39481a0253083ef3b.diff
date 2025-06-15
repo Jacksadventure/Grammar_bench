@@ -1,0 +1,63 @@
+--- a/parser_corrupted.py
++++ b/parser_fixed.py
+@@ -23,9 +23,7 @@
+         match('m')
+         match('R')
+         match('l')
+-        while pos < len(tokens) and tokens[pos].startswith('O'):
+-            match('O')
+-            parse_Z()
++        parse_N()
+     elif lookahead.startswith('I'):
+         match('I')
+         match("'")
+@@ -49,29 +47,30 @@
+         else:
+             error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['V', '5', '9', 'H']))
+         match('J')
+-        while pos < len(tokens) and tokens[pos].startswith('%'):
+-            match('%')
++        parse_U()
+     elif lookahead.startswith('o'):
+         match('o')
+     else:
+         error("Unexpected token " + lookahead + " in L, expected one of: " + ", ".join(['m', 'I', 'o']))
+ 
+ def parse_M():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('I'):
++    if pos < len(tokens) and tokens[pos].startswith('I'):
+         match('I')
+         parse_W()
+         match('.')
+         parse_L()
++        parse_M()
+ 
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('r'):
++    if pos < len(tokens) and tokens[pos].startswith('r'):
+         match('r')
+         parse_M()
+         parse_N()
+         parse_Z()
++        parse_Z()
+ 
+ def parse_N():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('O'):
++    if pos < len(tokens) and tokens[pos].startswith('O'):
+         match('O')
+         parse_Z()
++        parse_N()
+ 
+ def parse_U():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('%'):
+-        match('%')
++    if pos < len(tokens) and tokens[pos].startswith('H'):
++        match('H')
++        parse_U()
+ 
+ def parse_W():
+     global pos, tokens

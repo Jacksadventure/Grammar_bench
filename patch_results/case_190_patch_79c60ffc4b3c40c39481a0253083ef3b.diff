@@ -1,0 +1,92 @@
+--- a/parser.py
++++ b/parser.py
+@@ -22,23 +22,29 @@
+     if lookahead.startswith('*'):
+         match('*')
+         match('@')
+-        while pos < len(tokens) and tokens[pos].startswith('t'):
+-            match('t')
+-            parse_R()
+-            parse_Z()
+-            match('H')
+-            match('*')
+-        while pos < len(tokens) and tokens[pos].startswith('f'):
+-            match('f')
+-        while pos < len(tokens) and tokens[pos].startswith('Z'):
+-            parse_Z()
+-            match('V')
++        parse_O()
++        parse_A()
++        parse_G()
+     elif lookahead.startswith('f'):
+         match('f')
+     else:
+         error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['*', 'f']))
+ 
++def parse_O():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('t'):
++        match('t')
++        parse_R()
++        parse_Z()
++        match('H')
++        match('*')
++        parse_O()
++
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('f'):
++    if pos < len(tokens) and tokens[pos].startswith('f'):
+         match('f')
++        parse_A()
+ 
+ def parse_C():
+     global pos, tokens
+@@ -69,5 +75,5 @@
+ 
+ def parse_Y():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('-'):
++    if pos < len(tokens) and tokens[pos].startswith('-'):
+         match('-')
+         match('a')
++        parse_Y()
+ 
+ def parse_R():
+@@ -99,5 +105,5 @@
+ 
+ def parse_G():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('Z'):
++    if pos < len(tokens) and tokens[pos].startswith('Z'):
+         parse_Z()
+         match('V')
++        parse_G()
+ 
+ def parse_Q():
+     global pos, tokens
+@@ -140,7 +146,7 @@
+ 
+ def parse_D():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('0'):
++    if pos < len(tokens) and tokens[pos].startswith('0'):
+         match('0')
+         parse_J()
+         match('z')
+         parse_J()
+         parse_Z()
++        parse_D()
+ 
+ def parse_Z():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith("'"):
++    if pos < len(tokens) and tokens[pos].startswith("'"):
+         match("'")
+-        match('P')
++        parse_D()
+         match('{')
++        parse_Z()
+ 
+ def parse_input(input_str):
+     global tokens, pos

@@ -1,0 +1,19 @@
+@@ -109,7 +109,7 @@ def parse_R():
+     if lookahead.startswith('u'):
+         match('u')
+         parse_L()
+         match('P')
+     elif lookahead.startswith('I'):
+         match('I')
+     else:
+-        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['u', 'I']))
++        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['5', 'I']))
+@@ -108,7 +108,7 @@ def parse_R():
+     lookahead = tokens[pos]
+-    if lookahead.startswith('u'):
+-        match('u')
++    if lookahead.startswith('5'):
++        match('5')
+         parse_L()
+         match('P')
+     elif lookahead.startswith('I'):

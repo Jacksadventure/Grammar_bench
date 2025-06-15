@@ -1,0 +1,22 @@
+Looking at the grammar and the corrupted parser code, I need to identify the issues:
+
+1. The grammar shows `<F>` has productions `[">", "<F>"]` and `[]` (empty), but the parser at line 134-135 matches `">"` and `"~"` instead of `">"` and recursive `<F>`.
+
+2. The parser doesn't handle the empty production for `<F>`.
+
+3. Line 136 has an incorrect expected tokens list with an empty string.
+
+Here's the patch:
+
+@@ -132,6 +132,11 @@ def parse_F():
+     if lookahead.startswith('>'):
+         match('>')
+-        match('~')
++        parse_F()
++    elif True:
++        # Empty production - do nothing
++        pass
+     else:
+-        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['>', '']))
++        # This should never be reached due to the elif True above
++        error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['>']))

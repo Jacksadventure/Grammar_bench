@@ -1,0 +1,86 @@
+--- a/parser.py
++++ b/parser.py
+@@ -16,28 +16,23 @@
+ def parse_A():
+     global pos, tokens
+-    while pos < len(tokens) and tokens[pos].startswith('}'):
+-        match('}')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Y")
++    if pos < len(tokens):
+         lookahead = tokens[pos]
+-        if lookahead.startswith('C'):
+-            match('C')
++        if lookahead.startswith('}'):
++            match('}')
++            parse_Y()
++            parse_Z()
+             parse_A()
+-            match('x')
+-            parse_F()
+-            parse_J()
+-        elif lookahead.startswith('5'):
+-            match('5')
++        elif lookahead.startswith('/'):
++            parse_M()
++            parse_U()
+         else:
+-            error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['C', '5']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in Z")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('I'):
+-            match('I')
+-            parse_E()
+-            parse_Z()
+-        else:
+-            error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['I', '']))
++            # Epsilon case
++            pass
++    else:
++        # Epsilon case at EOF
++        pass
+ 
+ def parse_M():
+     global pos, tokens
+@@ -47,6 +42,13 @@
+         match('/')
+ 
++def parse_U():
++    global pos, tokens
++    while pos < len(tokens) and tokens[pos].startswith('O'):
++        match('O')
++        parse_Y()
++        match('L')
++        match('u')
++
+ def parse_J():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -75,13 +77,13 @@
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('I'):
+         match('I')
+-        parse_E()
++        match('Q')
+ 
+ def parse_E():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in E")
+     lookahead = tokens[pos]
+     if lookahead.startswith('?'):
+         match('?')
+         parse_G()
+         parse_P()
+         parse_G()
+         parse_M()
+-    elif lookahead.startswith('Z'):
++    elif lookahead.startswith('I'):
+         parse_Z()
+     else:
+-        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['?', 'Z']))
++        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['?', 'I']))
+ 
+ def parse_F():
+     global pos, tokens

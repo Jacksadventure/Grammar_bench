@@ -1,0 +1,54 @@
+--- a/parser.py
++++ b/parser.py
+@@ -23,33 +23,6 @@
+         match('y')
+         match('k')
+         match('6')
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in V")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('C'):
+-            match('C')
+-            match('u')
+-            match('Z')
+-            parse_E()
+-        elif lookahead.startswith('='):
+-            match('=')
+-        elif lookahead.startswith('_'):
+-            match('_')
+-            match('d')
+-            match('S')
+-        else:
+-            error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['C', '=', '_']))
+-        if pos >= len(tokens):
+-            error("Unexpected end of input in J")
+-        lookahead = tokens[pos]
+-        if lookahead.startswith('$'):
+-            match('$')
+-            match('4')
+-            match('p')
+-            match('C')
+-            match('b')
+-        elif lookahead.startswith('s'):
+-            match('s')
+-        else:
+-            error("Unexpected token " + lookahead + " in J, expected one of: " + ", ".join(['$', 's']))
++        parse_V()
++        parse_J()
+     elif lookahead.startswith('_'):
+         match('_')
+@@ -92,11 +65,11 @@
+         match('u')
+         match('Z')
+         parse_E()
+-    elif lookahead.startswith('='):
+-        match('=')
++    elif lookahead.startswith('x'):
++        match('x')
+     elif lookahead.startswith('_'):
+         match('_')
+         match('d')
+         match('S')
+     else:
+-        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['C', '=', '_']))
++        error("Unexpected token " + lookahead + " in V, expected one of: " + ", ".join(['C', 'x', '_']))

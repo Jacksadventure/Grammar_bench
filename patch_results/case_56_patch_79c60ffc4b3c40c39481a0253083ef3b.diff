@@ -1,0 +1,34 @@
+--- a/parser.py
++++ b/parser.py
+@@ -23,7 +23,5 @@ def parse_D():
+         match('w')
+         match('z')
+         match('N')
+-        while pos < len(tokens) and tokens[pos].startswith('V'):
+-            match('V')
+-            parse_Y()
++        parse_E()
+         match('?')
+@@ -37,6 +35,13 @@ def parse_D():
+     else:
+         error("Unexpected token " + lookahead + " in D, expected one of: " + ", ".join(['w', 'j', 'l']))
+ 
++def parse_E():
++    global pos, tokens
++    if pos < len(tokens) and tokens[pos].startswith('V'):
++        match('V')
++        parse_Y()
++        parse_E()
++
+ def parse_Y():
+     global pos, tokens
+     if pos >= len(tokens):
+@@ -47,7 +52,7 @@ def parse_Y():
+     if lookahead.startswith('G'):
+         match('G')
+     elif lookahead.startswith('$'):
+         match('$')
+-        match('v')
++        parse_Y()
+     else:
+         error("Unexpected token " + lookahead + " in Y, expected one of: " + ", ".join(['G', '$']))

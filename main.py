@@ -17,6 +17,7 @@ import signal
 import concurrent.futures
 import argparse
 
+
 # Exception and handler for time-limiting generate_case
 class CaseTimeout(Exception):
     """Raised when generate_case exceeds the time limit."""

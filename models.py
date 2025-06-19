@@ -42,7 +42,7 @@ class OpenAIModel:
             model=self.model,
             messages=messages,
         )
-        return completion.choices[0].message.content
+        return response_body(completion.choices[0].message.content, completion.usage.prompt_tokens, completion.usage.completion_tokens, completion.usage.total_tokens)
 
 class Gemini:
     def __init__(self, model):
@@ -53,8 +53,8 @@ class Gemini:
         response = self.client.models.generate_content(
             model = self.model,
             contents = prompt + "\n" + text
-        ).text
-        return response
+        )
+        return response_body(response.text, response.usage_metadata.prompt_token_count, response.usage_metadata.candidates_token_count, response.usage_metadata.total_token_count)
 
 class ClaudeModel:
     def __init__(self, model):
@@ -78,8 +78,11 @@ class ClaudeModel:
                 }
             ]
         )
-        return response.content[0].text 
+        return response_body(response.content[0].text, response.usage.input_tokens, response.usage.output_tokens, response.usage.input_tokens + response.usage.output_tokens)
 
-class Together:
-    def __init__(self, model):
-        self.client = Together()
+class response_body:
+    def __init__(self,response_text:str, prompt_tokens:int, completion_tokens:int, total_tokens:int):
+        self.response_text = response_text
+        self.prompt_tokens = prompt_tokens
+        self.completion_tokens = completion_tokens
+        self.total_tokens = total_tokens

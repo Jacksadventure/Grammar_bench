@@ -39,8 +39,11 @@ def _repair_single_case(row, backend, model, results_db, run_id):
     print(f"[Case {case_id}] Total tests: {total_tests}")
     # generate patch via localization
     response = localise_program(corr_parser, orig_grammar, backend, model)
-    print(f"[Case {case_id}] Localization response:\n{response}")
-    patch_text = response
+    print(f"[Case {case_id}] Localization response:\n{response.response_text}")
+    patch_text = response.response_text
+    prompt_tokens = response.prompt_tokens
+    completion_tokens = response.completion_tokens
+    total_tokens = response.total_tokens
     # write corrupted, patch and repaired files
     corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
     with open(corrupted_file, 'w', encoding='utf-8') as f:
@@ -99,8 +102,8 @@ def _repair_single_case(row, backend, model, results_db, run_id):
                 passed_tests = 0
                 fix = 0
                 cursor.execute(
-                    'REPLACE INTO repair_results(case_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix) VALUES(?,?,?,?,?,?,?)',
-                    (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
+                    'REPLACE INTO repair_results(case_id,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+                    (case_id, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
                 )
                 conn.commit()
                 conn.close()
@@ -117,8 +120,8 @@ def _repair_single_case(row, backend, model, results_db, run_id):
     fix = 1 if passed_tests == total_tests else 0
     # write result
     cursor.execute(
-        'REPLACE INTO repair_results(case_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix) VALUES(?,?,?,?,?,?,?)',
-        (case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix)
+        'REPLACE INTO repair_results(case_id,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
+        (case_id, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
     )
     conn.commit()
     conn.close()
@@ -151,12 +154,16 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     results_cursor.execute('''
         CREATE TABLE IF NOT EXISTS repair_results (
             case_id INTEGER PRIMARY KEY,
+            puzzle_id INTEGER,
             num_nonterminals INTEGER,
             nonterminal_prob REAL,
             loop_prob REAL,
             total_tests INTEGER,
             passed_tests INTEGER,
-            fix INTEGER
+            fix INTEGER,
+            prompt_tokens INTEGER,
+            completion_tokens INTEGER,
+            total_tokens INTEGER
         )
     ''')
     results_conn.commit()

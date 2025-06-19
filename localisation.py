@@ -1,5 +1,10 @@
 from ai_interface import AIInterface
 from ultility import remove_markdown_tags,remove_think_tags
+
+from transformers import RobertaTokenizer
+
+tokenizer = RobertaTokenizer.from_pretrained("roberta-base")
+
 repair_prompt = """You are an localisation expert. Your task is to localize position of corrupted input and funtion name in the parser based on the parser’s code. You should only return 1 function name and when counting the position of corrupted input, you should start from 0. 
 PLEASE DO NOT EXPLAIN,
 PLEASE DO NOT ADD OTHER FORMAT, 
@@ -37,6 +42,8 @@ def localise_program(program, grammar, backend, model):
         + "\ngrammar:\n"
         + grammar
     )
-    return remove_markdown_tags(
-        remove_think_tags(ai.get_response(program_localisation_prompt, prompt_input))
-    )
+    # Call the AI interface and clean the returned text while preserving token usage
+    resp = ai.get_response(program_localisation_prompt, prompt_input)
+    text = remove_markdown_tags(remove_think_tags(resp.response_text))
+    resp.response_text = text
+    return resp

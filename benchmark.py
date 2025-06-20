@@ -37,17 +37,25 @@ def _repair_single_case(row, backend, model, results_db, run_id):
         test_cases = json.loads(test_cases_json.replace("'", '"'))
     total_tests = len(test_cases)
     print(f"[Case {case_id}] Total tests: {total_tests}")
-    # generate patch via localization
-    response = localise_program(corr_parser, orig_grammar, backend, model)
+    # write corrupted parser to file and collect failing test examples
+    corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
+    with open(corrupted_file, 'w', encoding='utf-8') as f:
+        f.write(corr_parser)
+    error_examples = []
+    for inp in test_cases:
+        proc = subprocess.run(['python3', corrupted_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if proc.returncode != 0:
+            error_examples.append(inp)
+    # deduplicate preserving order
+    error_examples = list(dict.fromkeys(error_examples))
+    print(f"[Case {case_id}] Collected {len(error_examples)} unique error examples")
+    # generate patch via localization using failing examples
+    response = localise_program(corr_parser, error_examples, backend, model)
     print(f"[Case {case_id}] Localization response:\n{response.response_text}")
     patch_text = response.response_text
     prompt_tokens = response.prompt_tokens
     completion_tokens = response.completion_tokens
     total_tokens = response.total_tokens
-    # write corrupted, patch and repaired files
-    corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
-    with open(corrupted_file, 'w', encoding='utf-8') as f:
-        f.write(corr_parser)
     patch_file = f"case_{case_id}_patch_{run_id}.diff"
     with open(patch_file, 'w', encoding='utf-8') as f:
         f.write(patch_text)

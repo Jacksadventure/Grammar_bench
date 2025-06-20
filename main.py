@@ -12,7 +12,13 @@ from sqlite3 import connect
 from grammar_gen import gen, generate_example_string, generate_parser_code
 from mutation import mutate_grammar
 from testies import generate_biased_example_wrapper
-from ultility import validation_check, get_max_depth, get_path, grammar_printer
+from ultility import (
+    compile_parser,
+    validation_check_inproc,
+    get_max_depth,
+    get_path,
+    grammar_printer,
+)
 import signal
 import concurrent.futures
 import argparse
@@ -30,10 +36,10 @@ MAX_EXAMPLES = 100          # examples when building a fresh parser
 MAX_MUTATE_ATTEMPTS = 100   # how many corruption attempts per case``
 MAX_INSTANCE_SEARCH = 200   # attempts to find failing inputs
 MIN_TEST_CASES = 1         # minimum failing instances per case
-KEEP_TEST_CASES = 1        # number of test cases to keep in DB = 20
+KEEP_TEST_CASES = 5        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-dims = range(1,11)   
+dims = range(11,21)   
 nonterminal_probs = [0.2, 0.4, 0.6, 0.8]
 loop_probs = [0.2, 0.4, 0.6, 0.8]
 cases_per_setting = 2
@@ -43,7 +49,7 @@ DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal
 DEFAULT_MAX_RHS_LENGTH = 5   # default maximum right-hand side length of productions
 
 
-db_file = "targets4.db"
+db_file = "targets2.db"
 # --------------------------------------------------------------------------- #
 # Core workflow
 # --------------------------------------------------------------------------- #
@@ -72,31 +78,31 @@ def generate_case(num_nonterminals: int,
     # 2. corrupt the grammar until we get at least MIN_TEST_CASES failing inputs
     instances = []
     start_nt = nts[0]
-    # Print the original grammar for debugging (nonterminals list, grammar dict)
+    orig_parse_fn = compile_parser(original_code)
     for _ in range(MAX_MUTATE_ATTEMPTS):
         corrupted_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(
             grammar, nts, terms
         )
-        # If possible, skip mutations of the start nonterminal to force deeper mutation
+        # Skip mutations of the start symbol when possible to force deeper changes
         if len(nts) > 1 and nt == start_nt:
             continue
         corrupted_code = generate_parser_code(
             corrupted_grammar, new_nts, new_nts[0]
         )
+        corr_parse_fn = compile_parser(corrupted_code)
         # search for failing strings
         for _ in range(MAX_INSTANCE_SEARCH):
             s = generate_biased_example_wrapper(
                 grammar=grammar,
                 symbol=new_nts[0],
-                path=[(nt, prod_idx)],  # bias toward the mutated rule
-                max_depth=get_max_depth(grammar, new_nts[0]) * 4,
+                path=[(nt, prod_idx)],
+                max_depth=get_max_depth(grammar, new_nts[0]) * 2,
             )
-            # Append failing cases: string valid for original grammar but rejected by corrupted parser
-            if not validation_check(s, parser_code=corrupted_code):
+            # Only collect strings that the original parser accepts and the corrupted parser rejects
+            if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn):
                 instances.append(s)
-
         if len(instances) >= MIN_TEST_CASES:
-            break  # found enough failing instances
+            break
 
     # ensure we have enough cases
     if len(instances) < MIN_TEST_CASES:
@@ -374,10 +380,13 @@ def main():
                 continue
             # Validate test cases: ensure original parser accepts and corrupted parser rejects
             cases = json.loads(artefacts['test_cases'])
-            valid_cases = []
-            for s in cases:
-                if validation_check(s, artefacts['original_parser']) and not validation_check(s, artefacts['corrupted_parser']):
-                    valid_cases.append(s)
+            # Validate test cases in-memory with compiled parsers
+            orig_fn = compile_parser(artefacts['original_parser'])
+            corr_fn = compile_parser(artefacts['corrupted_parser'])
+            valid_cases = [
+                s for s in cases
+                if validation_check_inproc(s, orig_fn) and not validation_check_inproc(s, corr_fn)
+            ]
             if not valid_cases:
                 print(f"[!] No valid test cases for "
                       f"num_nonterminals={num_nonterms}, max_productions={max_prods}, "

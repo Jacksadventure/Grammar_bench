@@ -1,4 +1,3 @@
-import copy
 import random
 from ultility import get_path
 
@@ -14,8 +13,9 @@ def mutate_grammar(grammar, nonterminals, terminals):
     Returns:
       mutated_grammar: A new grammar with one mutation applied (deep copied so as not to modify the original).
     """
-    # Create a deep copy to avoid modifying the original grammar
-    mutated_grammar = copy.deepcopy(grammar)
+    # Create a shallow copy of the grammar mapping;
+    # we will copy only the mutated nonterminal's productions list below.
+    mutated_grammar = grammar.copy()
     # Select a nonterminal from the deepest nonterminals in the original grammar
     def compute_depths(g, start):
         # longest acyclic path depth for each nonterminal
@@ -70,9 +70,9 @@ def mutate_grammar(grammar, nonterminals, terminals):
         # Fallback: random nonterminal if no reachable distances
         nt = random.choice(list(mutated_grammar.keys()))
     
-    # Randomly select one production of that nonterminal, amd make sure that productions are not empty
-    productions = mutated_grammar[nt]
-    productions = [p for p in productions if len(p) > 0]
+    # Copy productions list and inner lists for chosen nonterminal before mutation
+    mutated_grammar[nt] = [prod.copy() for prod in grammar[nt]]
+    productions = [p for p in mutated_grammar[nt] if len(p) > 0]
     prod_index = random.randrange(len(productions))
     production = productions[prod_index]
     

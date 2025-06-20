@@ -313,7 +313,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             first = False
         exp_str = ", ".join(expected)
         lines.append((1, 'else:'))
-        lines.append((2, f'error("Unexpected token " + lookahead + " in {nt}, expected one of: " + ", ".join([{exp_str}]))'))
+        lines.append((2, 'error("Parse failed")'))
         return lines
 
     def gen_iterative_body(nt, base_prod, inline_children):

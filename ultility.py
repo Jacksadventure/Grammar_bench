@@ -25,6 +25,33 @@ def validation_check(input:str,parser_code:str)-> bool:
         except OSError:
             pass
 
+def compile_parser(parser_code: str):
+    """
+    Compile parser source code into a callable parse_input function.
+    """
+    namespace = {}
+    exec(parser_code, namespace)
+    if 'parse_input' not in namespace:
+        raise RuntimeError("Compiled parser code has no parse_input function")
+    return namespace['parse_input']
+
+def validation_check_inproc(input_str: str, parse_fn) -> bool:
+    """
+    In-memory validation: call parse_input function directly, catching SystemExit.
+    Returns True if parsing succeeds (SystemExit not raised), False otherwise.
+    """
+    import sys, io
+    # Suppress parser's stdout (e.g., "Input accepted.") during in-process validation
+    old_stdout = sys.stdout
+    sys.stdout = io.StringIO()
+    try:
+        parse_fn(input_str)
+        return True
+    except SystemExit:
+        return False
+    finally:
+        sys.stdout = old_stdout
+
 def levenshtein_distance(a: str, b: str) -> int:
     """Calculate the Levenshtein distance between two strings."""
     if not a: return len(b)

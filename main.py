@@ -23,6 +23,13 @@ import signal
 import concurrent.futures
 import argparse
 
+# Helpers to parse comma-separated lists from command-line arguments
+def _parse_int_list(s: str) -> list[int]:
+    return [int(x) for x in s.split(',') if x]
+
+def _parse_float_list(s: str) -> list[float]:
+    return [float(x) for x in s.split(',') if x]
+
 
 # Exception and handler for time-limiting generate_case
 class CaseTimeout(Exception):
@@ -39,9 +46,9 @@ MIN_TEST_CASES = 1         # minimum failing instances per case
 KEEP_TEST_CASES = 5        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-dims = range(11,21)   
-nonterminal_probs = [0.2, 0.4, 0.6, 0.8]
-loop_probs = [0.2, 0.4, 0.6, 0.8]
+dims = range(30, 101, 5)
+nonterminal_probs = [0.5]
+loop_probs = [0.5]
 cases_per_setting = 2
 
 # Default parameters for grammar generation
@@ -49,7 +56,7 @@ DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal
 DEFAULT_MAX_RHS_LENGTH = 5   # default maximum right-hand side length of productions
 
 
-db_file = "targets2.db"
+db_file = "targets4.db"
 # --------------------------------------------------------------------------- #
 # Core workflow
 # --------------------------------------------------------------------------- #
@@ -284,6 +291,9 @@ def save_case(cursor, artefacts: dict):
 # CLI & main loop
 # --------------------------------------------------------------------------- #
 def main():
+    # Allow overriding sweep settings and search bounds
+    global dims, nonterminal_probs, loop_probs
+    global MAX_EXAMPLES, MAX_MUTATE_ATTEMPTS, MAX_INSTANCE_SEARCH
     parser = argparse.ArgumentParser(description="Generate parser cases in parallel and store in SQLite DB")
     parser.add_argument('-w', '--workers', type=int, default=None,
                         help='Number of worker processes (default: cases per setting)')
@@ -300,6 +310,20 @@ def main():
                         help='Probability of nonterminal recursion in grammar generation')
     parser.add_argument('--loop-prob', type=float, default=None,
                         help='Probability of looping in grammar generation')
+    # Sweep parameter overrides: comma-separated lists
+    parser.add_argument('--dims', type=_parse_int_list, default=None,
+                        help=f'List of nonterminal counts to sweep (default: {dims})')
+    parser.add_argument('--nonterminal-probs', type=_parse_float_list, default=None,
+                        help=f'List of nonterminal recursion probs (default: {nonterminal_probs})')
+    parser.add_argument('--loop-probs', type=_parse_float_list, default=None,
+                        help=f'List of looping probs (default: {loop_probs})')
+    # Search-bound overrides
+    parser.add_argument('--max-examples', type=int, default=None,
+                        help=f'Max examples when building a fresh parser (default: {MAX_EXAMPLES})')
+    parser.add_argument('--max-mutate-attempts', type=int, default=None,
+                        help=f'Max number of corruption attempts per case (default: {MAX_MUTATE_ATTEMPTS})')
+    parser.add_argument('--max-instance-search', type=int, default=None,
+                        help=f'Attempts to find failing inputs (default: {MAX_INSTANCE_SEARCH})')
     args = parser.parse_args()
     cps = args.cases_per_setting
     workers = args.workers if args.workers is not None else cps
@@ -309,6 +333,20 @@ def main():
     max_rhs = args.max_rhs_length
     nonterm_prob_arg = args.nonterminal_prob
     loop_prob_arg = args.loop_prob
+    # Override global sweep parameters if supplied
+    if args.dims is not None:
+        dims = args.dims
+    if args.nonterminal_probs is not None:
+        nonterminal_probs = args.nonterminal_probs
+    if args.loop_probs is not None:
+        loop_probs = args.loop_probs
+    # Override search bounds if supplied
+    if args.max_examples is not None:
+        MAX_EXAMPLES = args.max_examples
+    if args.max_mutate_attempts is not None:
+        MAX_MUTATE_ATTEMPTS = args.max_mutate_attempts
+    if args.max_instance_search is not None:
+        MAX_INSTANCE_SEARCH = args.max_instance_search
 
     conn = connect(db_file)
     cur = conn.cursor()

@@ -1,9 +1,0 @@
---- a/parser.py
-+++ b/parser.py
-@@ -84,6 +84,8 @@ def parse_input(input_str):
-     tokens = list(input_str)
-     pos = 0
-     parse_R()
-+    if pos < len(tokens):
-+        error("Unexpected token " + tokens[pos])
-     print("Input accepted.")

@@ -1,9 +1,0 @@
-*** Begin Patch
-*** Update File: parser.py
-@@
-         match('{')
-         match('W')
-     else:
--        Parse failed
-+        error("Unexpected token " + (tokens[pos] if pos < len(tokens) else "EOF") + " in U, expected 'Y'")
-*** End Patch

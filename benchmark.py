@@ -133,11 +133,11 @@ def _repair_single_case(row, backend, model, results_db, run_id):
     )
     conn.commit()
     conn.close()
-    # cleanup
-    try:
-        os.remove(repaired_file)
-    except OSError:
-        pass
+    for fname in (corrupted_file, patch_file, repaired_file):
+        try:
+            os.remove(fname)
+        except OSError:
+            pass
 
 def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db', workers=1):
     """
@@ -219,14 +219,6 @@ def main():
         results_db_name = args.results_db
     print(f"Using results database: {results_db_name}")
     program_reapir(args.backend, args.model, args.db_path, results_db_name, args.workers)
-    # Clean up repaired files after run
-    for fname in os.listdir('.'):
-        if fname.startswith('case_') and '_repaired_' in fname:
-            try:
-                os.remove(fname)
-            except OSError:
-                pass
-            
 if __name__ == "__main__":
     import multiprocessing as mp
     try:

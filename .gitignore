@@ -5,3 +5,4 @@ original_generated_parser.py
 repaired_generated_parser.py
 *.db
 *.pyc
+cache

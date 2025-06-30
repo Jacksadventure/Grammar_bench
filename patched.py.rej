@@ -1,0 +1,10 @@
+@@ -70,6 +70,9 @@
+                 match('B')
+                match('w')
+                parse_S()
+                match('x')
+            elif lookahead.startswith('u'):
+                match('u')
++           elif lookahead.startswith('~'):
++               match('~')
++               # Add necessary logic to handle '~' case

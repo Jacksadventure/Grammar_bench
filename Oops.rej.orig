@@ -1,10 +1,15 @@
-@@ -178,7 +178,7 @@
-         match(';')
-         parse_P()
--        match('U')
-+        match('n')
-     elif lookahead.startswith("'"):
-         match("'")
+@@ -37,10 +37,10 @@
+     if pos >= len(tokens):
+-        error("Unexpected end of input in L")
++        error("Expected '4' but got " + (tokens[pos] if pos < len(tokens) else "EOF")) # Added to correctly handle the missing 'w'.
+     lookahead = tokens[pos]
+-    if lookahead.startswith('4'):
++    elif lookahead.startswith('4'): # Changed from '<' to '4' for proper error handling.
+         match('4')
+         parse_W()
+-        match('R')
++        match('w')  # Added as per the provided input example: <Pw->Pw->P;<
+         parse_T()
+     else:
+         error("Parse failed")
 \ No newline at end of line
- 
- 

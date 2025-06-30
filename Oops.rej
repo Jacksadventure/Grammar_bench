@@ -1,19 +1,12 @@
-@@ -46,6 +45,8 @@
-             match('4')
-         else:
-             error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['v', 'h', 'u', '4']))
-+        else:
-+            pass
-     elif lookahead.startswith('4'):
-         match('4')
-     elif lookahead.startswith('C'):
-@@ -144,8 +145,6 @@
-     if lookahead.startswith('r'):
-         match('r')
-         match('~')
--    else:
--        error("Unexpected token " + lookahead + " in N, expected one of: " + ", ".join(['r', '']))
- 
- def parse_R():
-     global pos, tokens
+@@ -58,7 +58,9 @@
+     if lookahead.startswith('T'):
+         match('T')
+-        match("'")            
++        match("N")            
+     elif lookahead.startswith('*'):
+         match('*')
++    else:
++        error("Unexpected token " + lookahead + " in M, expected one of: *, T")
 \ No newline at end of line
+ 
+ 

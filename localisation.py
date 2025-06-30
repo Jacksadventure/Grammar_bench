@@ -104,6 +104,7 @@ def localise_program(program, examples, backend, model):
         + examples_block
     )
     # Call the AI interface and clean the returned text while preserving token usage
+    # print(prompt_input)
     resp = ai.get_response(program_localisation_prompt, prompt_input)
     text = remove_markdown_tags(remove_think_tags(resp.response_text))
     resp.response_text = text

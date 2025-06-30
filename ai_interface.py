@@ -14,6 +14,9 @@ class AIInterface:
         elif backend == "claude":
             from models import ClaudeModel
             self.model = ClaudeModel(model)
+        elif backend == "together":
+            from models import TogetherModel
+            self.model = TogetherModel(model)
         else:
             raise ValueError("Invalid backend")
         

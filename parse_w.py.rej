@@ -1,0 +1,9 @@
+@@ -24,7 +24,7 @@
+             match('t')
+             lookahead = tokens[pos]
+             if lookahead.startswith('t'):
+                 match('t')
+-                parse_W()
++                parse_W()  # Corrected line
+                 lookahead = tokens[pos]
+                 if lookahead.startswith('t'):

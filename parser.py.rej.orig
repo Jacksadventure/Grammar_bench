@@ -1,16 +1,10 @@
-@@ -55,15 +55,3 @@
-     elif lookahead.startswith('W'):
-         match('W')
-         match('q')
--        if pos >= len(tokens):
--            error("Unexpected end of input in I")
--        lookahead = tokens[pos]
--        if lookahead.startswith('X'):
--            parse_X()
--        else:
--            error("Parse failed")
--        if pos >= len(tokens):
--            error("Unexpected end of input in I")
--        lookahead = tokens[pos]
--        if lookahead.startswith('X'):
--            parse_X()
+@@ -22,6 +22,9 @@
+     if lookahead.startswith('~'):
+         match('~')
+         while pos < len(tokens) and tokens[pos].startswith('0'):
++
++    elif lookahead.startswith('T'):
++        match('T')
+         match('0')
+         parse_L()
+         parse_I()

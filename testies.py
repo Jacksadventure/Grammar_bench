@@ -3,6 +3,11 @@ from ultility import get_shortcut
 
 MAX_TEMP = 500
 
+class StopGeneration(Exception):
+    """Internal exception to stop generation once mutation point is reached."""
+    def __init__(self, result: str):
+        self.result = result
+
 def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
     """
     Recursively generate a derivation string from the given nonterminal symbol.
@@ -30,26 +35,32 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
     
     # Check if we should follow the biased path for this nonterminal.
     if path and path[0][0] == symbol:
-        # Use the specified production index from the path.
+        # Use the specified production index from the path (mutation point).
         _, prod_index = path[0]
         prod = grammar[symbol][prod_index]
-        # Pass the remainder of the path to the next call.
         next_path = path[1:]
+        mutation_hit = True
     else:
-        # Not at the biased symbol yet; select a production randomly.
         prod = random.choice(grammar[symbol])
-        # Keep the biasing path intact for deeper recursion until matched.
         next_path = path
+        mutation_hit = False
     
     result = ""
     for s in prod:
         if s in grammar:
-            out = generate_biased_example(grammar, s, next_path, shortcut, max_depth-1)
+            try:
+                out = generate_biased_example(grammar, s, next_path, shortcut, max_depth-1)
+            except StopGeneration:
+                # Propagate early termination once mutation point reached.
+                raise
         else:
             out = s
         result += out
         if len(result) > MAX_TEMP:
             return result
+    if mutation_hit:
+        # Stop generation immediately after mutation point.
+        raise StopGeneration(result)
     return result
 
 def generate_biased_example_wrapper(grammar, symbol, path, max_depth=60):
@@ -58,7 +69,10 @@ def generate_biased_example_wrapper(grammar, symbol, path, max_depth=60):
     
     This function generates a biased example using the provided path and prints the result.
     """
-    shortcut =  get_shortcut(grammar)
-    example = generate_biased_example(grammar, symbol, path, shortcut, max_depth)
+    shortcut = get_shortcut(grammar)
+    try:
+        example = generate_biased_example(grammar, symbol, path, shortcut, max_depth)
+    except StopGeneration as e:
+        example = e.result
     return example
     

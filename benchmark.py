@@ -10,6 +10,10 @@ import random
 import os
 import shutil
 import uuid
+# Directory for intermediate temporary cache files
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CACHE_DIR = os.path.join(BASE_DIR, 'cache')
+os.makedirs(CACHE_DIR, exist_ok=True)
 from mutation import mutate_grammar
 from file_diff import get_diff_function
 from testies import generate_biased_example_wrapper
@@ -23,7 +27,7 @@ MAX_MUTATE_ATTEMPTS = 100
 import concurrent.futures
 import multiprocessing
 
-def _repair_single_case(row, backend, model, results_db, run_id):
+def _repair_single_case(row, backend, model, results_db, run_id, sample):
     (case_id, num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
      orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json) = row
     # per-case DB connection for writing results
@@ -38,7 +42,7 @@ def _repair_single_case(row, backend, model, results_db, run_id):
     total_tests = len(test_cases)
     print(f"[Case {case_id}] Total tests: {total_tests}")
     # write corrupted parser to file and collect failing test examples
-    corrupted_file = f"case_{case_id}_corrupted_{run_id}.py"
+    corrupted_file = os.path.join(CACHE_DIR, f"case_{case_id}_corrupted_{run_id}_{sample}.py")
     with open(corrupted_file, 'w', encoding='utf-8') as f:
         f.write(corr_parser)
     error_examples = []
@@ -56,10 +60,10 @@ def _repair_single_case(row, backend, model, results_db, run_id):
     prompt_tokens = response.prompt_tokens
     completion_tokens = response.completion_tokens
     total_tokens = response.total_tokens
-    patch_file = f"case_{case_id}_patch_{run_id}.diff"
+    patch_file = os.path.join(CACHE_DIR, f"case_{case_id}_patch_{run_id}_{sample}.diff")
     with open(patch_file, 'w', encoding='utf-8') as f:
         f.write(patch_text)
-    repaired_file = f"case_{case_id}_repaired_{run_id}.py"
+    repaired_file = os.path.join(CACHE_DIR, f"case_{case_id}_repaired_{run_id}_{sample}.py")
     shutil.copy(corrupted_file, repaired_file)
     # apply patch quietly
     try:
@@ -110,8 +114,8 @@ def _repair_single_case(row, backend, model, results_db, run_id):
                 passed_tests = 0
                 fix = 0
                 cursor.execute(
-                    'REPLACE INTO repair_results(case_id,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
-                    (case_id, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
+                    'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+                    (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
                 )
                 conn.commit()
                 conn.close()
@@ -128,8 +132,8 @@ def _repair_single_case(row, backend, model, results_db, run_id):
     fix = 1 if passed_tests == total_tests else 0
     # write result
     cursor.execute(
-        'REPLACE INTO repair_results(case_id,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?)',
-        (case_id, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
+        'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
+        (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
     )
     conn.commit()
     conn.close()
@@ -139,7 +143,7 @@ def _repair_single_case(row, backend, model, results_db, run_id):
         except OSError:
             pass
 
-def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db', workers=1):
+def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db', workers=1, k=1):
     """
     Read parser cases from a SQLite database and perform localization for each case.
     Supports parallel execution with `workers` processes.
@@ -161,7 +165,8 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     results_cursor = results_conn.cursor()
     results_cursor.execute('''
         CREATE TABLE IF NOT EXISTS repair_results (
-            case_id INTEGER PRIMARY KEY,
+            case_id INTEGER,
+            sample INTEGER,
             puzzle_id INTEGER,
             num_nonterminals INTEGER,
             nonterminal_prob REAL,
@@ -171,20 +176,23 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
             fix INTEGER,
             prompt_tokens INTEGER,
             completion_tokens INTEGER,
-            total_tokens INTEGER
+            total_tokens INTEGER,
+            PRIMARY KEY (case_id, sample)
         )
     ''')
     results_conn.commit()
     # Determine cases to (re)process
-    results_cursor.execute("SELECT case_id FROM repair_results")
-    processed_cases = {r[0] for r in results_cursor.fetchall()}
-    to_run = [row for row in rows if row[0] not in processed_cases]
-    print(f"[Main] {len(to_run)} cases to process using {workers} worker(s)")
+    # Determine cases and samples to (re)process
+    results_cursor.execute("SELECT case_id, sample FROM repair_results")
+    processed = {(case_id, sample) for case_id, sample in results_cursor.fetchall()}
+    to_run = [(row, sample) for row in rows for sample in range(1, k+1)
+              if (row[0], sample) not in processed]
+    print(f"[Main] {len(to_run)} repairs to process using {workers} worker(s) (pass@{k})")
     # dispatch either sequentially or in parallel
     if workers > 1:
         ctx = multiprocessing.get_context("spawn")
         with concurrent.futures.ProcessPoolExecutor(max_workers=workers, mp_context=ctx) as executor:
-            futures = {executor.submit(_repair_single_case, row, backend, model, results_db, run_id): row[0] for row in to_run}
+            futures = {executor.submit(_repair_single_case, row, backend, model, results_db, run_id, sample): row[0] for row, sample in to_run}
             for fut in concurrent.futures.as_completed(futures):
                 cid = futures[fut]
                 try:
@@ -192,8 +200,21 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
                 except Exception as e:
                     print(f"[Case {cid}] Worker exception: {e}")
     else:
-        for row in to_run:
-            _repair_single_case(row, backend, model, results_db, run_id)
+        for row, sample in to_run:
+            _repair_single_case(row, backend, model, results_db, run_id, sample)
+
+    # Summary pass@k
+    print(f"\n=== PASS@{k} SUMMARY ===")
+    summary_conn = sqlite3.connect(results_db)
+    summary_cur = summary_conn.cursor()
+    summary_cur.execute(
+        "SELECT case_id, SUM(fix) as successes FROM repair_results GROUP BY case_id"
+    )
+    stats = summary_cur.fetchall()
+    total_cases = len(stats)
+    passed_cases = sum(1 for _, successes in stats if successes > 0)
+    print(f"pass@{k}: {passed_cases}/{total_cases} = {passed_cases/total_cases:.2%}")
+    summary_conn.close()
 
 def main():
     parser = argparse.ArgumentParser(description='Sample Parser')
@@ -203,6 +224,7 @@ def main():
     parser.add_argument('--db-path', type=str, default='parser_cases.db', help='Path to the parser_cases SQLite database')
     parser.add_argument('--results-db', type=str, default='repair_results.db', help='Path to output results SQLite database')
     parser.add_argument('--workers', type=int, default=1, help='number of parallel workers')
+    parser.add_argument('--k', type=int, default=1, help='number of repair attempts per case for pass@K evaluation')
     args = parser.parse_args()
     # if args.mode == 'input_repair':
     #     program_input_reapir(args.backend,args.model)
@@ -218,7 +240,7 @@ def main():
     else:
         results_db_name = args.results_db
     print(f"Using results database: {results_db_name}")
-    program_reapir(args.backend, args.model, args.db_path, results_db_name, args.workers)
+    program_reapir(args.backend, args.model, args.db_path, results_db_name, args.workers, args.k)
 if __name__ == "__main__":
     import multiprocessing as mp
     try:

@@ -46,9 +46,9 @@ MIN_TEST_CASES = 1         # minimum failing instances per case
 KEEP_TEST_CASES = 5        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-dims = range(30, 101, 5)
-nonterminal_probs = [0.5]
-loop_probs = [0.5]
+num_nonterminals = range(1,11)  
+nonterminal_probs = [0.2,0.4,0.6,0.8]
+loop_probs = [0.2,0.4,0.6,0.8]
 cases_per_setting = 2
 
 # Default parameters for grammar generation
@@ -56,7 +56,7 @@ DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal
 DEFAULT_MAX_RHS_LENGTH = 5   # default maximum right-hand side length of productions
 
 
-db_file = "targets4.db"
+db_file = "targets5.db"
 # --------------------------------------------------------------------------- #
 # Core workflow
 # --------------------------------------------------------------------------- #
@@ -103,7 +103,7 @@ def generate_case(num_nonterminals: int,
                 grammar=grammar,
                 symbol=new_nts[0],
                 path=[(nt, prod_idx)],
-                max_depth=get_max_depth(grammar, new_nts[0]) * 2,
+                max_depth=get_max_depth(grammar, new_nts[0]) + 10,
             )
             # Only collect strings that the original parser accepts and the corrupted parser rejects
             if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn):

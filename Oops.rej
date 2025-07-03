@@ -1,12 +1,2 @@
-@@ -58,7 +58,9 @@
-     if lookahead.startswith('T'):
-         match('T')
--        match("'")            
-+        match("N")            
-     elif lookahead.startswith('*'):
-         match('*')
-+    else:
-+        error("Unexpected token " + lookahead + " in M, expected one of: *, T")
-\ No newline at end of line
- 
- 
+@@ -96,1 +96,0 @@
+-            match('y')

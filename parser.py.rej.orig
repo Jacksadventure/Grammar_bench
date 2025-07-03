@@ -1,10 +1,8 @@
-@@ -22,6 +22,9 @@
-     if lookahead.startswith('~'):
-         match('~')
-         while pos < len(tokens) and tokens[pos].startswith('0'):
-+
-+    elif lookahead.startswith('T'):
-+        match('T')
-         match('0')
-         parse_L()
-         parse_I()
+@@ -93,7 +93,6 @@
+             match('@')
+             parse_I()
+             match('y')
+-        match('y')
+         elif lookahead.startswith('8'):
+             match('8')
+         else:

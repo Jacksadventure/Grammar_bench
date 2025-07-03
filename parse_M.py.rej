@@ -1,0 +1,12 @@
+@@ -1,10 +1,10 @@
+ def parse_M():
+     global pos, tokens
+     if pos >= len(tokens):
+         error("Unexpected end of input in M")
+     lookahead = tokens[pos]
+     if lookahead.startswith('g'):
+         match('g')
+-        match('?')
++        match('K')  # Changed from '?' to 'K'
+         match('S')
+     elif lookahead.startswith('E'):

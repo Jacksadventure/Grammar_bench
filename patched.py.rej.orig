@@ -1,0 +1,8 @@
+@@ -22,6 +22,7 @@
+         match(':')
+         if pos >= len(tokens):
+             return
++        return  # Add this line to prevent fallthrough and correct parsing issues
+         lookahead = tokens[pos]
+         if lookahead.startswith('N'):
+             match('N')

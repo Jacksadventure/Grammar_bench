@@ -1,0 +1,7 @@
+@@ -1,5 +1,6 @@
+ // Define the grammar for W language
+ 
+ void parse_W() {
++    do {
+         if (lookahead starts with 'b') {
+             match('b');

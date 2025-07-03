@@ -1,0 +1,8 @@
+@@ -40,7 +40,6 @@
+     if lookahead.startswith('i'):
+         match('i')
+         parse_S()
+-        match('U')
+     elif lookahead.startswith('`'):
+         match('`')
+         parse_O()

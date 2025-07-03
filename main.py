@@ -46,7 +46,8 @@ MIN_TEST_CASES = 1         # minimum failing instances per case
 KEEP_TEST_CASES = 5        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-num_nonterminals = range(1,11)  
+num_nonterminals = range(1,11)
+dims = num_nonterminals
 nonterminal_probs = [0.2,0.4,0.6,0.8]
 loop_probs = [0.2,0.4,0.6,0.8]
 cases_per_setting = 2
@@ -299,6 +300,8 @@ def main():
                         help='Number of worker processes (default: cases per setting)')
     parser.add_argument('-c', '--cases-per-setting', type=int, default=cases_per_setting,
                         help=f'Number of cases to generate per setting (default: {cases_per_setting})')
+    parser.add_argument('--grammar-file', type=str, default=None,
+                        help='Path to external grammar JSON file for mutation (bypass grammar generation)')
     # Custom grammar parameters
     parser.add_argument('--num-nonterminals', type=int, default=None,
                         help='Number of nonterminals for grammar generation')
@@ -311,7 +314,7 @@ def main():
     parser.add_argument('--loop-prob', type=float, default=None,
                         help='Probability of looping in grammar generation')
     # Sweep parameter overrides: comma-separated lists
-    parser.add_argument('--dims', type=_parse_int_list, default=None,
+    parser.add_argument('--dims', nargs='?', const='', type=_parse_int_list, default=None,
                         help=f'List of nonterminal counts to sweep (default: {dims})')
     parser.add_argument('--nonterminal-probs', type=_parse_float_list, default=None,
                         help=f'List of nonterminal recursion probs (default: {nonterminal_probs})')
@@ -334,8 +337,13 @@ def main():
     nonterm_prob_arg = args.nonterminal_prob
     loop_prob_arg = args.loop_prob
     # Override global sweep parameters if supplied
+    auto_dims = False
     if args.dims is not None:
-        dims = args.dims
+        if args.dims:
+            dims = args.dims
+        else:
+            # flag provided without values: auto adjust defaults to follow nonterminal counts
+            auto_dims = True
     if args.nonterminal_probs is not None:
         nonterminal_probs = args.nonterminal_probs
     if args.loop_probs is not None:
@@ -347,6 +355,76 @@ def main():
         MAX_MUTATE_ATTEMPTS = args.max_mutate_attempts
     if args.max_instance_search is not None:
         MAX_INSTANCE_SEARCH = args.max_instance_search
+
+    # External grammar mutation mode: load and mutate a user-provided grammar
+    if args.grammar_file:
+        print(f"[+] Starting external grammar mutation for {args.grammar_file}, cases_per_setting={cps}")
+        with open(args.grammar_file, encoding='utf-8') as gf:
+            ext_grammar = json.load(gf)
+        nonterms = list(ext_grammar.keys())
+        terms = set()
+        for prods in ext_grammar.values():
+            for prod in prods:
+                for sym in prod:
+                    if sym not in nonterms:
+                        terms.add(sym)
+        terms = list(terms)
+        start_nt = nonterms[0]
+        original_code = generate_parser_code(ext_grammar, nonterms, start_nt)
+        orig_fn = compile_parser(original_code)
+        for idx in range(1, cps + 1):
+            instances = []
+            for _ in range(MAX_MUTATE_ATTEMPTS):
+                mutated_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(ext_grammar, nonterms, terms)
+                if len(nonterms) > 1 and nt == start_nt:
+                    continue
+                corrupted_code = generate_parser_code(mutated_grammar, new_nts, new_nts[0])
+                corr_fn = compile_parser(corrupted_code)
+                for _ in range(MAX_INSTANCE_SEARCH):
+                    s = generate_biased_example_wrapper(
+                        grammar=ext_grammar,
+                        symbol=new_nts[0],
+                        path=[(nt, prod_idx)],
+                        max_depth=get_max_depth(ext_grammar, new_nts[0]) + 10,
+                    )
+                    if validation_check_inproc(s, orig_fn) and not validation_check_inproc(s, corr_fn):
+                        instances.append(s)
+                if len(instances) >= MIN_TEST_CASES:
+                    break
+            if len(instances) < MIN_TEST_CASES:
+                print(f"[!] Could not find sufficient failing instances for case {idx}, skipping")
+                continue
+            path = get_path(ext_grammar, nonterms[0], nt)
+            mutation_depth = len(path) + 1 if path is not None else None
+            nonterm_set = set(mutated_grammar.keys())
+            term_set = set()
+            for prods in mutated_grammar.values():
+                for prod in prods:
+                    for sym in prod:
+                        if sym not in nonterm_set:
+                            term_set.add(sym)
+            corrupted_symbol_count = len(nonterm_set) + len(term_set)
+            artefacts = {
+                "nonterminal_prob": None,
+                "loop_prob": None,
+                "mutation_depth": mutation_depth,
+                "original_grammar": json.dumps(ext_grammar, ensure_ascii=False),
+                "original_parser": original_code,
+                "corrupted_grammar": json.dumps(mutated_grammar, ensure_ascii=False),
+                "corrupted_parser": corrupted_code,
+                "corrupted_symbol_count": corrupted_symbol_count,
+                "test_cases": json.dumps(instances[:KEEP_TEST_CASES], ensure_ascii=False),
+            }
+            artefacts["num_nonterminals"] = len(nonterms)
+            artefacts["max_productions"] = None
+            artefacts["max_rhs_length"] = None
+            artefacts["parser_size"] = len(corrupted_code)
+            save_case(cur, artefacts)
+            conn.commit()
+            print(f"[+] Saved external case #{idx}/{cps}")
+        conn.close()
+        print(f"[✓] Done external grammar mutation. All cases stored in {db_file}")
+        return
 
     conn = connect(db_file)
     cur = conn.cursor()
@@ -391,7 +469,13 @@ def main():
                     done = existing.get((num_nt, nonterm_prob, lp), 0)
                     remaining = max(cps - done, 0)
                     for _ in range(remaining):
-                        tasks.append((num_nt, DEFAULT_MAX_PRODUCTIONS, DEFAULT_MAX_RHS_LENGTH, nonterm_prob, lp))
+                        if auto_dims:
+                            max_prod = num_nt
+                            max_rhs_len = num_nt
+                        else:
+                            max_prod = DEFAULT_MAX_PRODUCTIONS
+                            max_rhs_len = DEFAULT_MAX_RHS_LENGTH
+                        tasks.append((num_nt, max_prod, max_rhs_len, nonterm_prob, lp))
         total = len(tasks)
         if total == 0:
             print(f"[✓] All {cps} cases per setting already generated in {db_file}. Nothing to do.")

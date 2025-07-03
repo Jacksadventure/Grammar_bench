@@ -1,10 +1,7 @@
-@@ -70,6 +70,9 @@
-                 match('B')
-                match('w')
-                parse_S()
-                match('x')
-            elif lookahead.startswith('u'):
-                match('u')
-+           elif lookahead.startswith('~'):
-+               match('~')
-+               # Add necessary logic to handle '~' case
+@@ -1,5 +1,6 @@
+ def parse_I():
+     if lookahead.startswith(':'):
+         match(':')
++        return  # Add this line to prevent fallthrough and correct parsing issues
+         if pos >= len(tokens):
+             return

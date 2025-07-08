@@ -1,8 +1,11 @@
-@@ -93,7 +93,6 @@
-             match('@')
-             parse_I()
-             match('y')
--        match('y')
-         elif lookahead.startswith('8'):
-             match('8')
-         else:
+@@ -25,7 +25,9 @@
+                 self.parse_k()
+             elif lookahead.startswith("M/"):
+                 self.parse_m()
+-            else:
++            elif lookahead.startswith("M/#Y"):
++                self.parse_h()
++            # Add other cases as needed
+             pass
+ 
+     def parse_q(self):

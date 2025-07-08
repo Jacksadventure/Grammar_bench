@@ -48,16 +48,16 @@ TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
 num_nonterminals = range(1,11)
 dims = num_nonterminals
-nonterminal_probs = [0.2,0.4,0.6,0.8]
-loop_probs = [0.2,0.4,0.6,0.8]
-cases_per_setting = 2
+nonterminal_probs = [0.3]
+loop_probs = [0.3]
+cases_per_setting = 10
 
 # Default parameters for grammar generation
 DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal
 DEFAULT_MAX_RHS_LENGTH = 5   # default maximum right-hand side length of productions
 
 
-db_file = "targets5.db"
+db_file = "targets6.db"
 # --------------------------------------------------------------------------- #
 # Core workflow
 # --------------------------------------------------------------------------- #
@@ -80,7 +80,7 @@ def generate_case(num_nonterminals: int,
         maxproductions=max_productions,
         max_rhs_length=max_rhs_length,
         max_original_examples=MAX_EXAMPLES,
-        recursion_prob=nonterminal_prob,
+        nonterminal_prob=nonterminal_prob,
         loop_prob=loop_prob,
     )
     # 2. corrupt the grammar until we get at least MIN_TEST_CASES failing inputs
@@ -310,16 +310,16 @@ def main():
     parser.add_argument('--max-rhs-length', type=int, default=None,
                         help='Maximum right-hand side length for productions')
     parser.add_argument('--nonterminal-prob', type=float, default=None,
-                        help='Probability of nonterminal recursion in grammar generation')
+                        help='Probability of nonterminal expansion in grammar generation (nonterminal-prob + loop-prob <1)')
     parser.add_argument('--loop-prob', type=float, default=None,
-                        help='Probability of looping in grammar generation')
+                        help='Probability of right-recursive looping in grammar generation (nonterminal-prob + loop-prob <1)')
     # Sweep parameter overrides: comma-separated lists
     parser.add_argument('--dims', nargs='?', const='', type=_parse_int_list, default=None,
                         help=f'List of nonterminal counts to sweep (default: {dims})')
     parser.add_argument('--nonterminal-probs', type=_parse_float_list, default=None,
-                        help=f'List of nonterminal recursion probs (default: {nonterminal_probs})')
+                        help=f'List of nonterminal recursion probs; paired with --loop-probs by position (default: {nonterminal_probs})')
     parser.add_argument('--loop-probs', type=_parse_float_list, default=None,
-                        help=f'List of looping probs (default: {loop_probs})')
+                        help=f'List of looping probs; paired with --nonterminal-probs by position (default: {loop_probs})')
     # Search-bound overrides
     parser.add_argument('--max-examples', type=int, default=None,
                         help=f'Max examples when building a fresh parser (default: {MAX_EXAMPLES})')
@@ -336,6 +336,11 @@ def main():
     max_rhs = args.max_rhs_length
     nonterm_prob_arg = args.nonterminal_prob
     loop_prob_arg = args.loop_prob
+    # Handle case where only --num-nonterminals is supplied: treat as dims override
+    if num_nonterms is not None and nonterm_prob_arg is None and loop_prob_arg is None and args.dims is None:
+        dims = [num_nonterms]
+        args.dims = dims
+        num_nonterms = None
     # Override global sweep parameters if supplied
     auto_dims = False
     if args.dims is not None:
@@ -440,13 +445,17 @@ def main():
 
     # Build task list: either custom single setting or default parameter sweep
     tasks = []
-    # Custom override mode: if any custom parameter is provided
-    if any(param is not None for param in [num_nonterms, max_prods, max_rhs, nonterm_prob_arg, loop_prob_arg]):
-        # Require all custom parameters
-        if not all(param is not None for param in [num_nonterms, max_prods, max_rhs, nonterm_prob_arg, loop_prob_arg]):
-            parser.error("When specifying custom parameters, all of "
-                         "--num-nonterminals, --max-productions, "
-                         "--max-rhs-length, --nonterminal-prob, and --loop-prob must be provided.")
+    # Custom override mode: if any core custom parameter is provided
+    if any(param is not None for param in [num_nonterms, nonterm_prob_arg, loop_prob_arg]):
+        # Require mandatory custom parameters: num-nonterminals, nonterminal-prob, loop-prob
+        if num_nonterms is None or nonterm_prob_arg is None or loop_prob_arg is None:
+            parser.error("When specifying custom parameters, "
+                         "--num-nonterminals, --nonterminal-prob, and --loop-prob must be provided.")
+        # Set max-productions and max-rhs-length to follow num-nonterminals if not explicitly provided
+        if max_prods is None:
+            max_prods = num_nonterms
+        if max_rhs is None:
+            max_rhs = num_nonterms
         # Resume based on num_nonterminals and nonterminal/loop probs
         done = existing.get((num_nonterms, nonterm_prob_arg, loop_prob_arg), 0)
         remaining = max(cps - done, 0)
@@ -462,27 +471,28 @@ def main():
               f"max_rhs_length={max_rhs}, nonterminal_prob={nonterm_prob_arg}, "
               f"loop_prob={loop_prob_arg}, cases_per_setting={cps}, workers={workers})")
     else:
-        # Default parameter sweep
+        # Default parameter sweep: paired nonterminal and loop probabilities (sum must be <1)
         for num_nt in dims:
-            for nonterm_prob in nonterminal_probs:
-                for lp in loop_probs:
-                    done = existing.get((num_nt, nonterm_prob, lp), 0)
-                    remaining = max(cps - done, 0)
-                    for _ in range(remaining):
-                        if auto_dims:
-                            max_prod = num_nt
-                            max_rhs_len = num_nt
-                        else:
-                            max_prod = DEFAULT_MAX_PRODUCTIONS
-                            max_rhs_len = DEFAULT_MAX_RHS_LENGTH
-                        tasks.append((num_nt, max_prod, max_rhs_len, nonterm_prob, lp))
+            for nonterm_prob, lp in zip(nonterminal_probs, loop_probs):
+                if nonterm_prob + lp >= 1:
+                    continue
+                done = existing.get((num_nt, nonterm_prob, lp), 0)
+                remaining = max(cps - done, 0)
+                for _ in range(remaining):
+                    if auto_dims:
+                        max_prod = num_nt
+                        max_rhs_len = num_nt
+                    else:
+                        max_prod = DEFAULT_MAX_PRODUCTIONS
+                        max_rhs_len = DEFAULT_MAX_RHS_LENGTH
+                    tasks.append((num_nt, max_prod, max_rhs_len, nonterm_prob, lp))
         total = len(tasks)
         if total == 0:
             print(f"[✓] All {cps} cases per setting already generated in {db_file}. Nothing to do.")
             conn.close()
             return
         print(f"[+] Starting parallel generation of {total} cases "
-              f"(dims={list(dims)}, nonterminal_probs={nonterminal_probs}, loop_probs={loop_probs}, "
+              f"(dims={list(dims)}, paired (nonterminal_prob, loop_prob) sum<1, "
               f"cases_per_setting={cps}, workers={workers})")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:

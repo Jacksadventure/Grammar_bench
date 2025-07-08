@@ -1,7 +1,10 @@
-@@ -1,5 +1,6 @@
- def parse_I():
-     if lookahead.startswith(':'):
-         match(':')
-+        return  # Add this line to prevent fallthrough and correct parsing issues
-         if pos >= len(tokens):
-             return
+@@ -22,6 +22,9 @@
+             match('|')
+             match('z')
+             match(':')
++            if pos < len(tokens) and tokens[pos].startswith('T'):
++                match('T')
++                match("K")
+ 
+     if lookahead.startswith('other tokens'):
+         # Handle other cases

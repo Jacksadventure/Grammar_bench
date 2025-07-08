@@ -1,8 +1,8 @@
-@@ -40,7 +40,6 @@
-     if lookahead.startswith('i'):
-         match('i')
-         parse_S()
--        match('U')
-     elif lookahead.startswith('`'):
-         match('`')
-         parse_O()
+@@ -159,7 +159,6 @@
+         parse_E()
+         parse_E()
+         parse_N()
+-        match('3')
+ 
+     elif lookahead.startswith('c'):
+         # Handle 'c' case

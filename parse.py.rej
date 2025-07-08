@@ -1,8 +1,8 @@
-@@ -40,7 +40,6 @@
-     if lookahead.startswith('i'):
-         match('i')
-         parse_S()
--        match('U')
-     elif lookahead.startswith('`'):
-         match('`')
-         parse_O()
+@@ -22,6 +22,7 @@
+             while pos < len(tokens) and tokens[pos] == ',':
+                 pos += 1
+         elif tokens[pos].startswith("'"):
++            # Handle the new token case here
+             pos += 1
+             if pos >= len(tokens):
+                 return

@@ -1,2 +1,10 @@
-@@ -96,1 +96,0 @@
--        match('y')
+@@ -691,7 +691,7 @@
+     global pos, tokens
+     while pos < len(tokens) and tokens[pos].startswith('/'):
+         match('/')
+-        match('}')
++        match('^')
+         parse_P()
+ 
+ def parse_P():
+\ No newline at end of line

@@ -13,7 +13,7 @@ Please return result in this format:
 Please do not add markdown notation like ```json
 """
 
-program_localisation_prompt = """You are a patch generator. Given the corrupted parser code annotated with line numbers and a few examples of inputs that the parser currently fails on, output a unified diff patch to fix the parser so it correctly handles those inputs. Only output the patch in standard unified diff format, without explanations or extra text.
+program_localisation_prompt = """You are a patch generator. Given the corrupted parser code annotated with line numbers and a few examples of inputs that the parser currently fails on which are supposed to pass, output a unified diff patch to fix the parser so it correctly handles those inputs. Only output the patch in standard unified diff format, without explanations or extra text.
 
 Example:
 Corrupted parser code with line numbers:

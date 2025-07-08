@@ -1,0 +1,9 @@
+@@ -19,6 +19,8 @@
+             match("'")
+             # Existing processing...
+         elif lookahead.startswith('k'):
++        elif lookahead.startswith('T'):
++            match('T')
+             match('k')
+             while ...:
+                 ...

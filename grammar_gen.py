@@ -40,11 +40,26 @@ def compute_reachable(grammar, start):
 def generate_random_grammar(
     num_nonterminals=10,
     num_terminals=None,
+    nonterminal_prob=0.5,
+    loop_prob=0.3,
     max_productions=5,
     max_rhs_length=5,
-    recursion_prob=0.5,
-    loop_prob=0.3,          # chance a non-terminal becomes α Nt | ε
 ):
+    """
+    Generate a random LL(1) grammar with controlled nonterminal expansion and loops.
+
+    Parameters:
+        num_nonterminals (int): number of nonterminals to generate.
+        num_terminals (int): number of terminals; defaults to num_nonterminals.
+        nonterminal_prob (float): probability of selecting a nonterminal in productions.
+        loop_prob (float): probability of generating a right-recursive loop (alpha Nt | epsilon).
+        max_productions (int): maximum number of productions per nonterminal.
+        max_rhs_length (int): maximum length of right-hand side per production.
+    """
+    # Validate probability parameters
+    if nonterminal_prob + loop_prob >= 1:
+        raise ValueError("nonterminal_prob + loop_prob must be less than 1")
+
     # ----------------- symbol pools -----------------
     # default number of terminals to number of nonterminals if not provided
     if num_terminals is None:
@@ -82,7 +97,7 @@ def generate_random_grammar(
         prods = []
 
         # α Nt | ε  ----------------------------------------------------
-        if random.random() < recursion_prob and max_productions >= 2:
+        if random.random() < nonterminal_prob and max_productions >= 2:
             length = random.randint(1, max_rhs_length)
             alpha  = [random.choice(terminals)]
             for _ in range(1, length):
@@ -102,13 +117,14 @@ def generate_random_grammar(
         n_prods     = random.randint(1, max_productions)
         for _ in range(n_prods):
             first = random.choice(avail_terms)
-            avail_terms.remove(first) if first in avail_terms else None
+            if first in avail_terms:
+                avail_terms.remove(first)
 
             rhs = [first]
             for _ in range(1, random.randint(1, max_rhs_length)):
                 rhs.append(
                     random.choice(nonterminals)
-                    if random.random() < recursion_prob
+                    if random.random() < nonterminal_prob
                     else random.choice(terminals)
                 )
             prods.append(rhs)
@@ -402,11 +418,11 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
 def gen(
     numnonterminals,
     max_original_examples,
-    recursion_prob,
-    numterminals=None,
+    nonterminal_prob,
     loop_prob=0.5,
+    numterminals=None,
     max_rhs_length=3,
-    maxproductions=3
+    maxproductions=3,
 ):
     # number of terminals defaults to number of nonterminals if not specified
     if numterminals is None:
@@ -415,10 +431,10 @@ def gen(
     grammar, nonterminals, terminals = generate_random_grammar(
         num_nonterminals=numnonterminals,
         num_terminals=numterminals,
+        nonterminal_prob=nonterminal_prob,
+        loop_prob=loop_prob,
         max_productions=maxproductions,
         max_rhs_length=max_rhs_length,
-        recursion_prob=recursion_prob,
-        loop_prob=loop_prob
     )
     start_symbol = nonterminals[0]
     # 2. Generate a few example derivations

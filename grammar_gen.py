@@ -97,13 +97,13 @@ def generate_random_grammar(
         prods = []
 
         # α Nt | ε  ----------------------------------------------------
-        if random.random() < nonterminal_prob and max_productions >= 2:
+        if random.random() < loop_prob and max_productions >= 2:
             length = random.randint(1, max_rhs_length)
             alpha  = [random.choice(terminals)]
             for _ in range(1, length):
                 alpha.append(
                     random.choice(nonterminals)
-                    if random.random() < loop_prob
+                    if random.random() < nonterminal_prob
                     else random.choice(terminals)
                 )
             alpha.append(nt)      # right‑recursive tail

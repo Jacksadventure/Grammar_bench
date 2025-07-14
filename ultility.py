@@ -47,7 +47,7 @@ def validation_check_inproc(input_str: str, parse_fn) -> bool:
     try:
         parse_fn(input_str)
         return True
-    except SystemExit:
+    except (SystemExit, SyntaxError):
         return False
     finally:
         sys.stdout = old_stdout

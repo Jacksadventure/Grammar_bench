@@ -9,7 +9,9 @@ import random
 from datetime import datetime
 from sqlite3 import connect
 
-from grammar_gen import gen, generate_example_string, generate_parser_code
+from new_grammar_gen import generate_grammar, grammar_to_ebnf
+from new_fuzzer import convert_ebnf
+from new_codegen import read_grammar, generate_parser
 from mutation import mutate_grammar
 from testies import generate_biased_example_wrapper
 from ultility import (
@@ -17,7 +19,6 @@ from ultility import (
     validation_check_inproc,
     get_max_depth,
     get_path,
-    grammar_printer,
 )
 import signal
 import concurrent.futures
@@ -73,32 +74,32 @@ def generate_case(num_nonterminals: int,
     Returns:
         dict containing all artefacts ready to be stored in SQLite.
     """
-    # 1. create a valid grammar + parser
-    # 1. create a valid grammar + parser with explicit parameter names
-    original_code, _, grammar, nts, terms = gen(
-        numnonterminals=num_nonterminals,
-        maxproductions=max_productions,
-        max_rhs_length=max_rhs_length,
-        max_original_examples=MAX_EXAMPLES,
-        nonterminal_prob=nonterminal_prob,
-        loop_prob=loop_prob,
-    )
-    # 2. corrupt the grammar until we get at least MIN_TEST_CASES failing inputs
+    # 1. generate random EBNF grammar and compile original parser
+    ebnf_text = generate_grammar(num_nonterminals)
+    grammar = convert_ebnf(ebnf_text)
+    nts = list(grammar.keys())
+    nonterms = set(nts)
+    terms = [sym for prods in grammar.values() for prod in prods for sym in prod if sym not in nonterms]
+    import tempfile
+    tmp = tempfile.NamedTemporaryFile('w+', delete=False, suffix='.ebnf')
+    tmp.write(ebnf_text); tmp.flush(); tmp.close()
+    rules = read_grammar(tmp.name)
+    original_code = generate_parser(rules)
+
+    # 2. corrupt grammar until a failing example is found
     instances = []
     start_nt = nts[0]
     orig_parse_fn = compile_parser(original_code)
     for _ in range(MAX_MUTATE_ATTEMPTS):
-        corrupted_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(
-            grammar, nts, terms
-        )
-        # Skip mutations of the start symbol when possible to force deeper changes
+        corrupted, new_nts, new_terms, nt, prod_idx = mutate_grammar(grammar, nts, terms)
         if len(nts) > 1 and nt == start_nt:
             continue
-        corrupted_code = generate_parser_code(
-            corrupted_grammar, new_nts, new_nts[0]
-        )
+        corr_ebnf = grammar_to_ebnf(corrupted, new_nts)
+        tmp2 = tempfile.NamedTemporaryFile('w+', delete=False, suffix='.ebnf')
+        tmp2.write(corr_ebnf); tmp2.flush(); tmp2.close()
+        corr_rules = read_grammar(tmp2.name)
+        corrupted_code = generate_parser(corr_rules)
         corr_parse_fn = compile_parser(corrupted_code)
-        # search for failing strings
         for _ in range(MAX_INSTANCE_SEARCH):
             s = generate_biased_example_wrapper(
                 grammar=grammar,
@@ -106,51 +107,31 @@ def generate_case(num_nonterminals: int,
                 path=[(nt, prod_idx)],
                 max_depth=get_max_depth(grammar, new_nts[0]) + 10,
             )
-            # Only collect strings that the original parser accepts and the corrupted parser rejects
             if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn):
                 instances.append(s)
-        if len(instances) >= MIN_TEST_CASES:
+        if instances:
             break
 
-    # ensure we have enough cases
-    if len(instances) < MIN_TEST_CASES:
-        raise RuntimeError(f"Could not find at least {MIN_TEST_CASES} failing instances, only found {len(instances)}")
+    if not instances:
+        raise RuntimeError(f"Could not find failing example; only found {len(instances)}")
 
-    # compute mutation depth: distance from root to mutated nonterminal
-    # get_path returns a list of (parent, production_index) steps; path length = number of edges
-    # use 1-based depth: root itself -> depth=1, child -> depth=2, etc.
-    path = get_path(grammar, nts[0], nt)
-    if path is not None:
-        # len(path) is number of edges from root to nt; add 1 for root depth
-        mutation_depth = len(path) + 1
-    else:
-        # unreachable or same as root
-        mutation_depth = None
+    path0 = get_path(grammar, nts[0], nt)
+    mutation_depth = (len(path0) + 1) if path0 is not None else None
 
-    # prepare JSON-serialisable artefacts
-    # Count unique symbols in the corrupted grammar (nonterminals + terminals)
-    nonterms = set(corrupted_grammar.keys())
-    terms = set()
-    for prods in corrupted_grammar.values():
-        for prod in prods:
-            for sym in prod:
-                if sym not in nonterms:
-                    terms.add(sym)
-    corrupted_symbol_count = len(nonterms) + len(terms)
+    nonterms_c = set(corrupted.keys())
+    terms_c = {sym for prods in corrupted.values() for prod in prods for sym in prod if sym not in nonterms_c}
+    corrupted_symbol_count = len(nonterms_c) + len(terms_c)
     return {
-        "nonterminal_prob": nonterminal_prob,
-        "loop_prob": loop_prob,
-        "mutation_depth": mutation_depth,
-        # store compact JSON without extra indentation to reduce size
-        "original_grammar": json.dumps(grammar, ensure_ascii=False),
-        "original_parser": original_code,
-        # store compact JSON without extra indentation to reduce size
-        "corrupted_grammar": json.dumps(corrupted_grammar, ensure_ascii=False),
-        "corrupted_parser": corrupted_code,
-        "corrupted_symbol_count": corrupted_symbol_count,
-        # keep only the first KEEP_TEST_CASES test cases in the database
-        # keep test cases and store as compact JSON
-        "test_cases": json.dumps(list(instances)[:KEEP_TEST_CASES], ensure_ascii=False),
+        'nonterminal_prob': nonterminal_prob,
+        'loop_prob': loop_prob,
+        'mutation_depth': mutation_depth,
+        'original_grammar': ebnf_text,
+        'original_parser': original_code,
+        'corrupted_grammar': grammar_to_ebnf(corrupted, new_nts),
+        'corrupted_parser': corrupted_code,
+        'corrupted_symbol_count': corrupted_symbol_count,
+        'parser_size': len(corrupted_code),
+        'test_cases': json.dumps(instances[:KEEP_TEST_CASES], ensure_ascii=False),
     }
 
 # --------------------------------------------------------------------------- #
@@ -361,69 +342,65 @@ def main():
     if args.max_instance_search is not None:
         MAX_INSTANCE_SEARCH = args.max_instance_search
 
-    # External grammar mutation mode: load and mutate a user-provided grammar
+    # External grammar mutation mode: load and mutate a user-provided EBNF grammar
     if args.grammar_file:
         print(f"[+] Starting external grammar mutation for {args.grammar_file}, cases_per_setting={cps}")
-        with open(args.grammar_file, encoding='utf-8') as gf:
-            ext_grammar = json.load(gf)
-        nonterms = list(ext_grammar.keys())
-        terms = set()
-        for prods in ext_grammar.values():
-            for prod in prods:
-                for sym in prod:
-                    if sym not in nonterms:
-                        terms.add(sym)
-        terms = list(terms)
-        start_nt = nonterms[0]
-        original_code = generate_parser_code(ext_grammar, nonterms, start_nt)
+        # load EBNF from file and compile original parser
+        ebnf_text = open(args.grammar_file, encoding='utf-8').read()
+        grammar = convert_ebnf(ebnf_text)
+        nts = list(grammar.keys())
+        terms = [sym for prods in grammar.values() for prod in prods for sym in prod if sym not in nts]
+        rules = read_grammar(args.grammar_file)
+        original_code = generate_parser(rules)
         orig_fn = compile_parser(original_code)
+        # mutate and extract failing instances
+        import tempfile
         for idx in range(1, cps + 1):
             instances = []
             for _ in range(MAX_MUTATE_ATTEMPTS):
-                mutated_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(ext_grammar, nonterms, terms)
-                if len(nonterms) > 1 and nt == start_nt:
+                mutated, new_nts, new_terms, nt, prod_idx = mutate_grammar(grammar, nts, terms)
+                if len(nts) > 1 and nt == nts[0]:
                     continue
-                corrupted_code = generate_parser_code(mutated_grammar, new_nts, new_nts[0])
+                corr_ebnf = grammar_to_ebnf(mutated, new_nts)
+                tmp2 = tempfile.NamedTemporaryFile('w+', delete=False, suffix='.ebnf')
+                tmp2.write(corr_ebnf); tmp2.flush(); tmp2.close()
+                corr_rules = read_grammar(tmp2.name)
+                corrupted_code = generate_parser(corr_rules)
                 corr_fn = compile_parser(corrupted_code)
                 for _ in range(MAX_INSTANCE_SEARCH):
                     s = generate_biased_example_wrapper(
-                        grammar=ext_grammar,
+                        grammar=grammar,
                         symbol=new_nts[0],
                         path=[(nt, prod_idx)],
-                        max_depth=get_max_depth(ext_grammar, new_nts[0]) + 10,
+                        max_depth=get_max_depth(grammar, new_nts[0]) + 10,
                     )
                     if validation_check_inproc(s, orig_fn) and not validation_check_inproc(s, corr_fn):
                         instances.append(s)
-                if len(instances) >= MIN_TEST_CASES:
+                if instances:
                     break
-            if len(instances) < MIN_TEST_CASES:
+            if not instances:
                 print(f"[!] Could not find sufficient failing instances for case {idx}, skipping")
                 continue
-            path = get_path(ext_grammar, nonterms[0], nt)
-            mutation_depth = len(path) + 1 if path is not None else None
-            nonterm_set = set(mutated_grammar.keys())
-            term_set = set()
-            for prods in mutated_grammar.values():
-                for prod in prods:
-                    for sym in prod:
-                        if sym not in nonterm_set:
-                            term_set.add(sym)
-            corrupted_symbol_count = len(nonterm_set) + len(term_set)
+            path0 = get_path(grammar, nts[0], nt)
+            mutation_depth = (len(path0) + 1) if path0 is not None else None
+            nonterms_c = set(mutated.keys())
+            terms_c = {sym for prods in mutated.values() for prod in prods for sym in prod if sym not in nonterms_c}
+            corrupted_symbol_count = len(nonterms_c) + len(terms_c)
             artefacts = {
-                "nonterminal_prob": None,
-                "loop_prob": None,
-                "mutation_depth": mutation_depth,
-                "original_grammar": json.dumps(ext_grammar, ensure_ascii=False),
-                "original_parser": original_code,
-                "corrupted_grammar": json.dumps(mutated_grammar, ensure_ascii=False),
-                "corrupted_parser": corrupted_code,
-                "corrupted_symbol_count": corrupted_symbol_count,
-                "test_cases": json.dumps(instances[:KEEP_TEST_CASES], ensure_ascii=False),
+                'nonterminal_prob': None,
+                'loop_prob': None,
+                'mutation_depth': mutation_depth,
+                'original_grammar': ebnf_text,
+                'original_parser': original_code,
+                'corrupted_grammar': grammar_to_ebnf(mutated, new_nts),
+                'corrupted_parser': corrupted_code,
+                'corrupted_symbol_count': corrupted_symbol_count,
+                'test_cases': json.dumps(instances[:KEEP_TEST_CASES], ensure_ascii=False),
+                'num_nonterminals': len(nts),
+                'max_productions': None,
+                'max_rhs_length': None,
+                'parser_size': len(corrupted_code),
             }
-            artefacts["num_nonterminals"] = len(nonterms)
-            artefacts["max_productions"] = None
-            artefacts["max_rhs_length"] = None
-            artefacts["parser_size"] = len(corrupted_code)
             save_case(cur, artefacts)
             conn.commit()
             print(f"[+] Saved external case #{idx}/{cps}")

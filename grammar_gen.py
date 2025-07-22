@@ -2,132 +2,103 @@
 This generator (grammar_gen.py) produces a random LL(1) grammar and a
 standalone recursive descent parser.
 
-The parser generation now:
-- INLINES non-terminals that are only used once.
-- OPTIMIZES right-recursive rules (e.g., A -> alpha A | epsilon) into 'while' loops.
-- PREVENTS the generation of unsafe, non-terminating self-recursion.
+The generation logic is now strictly forward-referencing to guarantee
+no cycles between non-terminals (e.g. A -> B, B -> A) can be created.
 """
 
-import random
-import string
-from itertools import product as _itertools_product
+import random, string
+from collections import deque
+from itertools import product as cart
 
-# ---------------------------
-# Step 1: Generate a Random Grammar (WITH ANTI-RECURSION FIX)
-# ---------------------------
+def _labels(alpha, k):
+    out, n = [], 1
+    while len(out) < k:
+        for p in cart(alpha, repeat=n):
+            out.append("".join(p))
+            if len(out) >= k:
+                break
+        n += 1
+    return out[:k]
+
 def generate_random_grammar(
     num_nonterminals=10,
-    num_terminals=None,
     nonterminal_prob=0.5,
     loop_prob=0.3,
     max_productions=5,
     max_rhs_length=5,
 ):
-    """
-    Generate a random LL(1) grammar, ensuring it is free of problematic
-    self-recursion and non-terminating loops.
-    """
-    if num_terminals is None: num_terminals = num_nonterminals
-    if max_rhs_length < 1: raise ValueError("max_rhs_length must be at least 1.")
-    ALPHABET_NT = list(string.ascii_uppercase)
-    random.shuffle(ALPHABET_NT)
-    def _generate_labels(a, c):
-        l, n = [], 1
-        while len(l) < c:
-            for p in _itertools_product(a, repeat=n):
-                l.append(''.join(p));
-                if len(l) >= c: break
-            n += 1
-        return l[:c]
-    all_nonterminals = _generate_labels(ALPHABET_NT, num_nonterminals)
-    ALPHABET_T = list(string.ascii_letters+string.digits+"'!#$%&'()*+,-./:;<=>?@[]^_`{|}~'")
-    random.shuffle(ALPHABET_T)
-    if len(ALPHABET_T) < num_terminals: raise ValueError("Not enough unique terminals.")
-    terminals = ALPHABET_T[:num_terminals]
-    
-    grammar = {}
-    
-    for i, nt in enumerate(all_nonterminals):
-        prods, local_available_firsts = [], terminals[:]; random.shuffle(local_available_firsts)
-        has_terminating_production, has_forward_link = False, (i + 1 >= len(all_nonterminals))
+    """BFS build; every RHS NT is brand-new; guarantees *all* NTs are used."""
+    # ---------- pools ----------
+    NT_POOL = _labels(list(string.ascii_uppercase), num_nonterminals)
+    # Terminals ≠ any NT label
+    TERM_POOL = [
+        ch for ch in string.ascii_letters + string.digits +
+        "!#$%&()*+,-./:;<=>?@[]^_`{|}~"
+        if ch not in NT_POOL
+    ]
+    random.shuffle(TERM_POOL)
 
-        # --- SAFE LOOP GENERATION ---
-        # This block specifically creates the A -> alpha A | epsilon structure.
-        # This is the ONLY place where direct right-recursion is now allowed.
-        if random.random() < loop_prob and max_productions >= 2 and local_available_firsts:
-            first_term = local_available_firsts.pop()
-            # Alpha can contain terminals or *other* future non-terminals.
-            possible_alpha_nts = all_nonterminals[i+1:]
-            
-            alpha = [first_term]
+    grammar, used_firsts = {}, set()
+    queue = deque([NT_POOL.pop(0)])        # start symbol
+
+    while queue or NT_POOL:                # keep going until NT pool drained
+        # ---------------- choose LHS ----------------
+        if queue:
+            nt = queue.popleft()
+        else:
+            # queue empty but still have unused NTs → graft onto last LHS
+            nt = random.choice(list(grammar))
+        prods = grammar.setdefault(nt, [])
+
+        # helper: fresh first terminal
+        def next_first_terminal():
+            if not TERM_POOL:
+                raise RuntimeError("Ran out of terminals for FIRST sets")
+            t = TERM_POOL.pop(0)
+            used_firsts.add(t)
+            return t
+
+        # ---------- maybe self-loop ----------
+        if loop_prob and random.random() < loop_prob:
+            first = next_first_terminal()
+            alpha = [first]
             for _ in range(random.randint(0, max_rhs_length - 2)):
-                 alpha.append(random.choice(terminals if not possible_alpha_nts else terminals + possible_alpha_nts))
-            
-            # The final structure is [alpha..., nt] and an epsilon production [].
-            prods.extend([alpha + [nt], []])
-            has_terminating_production = True
+                alpha.append(random.choice(TERM_POOL))
+            prods += [alpha + [nt], []]
 
-        # --- REGULAR PRODUCTION GENERATION ---
-        num_prods_to_generate = random.randint(1, min(max_productions, len(terminals)))
-        for prod_idx in range(num_prods_to_generate):
-            if not local_available_firsts: break
-            first_term = local_available_firsts.pop(); rhs, is_rhs_terminating = [first_term], True
-            must_add_forward_link = (not has_forward_link and prod_idx == num_prods_to_generate - 1)
+        # ---------- regular productions ----------
+        n_prods = random.randint(1, max_productions)
+        for _ in range(n_prods):
+            first = next_first_terminal()
+            rhs = [first]
             rhs_len = random.randint(1, max_rhs_length)
 
-            for _ in range(1, rhs_len):
-                # --- MODIFIED LOGIC ---
-                # The pool of possible non-terminals for the RHS *excludes* the current NT (nt).
-                # This prevents unsafe self-recursion like A -> ... A ...
-                # We only allow references to *future* non-terminals.
-                possible_rhs_nts = all_nonterminals[i+1:]
-                
-                if random.random() < nonterminal_prob and possible_rhs_nts:
-                    is_rhs_terminating = False
-                    nt_choice_pool = possible_rhs_nts
-                    if must_add_forward_link:
-                        # If we must add the forward link, don't pick it randomly.
-                        nt_choice_pool = [n for n in possible_rhs_nts if n != all_nonterminals[i+1]]
-                    
-                    if nt_choice_pool:
-                      rhs.append(random.choice(nt_choice_pool))
-                    else:
-                      rhs.append(random.choice(terminals))
+            for _ in range(rhs_len - 1):
+                if NT_POOL and random.random() < nonterminal_prob:
+                    fresh = NT_POOL.pop(0)
+                    rhs.append(fresh)
+                    queue.append(fresh)    # schedule for expansion
                 else:
-                    rhs.append(random.choice(terminals))
-
-            # Inject the mandatory forward link if it hasn't been added yet.
-            if must_add_forward_link:
-                next_nt = all_nonterminals[i+1]
-                insert_pos = random.randint(1, len(rhs))
-                rhs.insert(insert_pos, next_nt); has_forward_link, is_rhs_terminating = True, False
-            
+                    rhs.append(random.choice(TERM_POOL))
             prods.append(rhs)
-            if is_rhs_terminating: has_terminating_production = True
-        
-        # Post-checks for reachability and termination.
-        if not has_forward_link and local_available_firsts:
-            prods.append([local_available_firsts.pop(), all_nonterminals[i+1]])
-        if not has_terminating_production and local_available_firsts:
-            prods.append([local_available_firsts.pop()])
-        
-        if prods: grammar[nt] = prods
 
-    # Final decoration for output
-    decorated_nonterminals = [f'<{nt}>' for nt in all_nonterminals]; decorated_grammar = {}
-    for nt in all_nonterminals:
-        if nt not in grammar: continue
-        decorated_nt, prods = f'<{nt}>', grammar[nt]; decorated_prods = []
-        for prod in prods:
-            decorated_prods.append([f'<{s}>' if s in all_nonterminals else s for s in prod])
-        decorated_grammar[decorated_nt] = decorated_prods
-    return decorated_grammar, decorated_nonterminals, terminals
-
+    # ---------- decorate ----------
+    decorated_nts = [f"<{n}>" for n in grammar]
+    decorated = {
+        f"<{lhs}>": [
+            [f"<{sym}>" if sym in grammar else sym for sym in rhs]
+            for rhs in rhss
+        ]
+        for lhs, rhss in grammar.items()
+    }
+    terminals_used = list(used_firsts)
+    return decorated, decorated_nts, terminals_used
 
 # ---------------------------
 # Step 2: Example Generation (Unchanged)
 # ---------------------------
 def generate_example_string(grammar, symbol, max_depth=10):
+    # ... (code is unchanged)
     if symbol not in grammar or max_depth <= 0:
         return "" if (isinstance(symbol, str) and symbol.startswith('<')) else symbol
     prods = sorted(grammar[symbol], key=len); prod = random.choice(prods[:2]); result = []
@@ -135,37 +106,41 @@ def generate_example_string(grammar, symbol, max_depth=10):
         result.append(generate_example_string(grammar, s, max_depth-1) if s in grammar else s)
     return "".join(result)
 
-
-# ---------------------------
-# Step 3: Parser Code Generation (Unchanged, already handles safe loops)
-# ---------------------------
 def generate_parser_code(grammar, nonterminals, start_symbol):
+    """
+    Build a recursive-descent parser in Python source form.
 
-    # ---- 1. 去掉装饰 (<...>)，构造裸 CFG ----
+    Key features
+    ------------
+    1. Detects patterns of the form  A → α A | ε  and emits a `while` loop.
+    2. All other non-terminals are expanded in-line (no separate parse_X
+       helpers), preserving the original CFG structure.
+    """
+    # ---- 1. Strip decorations (<...>) and build a raw CFG ----
     bare_nonterminals = [nt[1:-1] for nt in nonterminals]
     bare_start = start_symbol[1:-1]
-    bare_grammar = {}
-    is_nullable = {}
+    bare_grammar, is_nullable = {}, {}
     for dec_nt, prods in grammar.items():
         nt = dec_nt[1:-1]
         bare_grammar[nt] = []
         for p in prods:
-            if len(p) == 0:
+            if not p:                                 # ε production
                 is_nullable[nt] = True
             else:
-                bare_grammar[nt].append([sym[1:-1] if sym.startswith('<') else sym for sym in p])
+                bare_grammar[nt].append(
+                    [sym[1:-1] if sym.startswith('<') else sym for sym in p]
+                )
         if is_nullable.get(nt, False) and nt not in bare_grammar:
             bare_grammar[nt] = []
 
     grammar = bare_grammar
     nonterminals = bare_nonterminals
 
-    # ---- 2. 计算 FIRST 集 ----
-    first_sets = {nt: set() for nt in nonterminals}
+    # ---- 2. FIRST sets ----
     EPSILON = object()
-    for nt in nonterminals:
-        if is_nullable.get(nt, False):
-            first_sets[nt].add(EPSILON)
+    first_sets = {nt: ({EPSILON} if is_nullable.get(nt, False) else set())
+                  for nt in nonterminals}
+
     changed = True
     while changed:
         changed = False
@@ -181,7 +156,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                         if EPSILON not in first_sets[sym]:
                             nullable_prefix = False
                             break
-                    else:
+                    else:  # terminal
                         if sym not in first_sets[nt]:
                             first_sets[nt].add(sym)
                             changed = True
@@ -191,26 +166,18 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                     first_sets[nt].add(EPSILON)
                     changed = True
 
-    def get_first_set_of_sequence(sequence):
-        """用于普通产生式的前瞻集合"""
+    def first_seq(seq):
         look = set()
-        for sym in sequence:
+        for sym in seq:
             if sym not in nonterminals:
                 look.add(sym)
                 return look
             look.update(x for x in first_sets[sym] if x is not EPSILON)
             if EPSILON not in first_sets[sym]:
                 return look
-        return look  # 全部可空
+        return look  # sequence fully nullable
 
-    def is_iterative_rule(nt):
-        """
-        判断是否是形如 A -> alpha A | ε 的结构。
-        条件：
-            1. 有 ε 产生式
-            2. 存在产生式 prod 满足 prod[-1] == nt
-        返回 (True, alpha) 或 (False, None)
-        """
+    def is_iterative(nt):
         if not is_nullable.get(nt, False):
             return False, None
         for prod in grammar.get(nt, []):
@@ -218,115 +185,105 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                 return True, prod[:-1]
         return False, None
 
-    # ---- 3. 代码块生成 ----
+    # ---- 3. Code-block generation (memoised) ----
     memo = {}
-    def generate_code_block_for_nt(nt, indent_level):
-        key = (nt, indent_level)
+    def gen_block(nt, lvl):
+        key = (nt, lvl)
         if key in memo:
             return memo[key]
-        indent = '    ' * indent_level
+        ind = '    ' * lvl
         lines = []
 
-        iterative, base_prod = is_iterative_rule(nt)
+        iterative, alpha = is_iterative(nt)
         if iterative:
-            lookahead_set = get_first_set_of_sequence(base_prod)
-            conds = " or ".join([f"tokens[pos] == {repr(t)}" for t in sorted(lookahead_set)])
-            if not conds:
-                conds = "False"
-            lines.append(f"{indent}# Iterative rule for <{nt}>: while {base_prod}")
-            lines.append(f"{indent}while pos < len(tokens) and ({conds}):")
-            for sym in base_prod:
-                lines.extend(generate_code_for_symbol(sym, indent_level + 1))
+            lookahead = first_seq(alpha)
+            conds = ' or '.join(f"tokens[pos] == {repr(t)}" for t in sorted(lookahead)) or 'False'
+            lines.append(f"{ind}# Iterative rule for <{nt}> → {alpha}*")
+            lines.append(f"{ind}while pos < len(tokens) and ({conds}):")
+            for s in alpha:
+                lines.extend(gen_sym(s, lvl + 1))
         else:
-            lines.append(f"{indent}# Standard logic for <{nt}>")
-            lines.append(f"{indent}if pos >= len(tokens):")
+            lines.append(f"{ind}# Standard rule set for <{nt}>")
+            lines.append(f"{ind}if pos >= len(tokens):")
             if is_nullable.get(nt, False):
-                lines.append(f"{indent}    pass  # nullable <{nt}> at EOF")
+                lines.append(f"{ind}    pass  # nullable at EOF")
             else:
-                lines.append(f"{indent}    raise ParseError('Unexpected EOF parsing <{nt}>')")
-            lines.append(f"{indent}else:")
-            lines.append(f"{indent}    la = tokens[pos]")
-            prods = grammar.get(nt, [])
-            first_branch = True
-            used_lookaheads = set()
-            for prod in prods:
-                lookahead_set = get_first_set_of_sequence(prod)
-                if not lookahead_set:
-                    # 整个序列可空，不在这里处理（交由 nullable 分支）
+                lines.append(f"{ind}    raise ParseError('Unexpected EOF in <{nt}>')")
+            lines.append(f"{ind}else:")
+            lines.append(f"{ind}    la = tokens[pos]")
+            first = True
+            for prod in grammar.get(nt, []):
+                fs = first_seq(prod)
+                if not fs:
                     continue
-                cond_prefix = "if" if first_branch else "elif"
-                conds = " or ".join([f"la == {repr(t)}" for t in sorted(lookahead_set)])
-                lines.append(f"{indent}    {cond_prefix} {conds}:")
-                for sym in prod:
-                    lines.extend(generate_code_for_symbol(sym, indent_level + 2))
-                used_lookaheads.update(lookahead_set)
-                first_branch = False
+                prefix = 'if' if first else 'elif'
+                conds = ' or '.join(f"la == {repr(t)}" for t in sorted(fs))
+                lines.append(f"{ind}    {prefix} {conds}:")
+                for s in prod:
+                    lines.extend(gen_sym(s, lvl + 2))
+                first = False
             if is_nullable.get(nt, False):
-                # ε 分支
-                cond_prefix = "if" if first_branch else "elif"
-                # lookahead 不在所有已使用集合中的情况 + EOF
-                lines.append(f"{indent}    {cond_prefix} True:  # epsilon branch for <{nt}>")
-                lines.append(f"{indent}        pass")
+                lines.append(f"{ind}    {'if' if first else 'elif'} True:  # ε")
+                lines.append(f"{ind}        pass")
             else:
-                lines.append(f"{indent}    else:")
-                lines.append(f"{indent}        raise ParseError(f\"Unexpected token {{la!r}} parsing <{nt}>\")")
+                lines.append(f"{ind}    else:")
+                lines.append(f"{ind}        raise ParseError(f'Unexpected token {{la!r}} in <{nt}>')")
 
         memo[key] = lines
         return lines
 
-    def generate_code_for_symbol(symbol, indent_level):
-        indent = '    ' * indent_level
-        if symbol not in nonterminals:
-            return [f"{indent}match({repr(symbol)})"]
-        else:
-            return generate_code_block_for_nt(symbol, indent_level)
+    def gen_sym(sym, lvl):
+        ind = '    ' * lvl
+        if sym in nonterminals:
+            return gen_block(sym, lvl)
+        return [f"{ind}match({repr(sym)})"]
 
-    # ---- 4. 组装最终代码 ----
-    code_lines = [
-        "import sys",
-        "tokens = []",
-        "pos = 0",
-        "class ParseError(Exception): pass",
-        "",
-        "def match(expected):",
-        "    global pos",
-        "    if pos < len(tokens) and tokens[pos] == expected:",
-        "        pos += 1",
-        "    else:",
-        "        got = tokens[pos] if pos < len(tokens) else 'EOF'",
-        "        raise ParseError(f\"Expected {expected!r}, got {got!r}\")",
-        "",
-        "def parse(input_str):",
-        "    global tokens, pos",
-        "    tokens = list(input_str.strip())",
-        "    pos = 0",
+    # ---- 4. Assemble parser source ----
+    src = [
+        'import sys',
+        '',
+        'tokens = []',
+        'pos = 0',
+        '',
+        'class ParseError(Exception):',
+        '    pass',
+        '',
+        'def match(expected):',
+        '    global pos',
+        '    if pos < len(tokens) and tokens[pos] == expected:',
+        '        pos += 1',
+        '    else:',
+        '        got = tokens[pos] if pos < len(tokens) else "EOF"',
+        '        raise ParseError(f"Expected {expected!r}, got {got!r}")',
+        '',
+        'def parse(inp):',
+        '    global tokens, pos',
+        '    tokens = list(inp.strip())',
+        '    pos = 0',
     ]
-    # start symbol 展开
-    code_lines.extend(generate_code_block_for_nt(bare_start, 1))
-    code_lines.extend([
-        "    if pos < len(tokens):",
-        "        raise ParseError(f\"Extra characters at end: {''.join(tokens[pos:])}\")",
-        "    print('Input accepted.')",
-        "",
+    src.extend(gen_block(bare_start, 1))
+    src.extend([
+        '    if pos < len(tokens):',
+        '        raise ParseError(f"Extra input at end: {\'\'.join(tokens[pos:])}")',
+        '    print("Input accepted.")',
+        '',
         "if __name__ == '__main__':",
-        "    if len(sys.argv) > 1:",
-        "        try:",
-        "            parse(sys.argv[1])",
-        "        except ParseError as e:",
-        "            print('Input rejected.')",
-        "            print(e)",
-        "    else:",
-        "        print('Usage: python generated_parser.py <string_to_parse>')",
+        '    if len(sys.argv) < 2:',
+        '        print("Usage: python generated_parser.py <string>")',
+        '        sys.exit(1)',
+        '    try:',
+        '        parse(sys.argv[1])',
+        '    except ParseError as err:',
+        '        print("Input rejected.")',
+        '        print(err)',
     ])
-    return '\n'.join(code_lines)
+    return "\n".join(src)
 
-# ---------------------------
-# Step 4: Main Wrapper (Unchanged)
-# ---------------------------
 def gen(
     numnonterminals, max_original_examples, nonterminal_prob,
-    loop_prob=0.3, numterminals=None, max_rhs_length=3, maxproductions=3,
+    loop_prob=0.3, max_rhs_length=3, maxproductions=3,
 ):
+    # ... (code is unchanged)
     grammar, nonterminals, terminals = generate_random_grammar(
         num_nonterminals=numnonterminals, nonterminal_prob=nonterminal_prob,
         loop_prob=loop_prob, max_productions=maxproductions, max_rhs_length=max_rhs_length,
@@ -346,7 +303,7 @@ def gen(
 
 if __name__ == '__main__':
     code, exs, g, nts, ts = gen(
-        numnonterminals=8, max_original_examples=3, nonterminal_prob=0.4,
+        numnonterminals=5, max_original_examples=3, nonterminal_prob=0.4,
         loop_prob=0.3, max_rhs_length=4, maxproductions=3,
     )
     if code:

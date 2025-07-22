@@ -108,23 +108,23 @@ def generate_example_string(grammar, symbol, max_depth=10):
 
 def generate_parser_code(grammar, nonterminals, start_symbol):
     """
-    Build a recursive-descent parser in Python source form.
+    Build a self-contained recursive-descent parser (single Python file).
 
-    Key features
-    ------------
-    1. Detects patterns of the form  A → α A | ε  and emits a `while` loop.
-    2. All other non-terminals are expanded in-line (no separate parse_X
-       helpers), preserving the original CFG structure.
+    • Detect A → α A | ε and emit a `while` loop for α*
+    • After the loop, still examine any *other* productions of A
+      (e.g.  l<B>  /  n e <C><D>), plus ε when allowed.
+    • All remaining non-terminals are expanded in-line.
     """
-    # ---- 1. Strip decorations (<...>) and build a raw CFG ----
+    # ---------- 1. strip decorations ----------
     bare_nonterminals = [nt[1:-1] for nt in nonterminals]
     bare_start = start_symbol[1:-1]
+
     bare_grammar, is_nullable = {}, {}
     for dec_nt, prods in grammar.items():
         nt = dec_nt[1:-1]
         bare_grammar[nt] = []
         for p in prods:
-            if not p:                                 # ε production
+            if not p:                         # ε
                 is_nullable[nt] = True
             else:
                 bare_grammar[nt].append(
@@ -136,9 +136,9 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
     grammar = bare_grammar
     nonterminals = bare_nonterminals
 
-    # ---- 2. FIRST sets ----
-    EPSILON = object()
-    first_sets = {nt: ({EPSILON} if is_nullable.get(nt, False) else set())
+    # ---------- 2. FIRST sets ----------
+    EPS = object()
+    first_sets = {nt: ({EPS} if is_nullable.get(nt, False) else set())
                   for nt in nonterminals}
 
     changed = True
@@ -150,34 +150,36 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                 for sym in prod:
                     if sym in nonterminals:
                         before = len(first_sets[nt])
-                        first_sets[nt].update(x for x in first_sets[sym] if x is not EPSILON)
+                        first_sets[nt].update(x for x in first_sets[sym] if x is not EPS)
                         if len(first_sets[nt]) > before:
                             changed = True
-                        if EPSILON not in first_sets[sym]:
+                        if EPS not in first_sets[sym]:
                             nullable_prefix = False
                             break
-                    else:  # terminal
+                    else:                     # terminal
                         if sym not in first_sets[nt]:
                             first_sets[nt].add(sym)
                             changed = True
                         nullable_prefix = False
                         break
-                if nullable_prefix and EPSILON not in first_sets[nt]:
-                    first_sets[nt].add(EPSILON)
+                if nullable_prefix and EPS not in first_sets[nt]:
+                    first_sets[nt].add(EPS)
                     changed = True
 
     def first_seq(seq):
+        """FIRST set of a sequence (ignoring EPS)."""
         look = set()
         for sym in seq:
             if sym not in nonterminals:
                 look.add(sym)
                 return look
-            look.update(x for x in first_sets[sym] if x is not EPSILON)
-            if EPSILON not in first_sets[sym]:
+            look.update(x for x in first_sets[sym] if x is not EPS)
+            if EPS not in first_sets[sym]:
                 return look
-        return look  # sequence fully nullable
+        return look  # seq is fully nullable
 
     def is_iterative(nt):
+        """Return (True, alpha) if nt has rule α A | ε."""
         if not is_nullable.get(nt, False):
             return False, None
         for prod in grammar.get(nt, []):
@@ -185,7 +187,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                 return True, prod[:-1]
         return False, None
 
-    # ---- 3. Code-block generation (memoised) ----
+    # ---------- 3. code-block generation ----------
     memo = {}
     def gen_block(nt, lvl):
         key = (nt, lvl)
@@ -196,13 +198,43 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
 
         iterative, alpha = is_iterative(nt)
         if iterative:
+            # ----- part-1: α* -----
             lookahead = first_seq(alpha)
             conds = ' or '.join(f"tokens[pos] == {repr(t)}" for t in sorted(lookahead)) or 'False'
             lines.append(f"{ind}# Iterative rule for <{nt}> → {alpha}*")
             lines.append(f"{ind}while pos < len(tokens) and ({conds}):")
             for s in alpha:
                 lines.extend(gen_sym(s, lvl + 1))
+
+            # ----- part-2: remaining alternatives -----
+            remaining = [
+                p for p in grammar[nt]
+                if p not in (alpha + [nt], [])            # drop loop & ε
+            ]
+            if remaining or is_nullable.get(nt, False):
+                lines.append(f"{ind}# After loop: choose the rest of <{nt}>")
+                lines.append(f"{ind}if pos < len(tokens):")
+                lines.append(f"{ind}    la = tokens[pos]")
+                first_branch = True
+                for prod in remaining:
+                    fs = first_seq(prod)
+                    if not fs:
+                        continue
+                    kw = "if" if first_branch else "elif"
+                    conds = ' or '.join(f"la == {repr(t)}" for t in sorted(fs))
+                    lines.append(f"{ind}    {kw} {conds}:")
+                    for s in prod:
+                        lines.extend(gen_sym(s, lvl + 2))
+                    first_branch = False
+                if is_nullable.get(nt, False):
+                    lines.append(f"{ind}    {'if' if first_branch else 'elif'} True:  # ε")
+                    lines.append(f"{ind}        pass")
+                else:
+                    lines.append(f"{ind}    else:")
+                    lines.append(f"{ind}        raise ParseError(f'Unexpected token {{la!r}} in <{nt}>')")
+            # else: no remaining alts and not nullable – nothing further.
         else:
+            # ---------- standard multi-branch ----------
             lines.append(f"{ind}# Standard rule set for <{nt}>")
             lines.append(f"{ind}if pos >= len(tokens):")
             if is_nullable.get(nt, False):
@@ -211,19 +243,19 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                 lines.append(f"{ind}    raise ParseError('Unexpected EOF in <{nt}>')")
             lines.append(f"{ind}else:")
             lines.append(f"{ind}    la = tokens[pos]")
-            first = True
-            for prod in grammar.get(nt, []):
+            first_branch = True
+            for prod in grammar[nt]:
                 fs = first_seq(prod)
                 if not fs:
                     continue
-                prefix = 'if' if first else 'elif'
+                kw = 'if' if first_branch else 'elif'
                 conds = ' or '.join(f"la == {repr(t)}" for t in sorted(fs))
-                lines.append(f"{ind}    {prefix} {conds}:")
+                lines.append(f"{ind}    {kw} {conds}:")
                 for s in prod:
                     lines.extend(gen_sym(s, lvl + 2))
-                first = False
+                first_branch = False
             if is_nullable.get(nt, False):
-                lines.append(f"{ind}    {'if' if first else 'elif'} True:  # ε")
+                lines.append(f"{ind}    {'if' if first_branch else 'elif'} True:  # ε")
                 lines.append(f"{ind}        pass")
             else:
                 lines.append(f"{ind}    else:")
@@ -238,7 +270,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
             return gen_block(sym, lvl)
         return [f"{ind}match({repr(sym)})"]
 
-    # ---- 4. Assemble parser source ----
+    # ---------- 4. assemble source ----------
     src = [
         'import sys',
         '',
@@ -277,7 +309,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
         '        print("Input rejected.")',
         '        print(err)',
     ])
-    return "\n".join(src)
+    return '\n'.join(src)
 
 def gen(
     numnonterminals, max_original_examples, nonterminal_prob,
@@ -303,7 +335,7 @@ def gen(
 
 if __name__ == '__main__':
     code, exs, g, nts, ts = gen(
-        numnonterminals=5, max_original_examples=3, nonterminal_prob=0.4,
+        numnonterminals=15, max_original_examples=3, nonterminal_prob=0.6,
         loop_prob=0.3, max_rhs_length=4, maxproductions=3,
     )
     if code:

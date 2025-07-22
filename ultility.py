@@ -31,9 +31,9 @@ def compile_parser(parser_code: str):
     """
     namespace = {}
     exec(parser_code, namespace)
-    if 'parse_input' not in namespace:
-        raise RuntimeError("Compiled parser code has no parse_input function")
-    return namespace['parse_input']
+    if 'parse' not in namespace:
+        raise RuntimeError("Compiled parser code has no parse function")
+    return namespace['parse']
 
 def validation_check_inproc(input_str: str, parse_fn) -> bool:
     """
@@ -47,7 +47,7 @@ def validation_check_inproc(input_str: str, parse_fn) -> bool:
     try:
         parse_fn(input_str)
         return True
-    except SystemExit:
+    except Exception:
         return False
     finally:
         sys.stdout = old_stdout

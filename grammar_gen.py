@@ -40,14 +40,16 @@ def generate_random_grammar(
 
     grammar, used_firsts = {}, set()
     queue = deque([NT_POOL.pop(0)])        # start symbol
+    last_nt = None
 
     while queue or NT_POOL:                # keep going until NT pool drained
         # ---------------- choose LHS ----------------
         if queue:
             nt = queue.popleft()
+            last_nt = nt
         else:
             # queue empty but still have unused NTs → graft onto last LHS
-            nt = random.choice(list(grammar))
+            nt = last_nt
         prods = grammar.setdefault(nt, [])
 
         # helper: fresh first terminal
@@ -59,7 +61,7 @@ def generate_random_grammar(
             return t
 
         # ---------- maybe self-loop ----------
-        if loop_prob and random.random() < loop_prob:
+        if loop_prob and random.random() < loop_prob and max_rhs_length >= 2:
             first = next_first_terminal()
             alpha = [first]
             for _ in range(random.randint(0, max_rhs_length - 2)):
@@ -335,8 +337,8 @@ def gen(
 
 if __name__ == '__main__':
     code, exs, g, nts, ts = gen(
-        numnonterminals=15, max_original_examples=3, nonterminal_prob=0.6,
-        loop_prob=0.3, max_rhs_length=4, maxproductions=3,
+        numnonterminals=1, max_original_examples=3, nonterminal_prob=0.1,
+        loop_prob=0.3, max_rhs_length=1, maxproductions=1,
     )
     if code:
         print("--- Generated Grammar ---")

@@ -48,8 +48,8 @@ TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
 num_nonterminals = range(1,11)
 dims = num_nonterminals
-nonterminal_probs = [0.1]
-loop_probs = [0.6]
+nonterminal_probs = [0.3]
+loop_probs = [0.5]
 cases_per_setting = 10
 
 # Default parameters for grammar generation
@@ -57,7 +57,7 @@ DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal
 DEFAULT_MAX_RHS_LENGTH = 5   # default maximum right-hand side length of productions
 
 
-db_file = "targets7.db"
+db_file = "targets8.db"
 # --------------------------------------------------------------------------- #
 # Core workflow
 # --------------------------------------------------------------------------- #

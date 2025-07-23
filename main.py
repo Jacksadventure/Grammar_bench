@@ -46,11 +46,11 @@ MIN_TEST_CASES = 1         # minimum failing instances per case
 KEEP_TEST_CASES = 5        # number of test cases to keep in DB = 20
 TIMEOUT = 80             # seconds to wait for a case to be generated
 # Embedded benchmark parameters
-num_nonterminals = range(1,11)
+num_nonterminals = range(2,3)
 dims = num_nonterminals
-nonterminal_probs = [0.3]
-loop_probs = [0.5]
-cases_per_setting = 10
+nonterminal_probs = [0.1]
+loop_probs = [0.3]
+cases_per_setting = 1
 
 # Default parameters for grammar generation
 DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal

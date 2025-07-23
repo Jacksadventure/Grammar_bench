@@ -1,0 +1,3 @@
+--- Generated Grammar ---
+<A>   -> ~ | m N | w E | H <A> | ε | X g | [ <A> | ε | ` | - <B>
+<B>   -> # | 4 k

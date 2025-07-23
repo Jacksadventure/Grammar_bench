@@ -321,18 +321,18 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
 
 # ───────────────────────── public façade ────────────────────────────────────
 def gen(
-    numnonterminals=10,
+    num_nonterminals=10,
     max_original_examples=5,
     nonterminal_prob=0.5,
     loop_prob=0.3,
     max_rhs_length=3,
-    maxproductions=3,
+    max_productions=3,
 ):
     grammar, nts, ts = generate_random_grammar(
-        num_nonterminals=numnonterminals,
+        num_nonterminals=num_nonterminals,
         nonterminal_prob=nonterminal_prob,
         loop_prob=loop_prob,
-        max_productions=maxproductions,
+        max_productions=max_productions,
         max_rhs_length=max_rhs_length,
     )
     start_symbol = nts[0]
@@ -350,12 +350,12 @@ if __name__ == "__main__":
     sys.setrecursionlimit(max(sys.getrecursionlimit(), 5000))
 
     code, exs, g, nts, ts = gen(
-        numnonterminals=1,
+        num_nonterminals=10,
         max_original_examples=3,
         nonterminal_prob=0.5,
-        loop_prob=0.3,
-        max_rhs_length=1,
-        maxproductions=1,
+        loop_prob=0.5,
+        max_rhs_length=10,
+        max_productions=10,
     )
     print("--- Generated Grammar ---")
     for nt in nts:

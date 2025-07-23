@@ -39,25 +39,51 @@ class CaseTimeout(Exception):
 def _timeout_handler(signum, frame):
     raise CaseTimeout
 
-MAX_EXAMPLES = 100          # examples when building a fresh parser
-MAX_MUTATE_ATTEMPTS = 100   # how many corruption attempts per case``
-MAX_INSTANCE_SEARCH = 200   # attempts to find failing inputs
-MIN_TEST_CASES = 1         # minimum failing instances per case
-KEEP_TEST_CASES = 5        # number of test cases to keep in DB = 20
-TIMEOUT = 80             # seconds to wait for a case to be generated
-# Embedded benchmark parameters
-num_nonterminals = range(2,3)
-dims = num_nonterminals
-nonterminal_probs = [0.1]
-loop_probs = [0.3]
-cases_per_setting = 1
+class Config:
+    """Configuration settings for the script."""
+    MAX_EXAMPLES = 100
+    MAX_MUTATE_ATTEMPTS = 100
+    MAX_INSTANCE_SEARCH = 200
+    MIN_TEST_CASES = 1
+    KEEP_TEST_CASES = 5
+    TIMEOUT = 80
+    DB_FILE = "targets8.db"
+    
+    # Benchmark parameters
+    NUM_NONTERMINALS = range(1, 2)
+    DIMS = NUM_NONTERMINALS
+    NONTERMINAL_PROB = 0.5
+    LOOP_PROB = 0.5
+    CASES_PER_SETTING = 20
 
-# Default parameters for grammar generation
-DEFAULT_MAX_PRODUCTIONS = 5  # default max number of productions per nonterminal
-DEFAULT_MAX_RHS_LENGTH = 5   # default maximum right-hand side length of productions
+    # Default grammar generation parameters
+    DEFAULT_MAX_PRODUCTIONS = 5
+    DEFAULT_MAX_RHS_LENGTH = 5
 
+    def __init__(self, args=None):
+        if args:
+            self.update_from_args(args)
 
-db_file = "targets8.db"
+    def update_from_args(self, args):
+        """Update configuration from command-line arguments."""
+        if args.max_examples is not None:
+            self.MAX_EXAMPLES = args.max_examples
+        if args.max_mutate_attempts is not None:
+            self.MAX_MUTATE_ATTEMPTS = args.max_mutate_attempts
+        if args.max_instance_search is not None:
+            self.MAX_INSTANCE_SEARCH = args.max_instance_search
+        if args.cases_per_setting is not None:
+            self.CASES_PER_SETTING = args.cases_per_setting
+        
+        self.DIMS = self.NUM_NONTERMINALS
+        if args.dim is not None:
+            if args.dim:
+                self.DIMS = args.dim
+        
+        if args.nonterminal_prob is not None:
+            self.NONTERMINAL_PROB = args.nonterminal_prob
+        if args.loop_prob is not None:
+            self.LOOP_PROB = args.loop_prob
 # --------------------------------------------------------------------------- #
 # Core workflow
 # --------------------------------------------------------------------------- #
@@ -66,7 +92,8 @@ def generate_case(num_nonterminals: int,
                   max_productions: int,
                   max_rhs_length: int,
                   nonterminal_prob: float,
-                  loop_prob: float) -> dict:
+                  loop_prob: float,
+                  config: Config) -> dict:
     """
     Generate one (original, corrupted) parser pair and collect failing inputs.
 
@@ -76,45 +103,19 @@ def generate_case(num_nonterminals: int,
     # 1. create a valid grammar + parser
     # 1. create a valid grammar + parser with explicit parameter names
     original_code, _, grammar, nts, terms = gen(
-        numnonterminals=num_nonterminals,
-        maxproductions=max_productions,
+        num_nonterminals=num_nonterminals,
+        max_productions=max_productions,
         max_rhs_length=max_rhs_length,
-        max_original_examples=MAX_EXAMPLES,
+        max_original_examples=config.MAX_EXAMPLES,
         nonterminal_prob=nonterminal_prob,
         loop_prob=loop_prob,
     )
-    # 2. corrupt the grammar until we get at least MIN_TEST_CASES failing inputs
-    instances = []
-    start_nt = nts[0]
-    orig_parse_fn = compile_parser(original_code)
-    for _ in range(MAX_MUTATE_ATTEMPTS):
-        corrupted_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(
-            grammar, nts, terms
-        )
-        # Skip mutations of the start symbol when possible to force deeper changes
-        if len(nts) > 1 and nt == start_nt:
-            continue
-        corrupted_code = generate_parser_code(
-            corrupted_grammar, new_nts, new_nts[0]
-        )
-        corr_parse_fn = compile_parser(corrupted_code)
-        # search for failing strings
-        for _ in range(MAX_INSTANCE_SEARCH):
-            s = generate_biased_example_wrapper(
-                grammar=grammar,
-                symbol=new_nts[0],
-                path=[(nt, prod_idx)],
-                max_depth=get_max_depth(grammar, new_nts[0]) + 10,
-            )
-            # Only collect strings that the original parser accepts and the corrupted parser rejects
-            if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn):
-                instances.append(s)
-        if len(instances) >= MIN_TEST_CASES:
-            break
-
-    # ensure we have enough cases
-    if len(instances) < MIN_TEST_CASES:
-        raise RuntimeError(f"Could not find at least {MIN_TEST_CASES} failing instances, only found {len(instances)}")
+    # 2. corrupt the grammar and find failing inputs
+    corrupted_grammar, corrupted_code, instances, nt = find_failing_mutant(
+        grammar, nts, terms, original_code, config
+    )
+    if not instances:
+        raise RuntimeError(f"Could not find at least {config.MIN_TEST_CASES} failing instances")
 
     # compute mutation depth: distance from root to mutated nonterminal
     # get_path returns a list of (parent, production_index) steps; path length = number of edges
@@ -148,19 +149,19 @@ def generate_case(num_nonterminals: int,
         "corrupted_grammar": json.dumps(corrupted_grammar, ensure_ascii=False),
         "corrupted_parser": corrupted_code,
         "corrupted_symbol_count": corrupted_symbol_count,
-        # keep only the first KEEP_TEST_CASES test cases in the database
+        # keep only the first config.KEEP_TEST_CASES test cases in the database
         # keep test cases and store as compact JSON
-        "test_cases": json.dumps(list(instances)[:KEEP_TEST_CASES], ensure_ascii=False),
+        "test_cases": json.dumps(list(instances)[:config.KEEP_TEST_CASES], ensure_ascii=False),
     }
 
 # --------------------------------------------------------------------------- #
 # Parallel case generation helper
 # --------------------------------------------------------------------------- #
-def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length, nonterminal_prob, loop_prob):
+def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length, nonterminal_prob, loop_prob, config):
     """Wrapper to generate a single case with retries and timeout."""
     while True:
         orig_handler = signal.signal(signal.SIGALRM, _timeout_handler)
-        signal.alarm(TIMEOUT)
+        signal.alarm(config.TIMEOUT)
         try:
             artefacts = generate_case(
                 num_nonterminals=num_nonterminals,
@@ -168,11 +169,12 @@ def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length
                 max_rhs_length=max_rhs_length,
                 nonterminal_prob=nonterminal_prob,
                 loop_prob=loop_prob,
+                config=config,
             )
             signal.alarm(0)
             break
         except CaseTimeout:
-            print(f"[!] generate_case timed out after {TIMEOUT}s, regenerating grammar for "
+            print(f"[!] generate_case timed out after {config.TIMEOUT}s, regenerating grammar for "
                   f"num_nonterminals={num_nonterminals}, "
                   f"nonterminal_prob={nonterminal_prob}, loop_prob={loop_prob}")
         except RuntimeError as e:
@@ -194,112 +196,128 @@ def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length
 
 
 # --------------------------------------------------------------------------- #
-# SQLite helpers
+# SQLite Database Manager
 # --------------------------------------------------------------------------- #
 
-def init_db(cursor):
-    """Create table if it does not already exist, with 'num_nonterminals' column."""
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS cases (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            num_nonterminals INTEGER,
-            nonterminal_prob REAL,
-            loop_prob REAL,
-            mutation_depth INTEGER,
-            original_grammar TEXT,
-            original_parser TEXT,
-            corrupted_grammar TEXT,
-            corrupted_parser TEXT,
-            corrupted_symbol_count INTEGER,
-            parser_size INTEGER,
-            test_cases TEXT
-        )
-        """
-    )
-    # Migrate old schema: if 'dim' exists without 'num_nonterminals', add and populate it
-    cols = [row[1] for row in cursor.execute("PRAGMA table_info(cases)")]
-    if 'dim' in cols and 'num_nonterminals' not in cols:
-        cursor.execute("ALTER TABLE cases ADD COLUMN num_nonterminals INTEGER")
-        cursor.execute("UPDATE cases SET num_nonterminals = dim")
-    if 'parser_size' not in cols:
-        cursor.execute("ALTER TABLE cases ADD COLUMN parser_size INTEGER")
-        cursor.execute("UPDATE cases SET parser_size = LENGTH(corrupted_parser)")
-    if 'corrupted_symbol_count' not in cols:
-        cursor.execute("ALTER TABLE cases ADD COLUMN corrupted_symbol_count INTEGER")
+class DatabaseManager:
+    """Handles all database interactions."""
+    def __init__(self, db_file):
+        self.db_file = db_file
+        self.conn = None
+        self.cur = None
 
-def save_case(cursor, artefacts: dict):
-    """Insert one case into the database, with fallback for oversized fields."""
-    # Prepare SQL and parameters
-    # Insert one case into the database
-    sql = (
-        """
-        INSERT INTO cases (
-            num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
-            original_grammar, original_parser,
-            corrupted_grammar, corrupted_parser, corrupted_symbol_count, parser_size,
-            test_cases
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """
-    )
-    params = (
-        artefacts.get("num_nonterminals"),
-        artefacts.get("nonterminal_prob"),
-        artefacts.get("loop_prob"),
-        artefacts.get("mutation_depth"),
-        artefacts.get("original_grammar"),
-        artefacts.get("original_parser"),
-        artefacts.get("corrupted_grammar"),
-        artefacts.get("corrupted_parser"),
-        artefacts.get("corrupted_symbol_count"),
-        artefacts.get("parser_size"),
-        artefacts.get("test_cases"),
-    )
-    try:
-        cursor.execute(sql, params)
-    except OverflowError as e:
-        # Diagnostics: report sizes of string fields
-        print("[!] OverflowError saving case: one of the fields is too large for SQLite (INT_MAX)")
-        for name, value in artefacts.items():
-            if isinstance(value, str):
-                print(f"    {name}: {len(value)} characters")
-        # Fallback: truncate oversized string fields to a safe limit
-        max_len = 10**6  # 1MB per field
-        truncated = {}
-        for name, value in artefacts.items():
-            if isinstance(value, str) and len(value) > max_len:
-                truncated[name] = value[:max_len] + "... [TRUNCATED]"
-            else:
-                truncated[name] = value
-        # Retry with truncated parameters
-        params_trunc = (
-            truncated.get("num_nonterminals"),
-            truncated.get("nonterminal_prob"),
-            truncated.get("loop_prob"),
-            truncated.get("mutation_depth"),
-            truncated.get("original_grammar"),
-            truncated.get("original_parser"),
-            truncated.get("corrupted_grammar"),
-            truncated.get("corrupted_parser"),
-            truncated.get("corrupted_symbol_count"),
-            truncated.get("parser_size"),
-            truncated.get("test_cases"),
+    def __enter__(self):
+        self.conn = connect(self.db_file)
+        self.cur = self.conn.cursor()
+        self._init_db()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.conn:
+            self.conn.close()
+
+    def _init_db(self):
+        """Create table if it does not already exist, with 'num_nonterminals' column."""
+        self.cur.execute(
+            """
+            CREATE TABLE IF NOT EXISTS cases (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                num_nonterminals INTEGER,
+                nonterminal_prob REAL,
+                loop_prob REAL,
+                mutation_depth INTEGER,
+                original_grammar TEXT,
+                original_parser TEXT,
+                corrupted_grammar TEXT,
+                corrupted_parser TEXT,
+                corrupted_symbol_count INTEGER,
+                parser_size INTEGER,
+                test_cases TEXT
+            )
+            """
         )
-        print(f"[!] Retrying save_case with fields truncated to {max_len} chars each.")
-        cursor.execute(sql, params_trunc)
+        cols = [row[1] for row in self.cur.execute("PRAGMA table_info(cases)")]
+        if 'dim' in cols and 'num_nonterminals' not in cols:
+            self.cur.execute("ALTER TABLE cases ADD COLUMN num_nonterminals INTEGER")
+            self.cur.execute("UPDATE cases SET num_nonterminals = dim")
+        if 'parser_size' not in cols:
+            self.cur.execute("ALTER TABLE cases ADD COLUMN parser_size INTEGER")
+            self.cur.execute("UPDATE cases SET parser_size = LENGTH(corrupted_parser)")
+        if 'corrupted_symbol_count' not in cols:
+            self.cur.execute("ALTER TABLE cases ADD COLUMN corrupted_symbol_count INTEGER")
+
+    def save_case(self, artefacts: dict):
+        """Insert one case into the database, with fallback for oversized fields."""
+        sql = (
+            """
+            INSERT INTO cases (
+                num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
+                original_grammar, original_parser,
+                corrupted_grammar, corrupted_parser, corrupted_symbol_count, parser_size,
+                test_cases
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """
+        )
+        params = (
+            artefacts.get("num_nonterminals"),
+            artefacts.get("nonterminal_prob"),
+            artefacts.get("loop_prob"),
+            artefacts.get("mutation_depth"),
+            artefacts.get("original_grammar"),
+            artefacts.get("original_parser"),
+            artefacts.get("corrupted_grammar"),
+            artefacts.get("corrupted_parser"),
+            artefacts.get("corrupted_symbol_count"),
+            artefacts.get("parser_size"),
+            artefacts.get("test_cases"),
+        )
+        try:
+            self.cur.execute(sql, params)
+        except OverflowError:
+            print("[!] OverflowError saving case: one of the fields is too large for SQLite (INT_MAX)")
+            for name, value in artefacts.items():
+                if isinstance(value, str):
+                    print(f"    {name}: {len(value)} characters")
+            max_len = 10**6
+            truncated = {
+                name: (value[:max_len] + "... [TRUNCATED]") if isinstance(value, str) and len(value) > max_len else value
+                for name, value in artefacts.items()
+            }
+            params_trunc = (
+                truncated.get("num_nonterminals"),
+                truncated.get("nonterminal_prob"),
+                truncated.get("loop_prob"),
+                truncated.get("mutation_depth"),
+                truncated.get("original_grammar"),
+                truncated.get("original_parser"),
+                truncated.get("corrupted_grammar"),
+                truncated.get("corrupted_parser"),
+                truncated.get("corrupted_symbol_count"),
+                truncated.get("parser_size"),
+                truncated.get("test_cases"),
+            )
+            print(f"[!] Retrying save_case with fields truncated to {max_len} chars each.")
+            self.cur.execute(sql, params_trunc)
+        self.conn.commit()
+
+    def get_existing_cases(self):
+        """Count existing cases grouped by grammar parameters."""
+        self.cur.execute(
+            "SELECT num_nonterminals, nonterminal_prob, loop_prob, COUNT(*) FROM cases "
+            "GROUP BY num_nonterminals, nonterminal_prob, loop_prob"
+        )
+        return {(row[0], row[1], row[2]): row[3] for row in self.cur.fetchall()}
 
 # --------------------------------------------------------------------------- #
 # CLI & main loop
 # --------------------------------------------------------------------------- #
-def main():
-    # Allow overriding sweep settings and search bounds
-    global dims, nonterminal_probs, loop_probs
-    global MAX_EXAMPLES, MAX_MUTATE_ATTEMPTS, MAX_INSTANCE_SEARCH
+def setup_parser(config):
+    """Configure and return the argument parser."""
     parser = argparse.ArgumentParser(description="Generate parser cases in parallel and store in SQLite DB")
     parser.add_argument('-w', '--workers', type=int, default=None,
                         help='Number of worker processes (default: cases per setting)')
-    parser.add_argument('-c', '--cases-per-setting', type=int, default=cases_per_setting,
-                        help=f'Number of cases to generate per setting (default: {cases_per_setting})')
+    parser.add_argument('-c', '--cases-per-setting', type=int, default=config.CASES_PER_SETTING,
+                        help=f'Number of cases to generate per setting (default: {config.CASES_PER_SETTING})')
     parser.add_argument('--grammar-file', type=str, default=None,
                         help='Path to external grammar JSON file for mutation (bypass grammar generation)')
     # Custom grammar parameters
@@ -314,194 +332,166 @@ def main():
     parser.add_argument('--loop-prob', type=float, default=None,
                         help='Probability of right-recursive looping in grammar generation (nonterminal-prob + loop-prob <1)')
     # Sweep parameter overrides: comma-separated lists
-    parser.add_argument('--dims', nargs='?', const='', type=_parse_int_list, default=None,
-                        help=f'List of nonterminal counts to sweep (default: {dims})')
-    parser.add_argument('--nonterminal-probs', type=_parse_float_list, default=None,
-                        help=f'List of nonterminal recursion probs; paired with --loop-probs by position (default: {nonterminal_probs})')
-    parser.add_argument('--loop-probs', type=_parse_float_list, default=None,
-                        help=f'List of looping probs; paired with --nonterminal-probs by position (default: {loop_probs})')
+    parser.add_argument('--dim', nargs='?', const='', type=_parse_int_list, default=None,
+                        help=f'List of nonterminal counts to sweep (default: {config.DIMS})')
     # Search-bound overrides
     parser.add_argument('--max-examples', type=int, default=None,
-                        help=f'Max examples when building a fresh parser (default: {MAX_EXAMPLES})')
+                        help=f'Max examples when building a fresh parser (default: {config.MAX_EXAMPLES})')
     parser.add_argument('--max-mutate-attempts', type=int, default=None,
-                        help=f'Max number of corruption attempts per case (default: {MAX_MUTATE_ATTEMPTS})')
+                        help=f'Max number of corruption attempts per case (default: {config.MAX_MUTATE_ATTEMPTS})')
     parser.add_argument('--max-instance-search', type=int, default=None,
-                        help=f'Attempts to find failing inputs (default: {MAX_INSTANCE_SEARCH})')
-    args = parser.parse_args()
-    cps = args.cases_per_setting
-    workers = args.workers if args.workers is not None else cps
-    # Extract custom parameters
+                        help=f'Attempts to find failing inputs (default: {config.MAX_INSTANCE_SEARCH})')
+    return parser
+
+
+def find_failing_mutant(grammar, nts, terms, original_code, config):
+    """
+    Mutate a grammar and search for failing test cases.
+
+    Returns:
+        A tuple of (corrupted_grammar, corrupted_code, instances, mutated_nonterminal).
+        Returns (None, None, [], None) if no failing mutant is found.
+    """
+    start_nt = nts[0]
+    orig_parse_fn = compile_parser(original_code)
+    for _ in range(config.MAX_MUTATE_ATTEMPTS):
+        corrupted_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(
+            grammar, nts, terms
+        )
+        if len(nts) > 1 and nt == start_nt:
+            continue
+        corrupted_code = generate_parser_code(
+            corrupted_grammar, new_nts, new_nts[0]
+        )
+        corr_parse_fn = compile_parser(corrupted_code)
+        instances = []
+        for _ in range(config.MAX_INSTANCE_SEARCH):
+            s = generate_biased_example_wrapper(
+                grammar=grammar,
+                symbol=new_nts[0],
+                path=[(nt, prod_idx)],
+                max_depth=get_max_depth(grammar, new_nts[0]) + 10,
+            )
+            if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn):
+                instances.append(s)
+        if len(instances) >= config.MIN_TEST_CASES:
+            return corrupted_grammar, corrupted_code, instances, nt
+    return None, None, [], None
+
+
+def run_external_grammar_mutation(args, db_manager, config):
+    """Mutate a user-provided grammar from an external file."""
+    print(f"[+] Starting external grammar mutation for {args.grammar_file}, cases_per_setting={config.CASES_PER_SETTING}")
+    with open(args.grammar_file, encoding='utf-8') as gf:
+        ext_grammar = json.load(gf)
+    nonterms = list(ext_grammar.keys())
+    terms = set()
+    for prods in ext_grammar.values():
+        for prod in prods:
+            for sym in prod:
+                if sym not in nonterms:
+                    terms.add(sym)
+    terms = list(terms)
+    original_code = generate_parser_code(ext_grammar, nonterms, nonterms[0])
+
+    for idx in range(1, config.CASES_PER_SETTING + 1):
+        mutated_grammar, corrupted_code, instances, nt = find_failing_mutant(
+            ext_grammar, nonterms, terms, original_code, config
+        )
+        if not instances:
+            print(f"[!] Could not find sufficient failing instances for case {idx}, skipping")
+            continue
+
+        path = get_path(ext_grammar, nonterms[0], nt)
+        mutation_depth = len(path) + 1 if path is not None else None
+        nonterm_set = set(mutated_grammar.keys())
+        term_set = set()
+        for prods in mutated_grammar.values():
+            for prod in prods:
+                for sym in prod:
+                    if sym not in nonterm_set:
+                        term_set.add(sym)
+        corrupted_symbol_count = len(nonterm_set) + len(term_set)
+        artefacts = {
+            "nonterminal_prob": None,
+            "loop_prob": None,
+            "mutation_depth": mutation_depth,
+            "original_grammar": json.dumps(ext_grammar, ensure_ascii=False),
+            "original_parser": original_code,
+            "corrupted_grammar": json.dumps(mutated_grammar, ensure_ascii=False),
+            "corrupted_parser": corrupted_code,
+            "corrupted_symbol_count": corrupted_symbol_count,
+            "test_cases": json.dumps(instances[:config.KEEP_TEST_CASES], ensure_ascii=False),
+        }
+        artefacts["num_nonterminals"] = len(nonterms)
+        artefacts["max_productions"] = None
+        artefacts["max_rhs_length"] = None
+        artefacts["parser_size"] = len(corrupted_code)
+        db_manager.save_case(artefacts)
+        print(f"[+] Saved external case #{idx}/{config.CASES_PER_SETTING}")
+    print(f"[✓] Done external grammar mutation. All cases stored in {config.DB_FILE}")
+
+
+def run_generation_sweep(args, db_manager, config):
+    """Generate new grammars based on sweep parameters and save them."""
+    workers = args.workers if args.workers is not None else config.CASES_PER_SETTING
     num_nonterms = args.num_nonterminals
     max_prods = args.max_productions
     max_rhs = args.max_rhs_length
     nonterm_prob_arg = args.nonterminal_prob
     loop_prob_arg = args.loop_prob
-    # Handle case where only --num-nonterminals is supplied: treat as dims override
-    if num_nonterms is not None and nonterm_prob_arg is None and loop_prob_arg is None and args.dims is None:
-        dims = [num_nonterms]
-        args.dims = dims
+
+    if num_nonterms is not None and nonterm_prob_arg is None and loop_prob_arg is None and args.dim is None:
+        config.DIMS = [num_nonterms]
         num_nonterms = None
-    # Override global sweep parameters if supplied
+
     auto_dims = False
-    if args.dims is not None:
-        if args.dims:
-            dims = args.dims
+    if args.dim is not None:
+        if args.dim:
+            config.DIMS = args.dim
         else:
-            # flag provided without values: auto adjust defaults to follow nonterminal counts
             auto_dims = True
-    if args.nonterminal_probs is not None:
-        nonterminal_probs = args.nonterminal_probs
-    if args.loop_probs is not None:
-        loop_probs = args.loop_probs
-    # Override search bounds if supplied
-    if args.max_examples is not None:
-        MAX_EXAMPLES = args.max_examples
-    if args.max_mutate_attempts is not None:
-        MAX_MUTATE_ATTEMPTS = args.max_mutate_attempts
-    if args.max_instance_search is not None:
-        MAX_INSTANCE_SEARCH = args.max_instance_search
 
-    # External grammar mutation mode: load and mutate a user-provided grammar
-    if args.grammar_file:
-        print(f"[+] Starting external grammar mutation for {args.grammar_file}, cases_per_setting={cps}")
-        with open(args.grammar_file, encoding='utf-8') as gf:
-            ext_grammar = json.load(gf)
-        nonterms = list(ext_grammar.keys())
-        terms = set()
-        for prods in ext_grammar.values():
-            for prod in prods:
-                for sym in prod:
-                    if sym not in nonterms:
-                        terms.add(sym)
-        terms = list(terms)
-        start_nt = nonterms[0]
-        original_code = generate_parser_code(ext_grammar, nonterms, start_nt)
-        orig_fn = compile_parser(original_code)
-        for idx in range(1, cps + 1):
-            instances = []
-            for _ in range(MAX_MUTATE_ATTEMPTS):
-                mutated_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(ext_grammar, nonterms, terms)
-                if len(nonterms) > 1 and nt == start_nt:
-                    continue
-                corrupted_code = generate_parser_code(mutated_grammar, new_nts, new_nts[0])
-                corr_fn = compile_parser(corrupted_code)
-                for _ in range(MAX_INSTANCE_SEARCH):
-                    s = generate_biased_example_wrapper(
-                        grammar=ext_grammar,
-                        symbol=new_nts[0],
-                        path=[(nt, prod_idx)],
-                        max_depth=get_max_depth(ext_grammar, new_nts[0]) + 10,
-                    )
-                    if validation_check_inproc(s, orig_fn) and not validation_check_inproc(s, corr_fn):
-                        instances.append(s)
-                if len(instances) >= MIN_TEST_CASES:
-                    break
-            if len(instances) < MIN_TEST_CASES:
-                print(f"[!] Could not find sufficient failing instances for case {idx}, skipping")
-                continue
-            path = get_path(ext_grammar, nonterms[0], nt)
-            mutation_depth = len(path) + 1 if path is not None else None
-            nonterm_set = set(mutated_grammar.keys())
-            term_set = set()
-            for prods in mutated_grammar.values():
-                for prod in prods:
-                    for sym in prod:
-                        if sym not in nonterm_set:
-                            term_set.add(sym)
-            corrupted_symbol_count = len(nonterm_set) + len(term_set)
-            artefacts = {
-                "nonterminal_prob": None,
-                "loop_prob": None,
-                "mutation_depth": mutation_depth,
-                "original_grammar": json.dumps(ext_grammar, ensure_ascii=False),
-                "original_parser": original_code,
-                "corrupted_grammar": json.dumps(mutated_grammar, ensure_ascii=False),
-                "corrupted_parser": corrupted_code,
-                "corrupted_symbol_count": corrupted_symbol_count,
-                "test_cases": json.dumps(instances[:KEEP_TEST_CASES], ensure_ascii=False),
-            }
-            artefacts["num_nonterminals"] = len(nonterms)
-            artefacts["max_productions"] = None
-            artefacts["max_rhs_length"] = None
-            artefacts["parser_size"] = len(corrupted_code)
-            save_case(cur, artefacts)
-            conn.commit()
-            print(f"[+] Saved external case #{idx}/{cps}")
-        conn.close()
-        print(f"[✓] Done external grammar mutation. All cases stored in {db_file}")
-        return
-
-    conn = connect(db_file)
-    cur = conn.cursor()
-    init_db(cur)
-
-    # Resume capability: only generate tasks not already in DB
-    # Count existing cases grouped by grammar parameters
-    cur.execute(
-        "SELECT num_nonterminals, nonterminal_prob, loop_prob, COUNT(*) FROM cases "
-        "GROUP BY num_nonterminals, nonterminal_prob, loop_prob"
-    )
-    existing = {(row[0], row[1], row[2]): row[3] for row in cur.fetchall()}
-
-    # Build task list: either custom single setting or default parameter sweep
+    existing = db_manager.get_existing_cases()
     tasks = []
-    # Custom override mode: if any core custom parameter is provided
+
     if any(param is not None for param in [num_nonterms, nonterm_prob_arg, loop_prob_arg]):
-        # Require mandatory custom parameters: num-nonterminals, nonterminal-prob, loop-prob
         if num_nonterms is None or nonterm_prob_arg is None or loop_prob_arg is None:
-            parser.error("When specifying custom parameters, "
-                         "--num-nonterminals, --nonterminal-prob, and --loop-prob must be provided.")
-        # Set max-productions and max-rhs-length to follow num-nonterminals if not explicitly provided
-        if max_prods is None:
-            max_prods = num_nonterms
-        if max_rhs is None:
-            max_rhs = num_nonterms
-        # Resume based on num_nonterminals and nonterminal/loop probs
+            # This should be handled by the parser setup, but as a safeguard:
+            raise ValueError("Custom generation requires --num-nonterminals, --nonterminal-prob, and --loop-prob.")
+        
+        if max_prods is None: max_prods = num_nonterms
+        if max_rhs is None: max_rhs = num_nonterms
+        
         done = existing.get((num_nonterms, nonterm_prob_arg, loop_prob_arg), 0)
-        remaining = max(cps - done, 0)
+        remaining = max(config.CASES_PER_SETTING - done, 0)
         for _ in range(remaining):
-            tasks.append((num_nonterms, max_prods, max_rhs, nonterm_prob_arg, loop_prob_arg))
+            tasks.append((num_nonterms, max_prods, max_rhs, nonterm_prob_arg, loop_prob_arg, config))
         total = len(tasks)
         if total == 0:
-            print(f"[✓] All {cps} custom cases already generated in {db_file}. Nothing to do.")
-            conn.close()
+            print(f"[✓] All {config.CASES_PER_SETTING} custom cases already generated. Nothing to do.")
             return
-        print(f"[+] Starting custom generation of {total} cases "
-              f"(num_nonterminals={num_nonterms}, max_productions={max_prods}, "
-              f"max_rhs_length={max_rhs}, nonterminal_prob={nonterm_prob_arg}, "
-              f"loop_prob={loop_prob_arg}, cases_per_setting={cps}, workers={workers})")
+        print(f"[+] Starting custom generation of {total} cases...")
     else:
-        # Default parameter sweep: paired nonterminal and loop probabilities (sum must be <1)
-        for num_nt in dims:
-            for nonterm_prob, lp in zip(nonterminal_probs, loop_probs):
-                if nonterm_prob + lp >= 1:
-                    continue
-                done = existing.get((num_nt, nonterm_prob, lp), 0)
-                remaining = max(cps - done, 0)
-                for _ in range(remaining):
-                    if auto_dims:
-                        max_prod = num_nt
-                        max_rhs_len = num_nt
-                    else:
-                        max_prod = DEFAULT_MAX_PRODUCTIONS
-                        max_rhs_len = DEFAULT_MAX_RHS_LENGTH
-                    tasks.append((num_nt, max_prod, max_rhs_len, nonterm_prob, lp))
+        for num_nt in config.DIMS:
+            done = existing.get((num_nt, config.NONTERMINAL_PROB, config.LOOP_PROB), 0)
+            remaining = max(config.CASES_PER_SETTING - done, 0)
+            for _ in range(remaining):
+                max_prod = num_nt if auto_dims else config.DEFAULT_MAX_PRODUCTIONS
+                max_rhs_len = num_nt if auto_dims else config.DEFAULT_MAX_RHS_LENGTH
+                tasks.append((num_nt, max_prod, max_rhs_len, config.NONTERMINAL_PROB, config.LOOP_PROB, config))
         total = len(tasks)
         if total == 0:
-            print(f"[✓] All {cps} cases per setting already generated in {db_file}. Nothing to do.")
-            conn.close()
+            print(f"[✓] All cases per setting already generated. Nothing to do.")
             return
-        print(f"[+] Starting parallel generation of {total} cases "
-              f"(dims={list(dims)}, paired (nonterminal_prob, loop_prob) sum<1, "
-              f"cases_per_setting={cps}, workers={workers})")
+        print(f"[+] Starting parallel generation of {total} cases...")
 
     with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
         future_to_task = {
-            executor.submit(_generate_and_prepare_case, *task): task
-            for task in tasks
+            executor.submit(_generate_and_prepare_case, *task): task for task in tasks
         }
         for idx, future in enumerate(concurrent.futures.as_completed(future_to_task), start=1):
-            num_nonterms, max_prods, max_rhs, nonterm_prob, loop_prob = future_to_task[future]
+            num_nonterms, max_prods, max_rhs, nonterm_prob, loop_prob, _ = future_to_task[future]
             try:
                 artefacts = future.result()
             except Exception as e:
@@ -510,9 +500,8 @@ def main():
                       f"nonterminal_prob={nonterm_prob}, loop_prob={loop_prob} "
                       f"generated exception: {e}")
                 continue
-            # Validate test cases: ensure original parser accepts and corrupted parser rejects
+            
             cases = json.loads(artefacts['test_cases'])
-            # Validate test cases in-memory with compiled parsers
             orig_fn = compile_parser(artefacts['original_parser'])
             corr_fn = compile_parser(artefacts['corrupted_parser'])
             valid_cases = [
@@ -526,14 +515,26 @@ def main():
                       f"loop_prob={loop_prob}, skipping save.")
                 continue
             artefacts['test_cases'] = json.dumps(valid_cases, ensure_ascii=False)
-            save_case(cur, artefacts)
-            conn.commit()
+            db_manager.save_case(artefacts)
             print(f"[+] Saved task #{idx}/{total} for num_nonterminals={num_nonterms}, "
                   f"max_productions={max_prods}, max_rhs_length={max_rhs}, "
                   f"nonterminal_prob={nonterm_prob}, loop_prob={loop_prob}")
 
-    conn.close()
-    print(f"[✓] Done. All cases stored in {db_file}")
+    print(f"[✓] Done. All cases stored in {config.DB_FILE}")
+
+
+def main():
+    """Main entry point for the script."""
+    config = Config()
+    parser = setup_parser(config)
+    args = parser.parse_args()
+    config.update_from_args(args)
+
+    with DatabaseManager(config.DB_FILE) as db_manager:
+        if args.grammar_file:
+            run_external_grammar_mutation(args, db_manager, config)
+        else:
+            run_generation_sweep(args, db_manager, config)
 
 if __name__ == "__main__":
     main()

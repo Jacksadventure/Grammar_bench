@@ -22,6 +22,7 @@ from ultility import (
 import signal
 import concurrent.futures
 import argparse
+from radon.complexity import cc_visit, cc_rank
 
 # Helpers to parse comma-separated lists from command-line arguments
 def _parse_int_list(s: str) -> list[int]:
@@ -39,6 +40,41 @@ class CaseTimeout(Exception):
 def _timeout_handler(signum, frame):
     raise CaseTimeout
 
+
+def calculate_parser_cc(code_string: str) -> tuple[int|None, str|None]:
+    """
+    Compute cyclomatic complexity and rank for the parser function.
+    1. Try to find a block named 'parse' or 'parse_input'.
+    2. Else try any block whose name starts with 'parse_'.
+    3. Else pick the block with highest complexity.
+    Returns (complexity, rank) or (None, None) on error.
+    """
+    if not code_string:
+        return None, None
+
+    try:
+        blocks = cc_visit(code_string)
+        if not blocks:
+            return None, None
+
+        # 1. exact matches
+        for blk in blocks:
+            if blk.name == 'parse':
+                return blk.complexity, cc_rank(blk.complexity)
+
+        # 2. prefix matches
+        for blk in blocks:
+            if blk.name.startswith('parse_'):
+                return blk.complexity, cc_rank(blk.complexity)
+
+        # 3. fallback: pick the block with highest complexity
+        top = max(blocks, key=lambda b: b.complexity)
+        return top.complexity, cc_rank(top.complexity)
+
+    except Exception:
+        return None, None
+
+
 class Config:
     """Configuration settings for the script."""
     MAX_EXAMPLES = 100
@@ -47,18 +83,18 @@ class Config:
     MIN_TEST_CASES = 1
     KEEP_TEST_CASES = 5
     TIMEOUT = 80
-    DB_FILE = "targets8.db"
+    DB_FILE = "targets9.db"
     
     # Benchmark parameters
-    NUM_NONTERMINALS = range(1, 2)
+    NUM_NONTERMINALS = range(1, 11)
     DIMS = NUM_NONTERMINALS
     NONTERMINAL_PROB = 0.5
     LOOP_PROB = 0.5
     CASES_PER_SETTING = 20
 
     # Default grammar generation parameters
-    DEFAULT_MAX_PRODUCTIONS = 5
-    DEFAULT_MAX_RHS_LENGTH = 5
+    DEFAULT_MAX_PRODUCTIONS = 3
+    DEFAULT_MAX_RHS_LENGTH = 3
 
     def __init__(self, args=None):
         if args:
@@ -100,7 +136,6 @@ def generate_case(num_nonterminals: int,
     Returns:
         dict containing all artefacts ready to be stored in SQLite.
     """
-    # 1. create a valid grammar + parser
     # 1. create a valid grammar + parser with explicit parameter names
     original_code, _, grammar, nts, terms = gen(
         num_nonterminals=num_nonterminals,
@@ -116,6 +151,9 @@ def generate_case(num_nonterminals: int,
     )
     if not instances:
         raise RuntimeError(f"Could not find at least {config.MIN_TEST_CASES} failing instances")
+
+    # calculate cyclomatic complexity
+    cc_complexity, cc_rank = calculate_parser_cc(corrupted_code)
 
     # compute mutation depth: distance from root to mutated nonterminal
     # get_path returns a list of (parent, production_index) steps; path length = number of edges
@@ -152,6 +190,8 @@ def generate_case(num_nonterminals: int,
         # keep only the first config.KEEP_TEST_CASES test cases in the database
         # keep test cases and store as compact JSON
         "test_cases": json.dumps(list(instances)[:config.KEEP_TEST_CASES], ensure_ascii=False),
+        "cc_complexity": cc_complexity,
+        "cc_rank": cc_rank,
     }
 
 # --------------------------------------------------------------------------- #
@@ -232,7 +272,9 @@ class DatabaseManager:
                 corrupted_parser TEXT,
                 corrupted_symbol_count INTEGER,
                 parser_size INTEGER,
-                test_cases TEXT
+                test_cases TEXT,
+                cc_complexity INTEGER,
+                cc_rank TEXT
             )
             """
         )
@@ -245,6 +287,10 @@ class DatabaseManager:
             self.cur.execute("UPDATE cases SET parser_size = LENGTH(corrupted_parser)")
         if 'corrupted_symbol_count' not in cols:
             self.cur.execute("ALTER TABLE cases ADD COLUMN corrupted_symbol_count INTEGER")
+        if 'cc_complexity' not in cols:
+            self.cur.execute("ALTER TABLE cases ADD COLUMN cc_complexity INTEGER")
+        if 'cc_rank' not in cols:
+            self.cur.execute("ALTER TABLE cases ADD COLUMN cc_rank TEXT")
 
     def save_case(self, artefacts: dict):
         """Insert one case into the database, with fallback for oversized fields."""
@@ -254,8 +300,8 @@ class DatabaseManager:
                 num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
                 original_grammar, original_parser,
                 corrupted_grammar, corrupted_parser, corrupted_symbol_count, parser_size,
-                test_cases
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                test_cases, cc_complexity, cc_rank
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
         )
         params = (
@@ -270,6 +316,8 @@ class DatabaseManager:
             artefacts.get("corrupted_symbol_count"),
             artefacts.get("parser_size"),
             artefacts.get("test_cases"),
+            artefacts.get("cc_complexity"),
+            artefacts.get("cc_rank"),
         )
         try:
             self.cur.execute(sql, params)
@@ -295,6 +343,8 @@ class DatabaseManager:
                 truncated.get("corrupted_symbol_count"),
                 truncated.get("parser_size"),
                 truncated.get("test_cases"),
+                truncated.get("cc_complexity"),
+                truncated.get("cc_rank"),
             )
             print(f"[!] Retrying save_case with fields truncated to {max_len} chars each.")
             self.cur.execute(sql, params_trunc)
@@ -363,7 +413,10 @@ def find_failing_mutant(grammar, nts, terms, original_code, config):
         corrupted_code = generate_parser_code(
             corrupted_grammar, new_nts, new_nts[0]
         )
-        corr_parse_fn = compile_parser(corrupted_code)
+        try:
+            corr_parse_fn = compile_parser(corrupted_code)
+        except Exception:
+            continue
         instances = []
         for _ in range(config.MAX_INSTANCE_SEARCH):
             s = generate_biased_example_wrapper(
@@ -412,6 +465,8 @@ def run_external_grammar_mutation(args, db_manager, config):
                     if sym not in nonterm_set:
                         term_set.add(sym)
         corrupted_symbol_count = len(nonterm_set) + len(term_set)
+
+        cc_complexity, cc_rank = calculate_parser_cc(corrupted_code)
         artefacts = {
             "nonterminal_prob": None,
             "loop_prob": None,
@@ -422,6 +477,8 @@ def run_external_grammar_mutation(args, db_manager, config):
             "corrupted_parser": corrupted_code,
             "corrupted_symbol_count": corrupted_symbol_count,
             "test_cases": json.dumps(instances[:config.KEEP_TEST_CASES], ensure_ascii=False),
+            "cc_complexity": cc_complexity,
+            "cc_rank": cc_rank,
         }
         artefacts["num_nonterminals"] = len(nonterms)
         artefacts["max_productions"] = None

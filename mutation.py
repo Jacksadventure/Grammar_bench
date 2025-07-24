@@ -88,10 +88,10 @@ def mutate_grammar(grammar, nonterminals, terminals):
         if not choices and len(production) > 1:
             pos = 1
             original_symbol = production[pos]
-            choices = [s for s in (terminals + nonterminals) if s != original_symbol]
+            choices = [s for s in terminals  if s != original_symbol]
     else:
         # For non-first positions, the replacement can be any terminal or nonterminal
-        choices = [s for s in (terminals + nonterminals) if s != original_symbol]
+        choices = [s for s in terminals  if s != original_symbol]
     
     # If no alternative is available (very unlikely), return the grammar unchanged with metadata
     if not choices:

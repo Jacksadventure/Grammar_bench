@@ -350,12 +350,12 @@ if __name__ == "__main__":
     sys.setrecursionlimit(max(sys.getrecursionlimit(), 5000))
 
     code, exs, g, nts, ts = gen(
-        num_nonterminals=10,
+        num_nonterminals=1,
         max_original_examples=3,
         nonterminal_prob=0.5,
         loop_prob=0.5,
-        max_rhs_length=10,
-        max_productions=10,
+        max_rhs_length=3,
+        max_productions=3,
     )
     print("--- Generated Grammar ---")
     for nt in nts:

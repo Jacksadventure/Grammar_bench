@@ -35,11 +35,12 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
     
     # Check if we should follow the biased path for this nonterminal.
     if path and path[0][0] == symbol:
-        # Use the specified production index from the path (mutation point).
+        # Follow the specified production index along the biased path.
         _, prod_index = path[0]
         prod = grammar[symbol][prod_index]
         next_path = path[1:]
-        mutation_hit = True
+        # Only signal mutation hit when this is the final step of the path.
+        mutation_hit = not next_path
     else:
         prod = random.choice(grammar[symbol])
         next_path = path

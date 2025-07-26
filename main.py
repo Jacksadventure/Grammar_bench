@@ -83,7 +83,7 @@ class Config:
     MIN_TEST_CASES = 1
     KEEP_TEST_CASES = 5
     TIMEOUT = 80
-    DB_FILE = "targets9.db"
+    DB_FILE = "targets11.db"
     
     # Benchmark parameters
     NUM_NONTERMINALS = range(1, 11)
@@ -417,12 +417,15 @@ def find_failing_mutant(grammar, nts, terms, original_code, config):
             corr_parse_fn = compile_parser(corrupted_code)
         except Exception:
             continue
+        # Compute the full derivation path from the start nonterminal to the mutation point.
+        full_path = get_path(grammar, start_nt, nt) or []
+        biased_path = full_path + [(nt, prod_idx)]
         instances = []
         for _ in range(config.MAX_INSTANCE_SEARCH):
             s = generate_biased_example_wrapper(
                 grammar=grammar,
                 symbol=new_nts[0],
-                path=[(nt, prod_idx)],
+                path=biased_path,
                 max_depth=get_max_depth(grammar, new_nts[0]) + 10,
             )
             if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn):

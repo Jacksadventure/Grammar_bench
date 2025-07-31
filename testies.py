@@ -42,7 +42,15 @@ def generate_biased_example(grammar, symbol, path, shortcut, max_depth=100):
         # Only signal mutation hit when this is the final step of the path.
         mutation_hit = not next_path
     else:
-        prod = random.choice(grammar[symbol])
+        # Prefer productions whose RHS still contains the next nonterminal on the biased path.
+        candidates = []
+        target_nt = path[0][0] if path else None
+        if target_nt:
+            for p in grammar[symbol]:
+                if target_nt in p:
+                    candidates.append(p)
+        prod_pool = candidates if candidates else grammar[symbol]
+        prod = random.choice(prod_pool)
         next_path = path
         mutation_hit = False
     
@@ -76,4 +84,3 @@ def generate_biased_example_wrapper(grammar, symbol, path, max_depth=60):
     except StopGeneration as e:
         example = e.result
     return example
-    

@@ -1,5 +1,5 @@
 import random
-from ultility import get_path
+from ultility import get_path, charset, grammar_printer
 
 def mutate_grammar(grammar, nonterminals, terminals):
     """
@@ -23,28 +23,17 @@ def mutate_grammar(grammar, nonterminals, terminals):
     nt = nonterminals[-1]
     # Copy productions list and inner lists for chosen nonterminal before mutation
     mutated_grammar[nt] = [prod.copy() for prod in grammar[nt]]
-    
+
     # Find the index of the last non-empty production
     prod_index = -1
+
     for i in range(len(mutated_grammar[nt]) - 1, -1, -1):
         if mutated_grammar[nt][i]:
-            prod_index = i
-            break
+          for symbol in range(len(mutated_grammar[nt][i])-1,-1,-1):
+            if mutated_grammar[nt][i][symbol] != '' and mutated_grammar[nt][i][symbol] not in nonterminals:
+                prod_index = i
+                candidate = random.choice([s for s in charset().chars if s not in [x[0] for x in mutated_grammar[nt]] and s not in nonterminals])
+                mutated_grammar[nt][i][symbol] = candidate
+                grammar_printer(nonterminals,mutated_grammar)
+                return (mutated_grammar, nonterminals, terminals, nt, prod_index)
     
-    # If no non-empty production is found, return the original grammar
-    if prod_index == -1:
-        return (mutated_grammar, nonterminals, terminals, nt, None)
-
-    production = mutated_grammar[nt][prod_index]
-
-    # Mutate the last symbol of the production
-    pos = len(production) - 1
-    original_symbol = production[pos]
-    choices = [t for t in terminals if t != original_symbol]
-    if not choices:
-        return (mutated_grammar, nonterminals, terminals, nt, prod_index)
-
-    new_symbol = random.choice(choices)
-    production[pos] = new_symbol
-
-    return (mutated_grammar, nonterminals, terminals, nt, prod_index)

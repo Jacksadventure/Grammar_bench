@@ -86,11 +86,11 @@ class Config:
     DB_FILE = "targets11.db"
     
     # Benchmark parameters
-    NUM_NONTERMINALS = range(1, 11)
+    NUM_NONTERMINALS = range(2,3)
     DIMS = NUM_NONTERMINALS
     NONTERMINAL_PROB = 0.5
     LOOP_PROB = 0.5
-    CASES_PER_SETTING = 20
+    CASES_PER_SETTING = 1
 
     # Default grammar generation parameters
     DEFAULT_MAX_PRODUCTIONS = 3
@@ -145,10 +145,15 @@ def generate_case(num_nonterminals: int,
         nonterminal_prob=nonterminal_prob,
         loop_prob=loop_prob,
     )
+    grammar_printer(nts, grammar)
     # 2. corrupt the grammar and find failing inputs
     corrupted_grammar, corrupted_code, instances, nt = find_failing_mutant(
         grammar, nts, terms, original_code, config
     )
+    if corrupted_grammar is None or corrupted_code is None or nt is None:
+        raise RuntimeError("Could not obtain a valid corrupted grammar/code pair")
+    # Print the corrupted grammar for debugging (need a list of nonterminals)
+    grammar_printer([nt], corrupted_grammar)
     if not instances:
         raise RuntimeError(f"Could not find at least {config.MIN_TEST_CASES} failing instances")
 
@@ -199,7 +204,10 @@ def generate_case(num_nonterminals: int,
 # --------------------------------------------------------------------------- #
 def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length, nonterminal_prob, loop_prob, config):
     """Wrapper to generate a single case with retries and timeout."""
+    # Retry generate_case up to a limit to avoid infinite loops
+    attempts = 0
     while True:
+        attempts += 1
         orig_handler = signal.signal(signal.SIGALRM, _timeout_handler)
         signal.alarm(config.TIMEOUT)
         try:
@@ -221,9 +229,20 @@ def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length
             print(f"[!] {e}, regenerating grammar for "
                   f"num_nonterminals={num_nonterminals}, "
                   f"nonterminal_prob={nonterminal_prob}, loop_prob={loop_prob}")
+        except Exception as e:
+            # Catch any other unexpected errors to ensure the loop retries
+            print(f"[!] Unexpected error {e}, regenerating grammar for "
+                  f"num_nonterminals={num_nonterminals}, "
+                  f"nonterminal_prob={nonterminal_prob}, loop_prob={loop_prob}")
         finally:
             signal.alarm(0)
             signal.signal(signal.SIGALRM, orig_handler)
+        if attempts >= config.MAX_MUTATE_ATTEMPTS:
+            raise RuntimeError(
+                f"generate_case failed after {config.MAX_MUTATE_ATTEMPTS} attempts, giving up "
+                f"for num_nonterminals={num_nonterminals}, nonterminal_prob={nonterminal_prob}, "
+                f"loop_prob={loop_prob}"
+            )
 
     # Record number of nonterminals for DB insertion
     artefacts['num_nonterminals'] = num_nonterminals

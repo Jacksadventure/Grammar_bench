@@ -4,6 +4,7 @@ from collections import deque
 import re
 import os
 from pathlib import Path
+import string 
 def validation_check(input:str,parser_code:str)-> bool:
     import tempfile
     # Write parser code to a unique temporary file to avoid conflicts across processes
@@ -285,3 +286,11 @@ def get_max_depth(grammar: dict, start: str) -> int:
                     new_visited = visited | {sym}
                     stack.append((sym, depth + 1, new_visited))
     return max_depth
+
+class charset:
+    """
+    A simple class to represent a character set.
+    It can be initialized with a string of characters.
+    """
+    def __init__(self):
+        self.chars = string.ascii_letters + string.digits + string.punctuation 

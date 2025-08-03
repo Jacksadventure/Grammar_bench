@@ -252,16 +252,21 @@ def creat_repo(repo_name:str,code:str,issue:str):
 
 def grammar_printer(nonterminals, grammar):
     """
-    Prints the grammar in a readable format.
-    Nonterminals are shown with their existing angle brackets;
-    terminals are printed without angle brackets.
+    Print the grammar in classic BNF form.
+
+    Each nonterminal appears once, followed by its productions separated by
+    the BNF alternation symbol ``|``.  The arrow is written as ``::=``.
+    Example output::
+
+        <A> ::= 'a' | <B> 'c'
     """
     for nt in nonterminals:
-        # nt is a decorated nonterminal, e.g. '<A>'
-        for prod in grammar.get(nt, []):
-            # symbols in prod may be terminals or decorated nonterminals
-            prod_str = ' '.join(prod)
-            print(f"  {nt} -> {prod_str}")
+        prods = grammar.get(nt, [])
+        # Convert each production to a string; show empty production with ε
+        prod_strings = [' '.join(prod) if prod else 'ε' for prod in prods]
+        # Join productions with BNF alternation symbol
+        rhs = ' | '.join(prod_strings)
+        print(f"{nt} ::= {rhs}")
 
 # Compute maximum grammar depth without recursion
 def get_max_depth(grammar: dict, start: str) -> int:
@@ -293,4 +298,4 @@ class charset:
     It can be initialized with a string of characters.
     """
     def __init__(self):
-        self.chars = string.ascii_letters + string.digits + string.punctuation 
+        self.chars = string.ascii_letters + string.digits + string.punctuation

@@ -1,7 +1,0 @@
-@@ -1,5 +1,5 @@
- def parse_M():
-     while lookahead starts with 'T':
--        match("'")
-+        match("K")
-         parse_K()
-     else if lookahead starts with '*':

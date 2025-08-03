@@ -32,8 +32,15 @@ def mutate_grammar(grammar, nonterminals, terminals):
           for symbol in range(len(mutated_grammar[nt][i])-1,-1,-1):
             if mutated_grammar[nt][i][symbol] != '' and mutated_grammar[nt][i][symbol] not in nonterminals:
                 prod_index = i
-                candidate = random.choice([s for s in charset().chars if s not in [x[0] for x in mutated_grammar[nt]] and s not in nonterminals])
+                # Skip empty productions when gathering leading terminals to avoid IndexError
+                candidate = random.choice(
+                    [
+                        s
+                        for s in charset().chars
+                        if s not in [x[0] for x in mutated_grammar[nt] if x]  # ignore ε-productions
+                        and s not in nonterminals
+                    ]
+                )
                 mutated_grammar[nt][i][symbol] = candidate
-                grammar_printer(nonterminals,mutated_grammar)
+                # grammar_printer(nonterminals,mutated_grammar)
                 return (mutated_grammar, nonterminals, terminals, nt, prod_index)
-    

@@ -18,6 +18,7 @@ from ultility import (
     get_max_depth,
     get_path,
     grammar_printer,
+    get_shortcut,
 )
 import signal
 import concurrent.futures
@@ -86,11 +87,11 @@ class Config:
     DB_FILE = "targets11.db"
     
     # Benchmark parameters
-    NUM_NONTERMINALS = range(2,3)
+    NUM_NONTERMINALS = range(1,11)
     DIMS = NUM_NONTERMINALS
     NONTERMINAL_PROB = 0.5
     LOOP_PROB = 0.5
-    CASES_PER_SETTING = 1
+    CASES_PER_SETTING = 10
 
     # Default grammar generation parameters
     DEFAULT_MAX_PRODUCTIONS = 3
@@ -145,21 +146,19 @@ def generate_case(num_nonterminals: int,
         nonterminal_prob=nonterminal_prob,
         loop_prob=loop_prob,
     )
-    grammar_printer(nts, grammar)
     # 2. corrupt the grammar and find failing inputs
     corrupted_grammar, corrupted_code, instances, nt = find_failing_mutant(
         grammar, nts, terms, original_code, config
     )
     if corrupted_grammar is None or corrupted_code is None or nt is None:
         raise RuntimeError("Could not obtain a valid corrupted grammar/code pair")
-    # Print the corrupted grammar for debugging (need a list of nonterminals)
-    grammar_printer([nt], corrupted_grammar)
+
     if not instances:
         raise RuntimeError(f"Could not find at least {config.MIN_TEST_CASES} failing instances")
 
     # calculate cyclomatic complexity
     cc_complexity, cc_rank = calculate_parser_cc(corrupted_code)
-
+    print(f"[+] Cyclomatic complexity: {cc_complexity}, rank: {cc_rank}")
     # compute mutation depth: distance from root to mutated nonterminal
     # get_path returns a list of (parent, production_index) steps; path length = number of edges
     # use 1-based depth: root itself -> depth=1, child -> depth=2, etc.
@@ -181,6 +180,27 @@ def generate_case(num_nonterminals: int,
                 if sym not in nonterms:
                     terms.add(sym)
     corrupted_symbol_count = len(nonterms) + len(terms)
+
+    # wrap each failing instance into full-input context via the path from root to mutated nonterminal
+    # ensure minimal fillers for other nonterminals using shortcuts
+    shortcut = get_shortcut(grammar)
+    full_instances = []
+    for inst in instances:
+        full = inst
+        if path:
+            for parent, prod_idx in reversed(path):
+                prod = grammar[parent][prod_idx]
+                buf = []
+                for sym in prod:
+                    if sym == nt:
+                        buf.append(full)
+                    elif sym in grammar:
+                        buf.append(shortcut.get(sym, ""))
+                    else:
+                        buf.append(sym)
+                full = ''.join(buf)
+        full_instances.append(full)
+
     return {
         "nonterminal_prob": nonterminal_prob,
         "loop_prob": loop_prob,
@@ -192,9 +212,8 @@ def generate_case(num_nonterminals: int,
         "corrupted_grammar": json.dumps(corrupted_grammar, ensure_ascii=False),
         "corrupted_parser": corrupted_code,
         "corrupted_symbol_count": corrupted_symbol_count,
-        # keep only the first config.KEEP_TEST_CASES test cases in the database
-        # keep test cases and store as compact JSON
-        "test_cases": json.dumps(list(instances)[:config.KEEP_TEST_CASES], ensure_ascii=False),
+        # failing test cases wrapped into full-input context
+        "test_cases": json.dumps(full_instances[:config.KEEP_TEST_CASES], ensure_ascii=False),
         "cc_complexity": cc_complexity,
         "cc_rank": cc_rank,
     }
@@ -422,30 +441,34 @@ def find_failing_mutant(grammar, nts, terms, original_code, config):
         Returns (None, None, [], None) if no failing mutant is found.
     """
     start_nt = nts[0]
-    orig_parse_fn = compile_parser(original_code)
+
     for _ in range(config.MAX_MUTATE_ATTEMPTS):
         corrupted_grammar, new_nts, new_terms, nt, prod_idx = mutate_grammar(
             grammar, nts, terms
         )
+
         if len(nts) > 1 and nt == start_nt:
             continue
+        # build parsers for the mutated nonterminal only
+        orig_code_nt = generate_parser_code(grammar, nts, nt)
+        orig_parse_fn = compile_parser(orig_code_nt)
         corrupted_code = generate_parser_code(
             corrupted_grammar, new_nts, new_nts[0]
         )
+
         try:
             corr_parse_fn = compile_parser(corrupted_code)
         except Exception:
             continue
-        # Compute the full derivation path from the start nonterminal to the mutation point.
-        full_path = get_path(grammar, start_nt, nt) or []
-        biased_path = full_path + [(nt, prod_idx)]
+        # Generate a test string for the mutated nonterminal only
+        biased_path = [(nt, prod_idx)]
         instances = []
         for _ in range(config.MAX_INSTANCE_SEARCH):
             s = generate_biased_example_wrapper(
                 grammar=grammar,
-                symbol=new_nts[0],
+                symbol=nt,
                 path=biased_path,
-                max_depth=get_max_depth(grammar, new_nts[0]) + 10,
+                max_depth=get_max_depth(grammar, nt) + 10,
             )
             if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn):
                 instances.append(s)
@@ -565,7 +588,7 @@ def run_generation_sweep(args, db_manager, config):
             return
         print(f"[+] Starting parallel generation of {total} cases...")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
+    with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
         future_to_task = {
             executor.submit(_generate_and_prepare_case, *task): task for task in tasks
         }
@@ -579,7 +602,6 @@ def run_generation_sweep(args, db_manager, config):
                       f"nonterminal_prob={nonterm_prob}, loop_prob={loop_prob} "
                       f"generated exception: {e}")
                 continue
-            
             cases = json.loads(artefacts['test_cases'])
             orig_fn = compile_parser(artefacts['original_parser'])
             corr_fn = compile_parser(artefacts['corrupted_parser'])

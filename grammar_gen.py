@@ -5,6 +5,8 @@ import textwrap
 from collections import deque
 from itertools import product as cart
 
+from ultility import grammar_printer
+
 # ───────────────────────── helper: label factory ────────────────────────────
 def _labels(alpha, k: int):
     out, n = [], 1
@@ -335,13 +337,14 @@ def gen(
         max_productions=max_productions,
         max_rhs_length=max_rhs_length,
     )
+    # grammar_printer(nts, grammar)
     start_symbol = nts[0]
     examples = set()
-    for _ in range(max_original_examples * 5):
-        ex = generate_example_string(grammar, start_symbol)
-        examples.add(ex)
-        if len(examples) >= max_original_examples:
-            break
+    # for _ in range(max_original_examples * 5):
+    #     ex = generate_example_string(grammar, start_symbol)
+    #     examples.add(ex)
+    #     if len(examples) >= max_original_examples:
+    #         break
     parser_code = generate_parser_code(grammar, nts, start_symbol)
     return parser_code, examples, grammar, nts, ts
 

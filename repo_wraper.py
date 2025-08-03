@@ -2,6 +2,7 @@ import os
 import json
 import textwrap
 from sqlite3 import connect
+from pathlib import Path
 from ultility import creat_repo   # make sure ultility.py is on PYTHONPATH
 
 # --------------------------------------------------------------------------- #
@@ -33,10 +34,10 @@ SELECT id,
        corrupted_grammar,
        corrupted_parser,
        test_cases,
-       dim,
-       recursive_prob,
+       num_nonterminals,
+       nonterminal_prob,
        loop_prob,
-       timestamp
+       mutation_depth
 FROM   cases
 """
 for (
@@ -45,10 +46,10 @@ for (
     corrupted_grammar,
     corrupted_parser,
     test_cases,
-    dim,
-    recursive_prob,
+    num_nonterminals,
+    nonterminal_prob,
     loop_prob,
-    ts,
+    mutation_depth,
 ) in cursor.execute(query):
 
     repo_name = f"case-{case_id:05d}"
@@ -66,6 +67,11 @@ for (
         {json.dumps(json.loads(original_grammar), indent=2, ensure_ascii=False)}
         ```
 
+        ### Corrupted grammar
+        ```json
+        {json.dumps(json.loads(corrupted_grammar), indent=2, ensure_ascii=False)}
+        ```
+
         ### Failing test cases
         ```json
         {json.dumps(json.loads(test_cases[:3]), indent=2, ensure_ascii=False)}
@@ -79,8 +85,19 @@ for (
     ).strip()
 
     # --------------------------------------------------------------------- #
-    # Create the repository
+    # Create the repository and save parser and mutated grammar
     # --------------------------------------------------------------------- #
+    repo_sub = Path(f"{repo_name}/{repo_name}")
+    repo_sub.mkdir(parents=True, exist_ok=True)
+    # write corrupted grammar JSON to file
+    try:
+        grammar_obj = json.loads(corrupted_grammar)
+    except Exception:
+        grammar_obj = None
+    if grammar_obj is not None:
+        with open(repo_sub / "corrupted_grammar.json", "w", encoding="utf-8") as gf:
+            json.dump(grammar_obj, gf, ensure_ascii=False, indent=2)
+    # create repo with parser code and issue description
     creat_repo(
         repo_name=repo_name,
         code=corrupted_parser,

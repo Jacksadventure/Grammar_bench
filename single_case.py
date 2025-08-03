@@ -19,7 +19,7 @@ class Config:
     DB_FILE = "targets11.db"
     
     # Benchmark parameters
-    NUM_NONTERMINALS = range(1, 11)
+    NUM_NONTERMINALS = range(2, 3)
     DIMS = NUM_NONTERMINALS
     NONTERMINAL_PROB = 0.5
     LOOP_PROB = 0.5
@@ -56,16 +56,16 @@ class Config:
 
 def main():
     parser = argparse.ArgumentParser(description="Generate a single parser case and output as JSON")
-    parser.add_argument('--num-nonterminals', '-n', type=int, required=True,
-                        help='Number of nonterminals for grammar generation')
-    parser.add_argument('--max-productions', '-p', type=int, required=True,
-                        help='Max productions per nonterminal')
-    parser.add_argument('--max-rhs-length', '-r', type=int, required=True,
-                        help='Max right-hand side length of productions')
-    parser.add_argument('--nonterminal-prob', type=float, required=True,
-                        help='Probability of nonterminal recursion in grammar generation')
-    parser.add_argument('--loop-prob', type=float, required=True,
-                        help='Probability of looping in grammar generation')
+    parser.add_argument('--num-nonterminals', '-n', type=int, default=2,
+                        help='Number of nonterminals for grammar generation (default: %(default)s)')
+    parser.add_argument('--max-productions', '-p', type=int, default=Config.DEFAULT_MAX_PRODUCTIONS,
+                        help='Max productions per nonterminal (default: %(default)s)')
+    parser.add_argument('--max-rhs-length', '-r', type=int, default=Config.DEFAULT_MAX_RHS_LENGTH,
+                        help='Max right-hand side length of productions (default: %(default)s)')
+    parser.add_argument('--nonterminal-prob', type=float, default=Config.NONTERMINAL_PROB,
+                        help='Probability of nonterminal recursion in grammar generation (default: %(default)s)')
+    parser.add_argument('--loop-prob', type=float, default=Config.LOOP_PROB,
+                        help='Probability of looping in grammar generation (default: %(default)s)')
     args = parser.parse_args()
 
     # Generate one parser case using the core API

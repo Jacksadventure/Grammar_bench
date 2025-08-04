@@ -221,7 +221,7 @@ def generate_case(num_nonterminals: int,
 # --------------------------------------------------------------------------- #
 # Parallel case generation helper
 # --------------------------------------------------------------------------- #
-def _generate_and_prepare_case(num_nonterminals, max_productions, max_rhs_length, nonterminal_prob, loop_prob, config):
+def _generate_and_prepare_case(num_nonterminals: int, max_productions: int, max_rhs_length: int, nonterminal_prob: float, loop_prob: float, config:Config) -> dict:
     """Wrapper to generate a single case with retries and timeout."""
     # Retry generate_case up to a limit to avoid infinite loops
     attempts = 0

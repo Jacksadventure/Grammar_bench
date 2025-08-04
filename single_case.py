@@ -7,6 +7,7 @@ import json
 import argparse
 
 from main import generate_case
+from ultility import grammar_printer, compile_parser, validation_check_inproc
 
 class Config:
     """Configuration settings for the script."""
@@ -19,16 +20,15 @@ class Config:
     DB_FILE = "targets11.db"
     
     # Benchmark parameters
-    NUM_NONTERMINALS = range(2, 3)
+    NUM_NONTERMINALS = range(10,11)
     DIMS = NUM_NONTERMINALS
     NONTERMINAL_PROB = 0.5
-    LOOP_PROB = 0.5
-    CASES_PER_SETTING = 20
+    LOOP_PROB = 0.3
+    CASES_PER_SETTING = 1
 
     # Default grammar generation parameters
-    DEFAULT_MAX_PRODUCTIONS = 3
-    DEFAULT_MAX_RHS_LENGTH = 3
-
+    DEFAULT_MAX_PRODUCTIONS = 5
+    DEFAULT_MAX_RHS_LENGTH = 5
     def __init__(self, args=None):
         if args:
             self.update_from_args(args)
@@ -80,8 +80,39 @@ def main():
         )
     except Exception as e:
         parser.error(f"Error generating case: {e}")
-    # Print artefacts as pretty JSON
-    print(json.dumps(artefacts, ensure_ascii=False, indent=2))
+
+    print("Generated grammar:")
+    print(artefacts['original_grammar'])
+    print("Original code:")
+    print(artefacts['original_parser'])
+    print("Corrupted grammar:")
+    print(artefacts['corrupted_grammar'])
+    print("Corrupted code:")
+    print(artefacts['corrupted_parser'])
+    print("Test cases:")
+    # artefacts['test_cases'] is stored as a JSON-encoded string by generate_case;
+    # decode it first so we iterate over complete test-case strings, not characters.
+    raw_cases = (
+        json.loads(artefacts['test_cases'])
+        if isinstance(artefacts['test_cases'], str)
+        else artefacts['test_cases']
+    )
+
+    # Keep only those strings accepted by the original parser
+    # but rejected by the corrupted parser, just to be safe.
+    orig_parse_fn = compile_parser(artefacts['original_parser'])
+    corr_parse_fn = compile_parser(artefacts['corrupted_parser'])
+    test_cases = [
+        s for s in raw_cases
+        if validation_check_inproc(s, orig_parse_fn) and not validation_check_inproc(s, corr_parse_fn)
+    ]
+
+    if not test_cases:
+        print("[!] Warning: no valid failing test cases found after validation.")
+
+    for i, test_case in enumerate(test_cases):
+        print(f"Test case {i + 1}:")
+        print(test_case)
 
 if __name__ == '__main__':
     main()

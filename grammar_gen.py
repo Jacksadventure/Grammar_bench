@@ -97,6 +97,16 @@ def generate_random_grammar(
 
             prods.append(rhs)
 
+    # Ensure the grammar is complete and contains the requested number of nonterminals.
+    # If not, the generation process has failed, and we rely on the caller's
+    # retry logic to try again.
+    if len(grammar) != num_nonterminals:
+        raise RuntimeError(
+            f"Generated grammar has {len(grammar)} nonterminals, but "
+            f"{num_nonterminals} were requested. This may be due to exhausting "
+            f"the terminal pool or a generation logic error."
+        )
+
     # decorate with angle brackets for parser readability
     decorated_nts = [f"<{n}>" for n in grammar]
     decorated = {

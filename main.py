@@ -84,14 +84,14 @@ class Config:
     MIN_TEST_CASES = 1
     KEEP_TEST_CASES = 5
     TIMEOUT = 80
-    DB_FILE = "targets11.db"
-    
+    DB_FILE = "targets15.db"
+
     # Benchmark parameters
-    NUM_NONTERMINALS = range(1,11)
+    NUM_NONTERMINALS = range(2,16)
     DIMS = NUM_NONTERMINALS
-    NONTERMINAL_PROB = 0.5
-    LOOP_PROB = 0.5
-    CASES_PER_SETTING = 10
+    NONTERMINAL_PROB = 0.3
+    LOOP_PROB = 0.3
+    CASES_PER_SETTING = 20
 
     # Default grammar generation parameters
     DEFAULT_MAX_PRODUCTIONS = 3
@@ -201,6 +201,23 @@ def generate_case(num_nonterminals: int,
                 full = ''.join(buf)
         full_instances.append(full)
 
+    # Generate passing test cases (accepted by both original and corrupted parser)
+    orig_parse_fn = compile_parser(original_code)
+    corr_parse_fn = compile_parser(corrupted_code)
+    passing_instances = []
+    max_pass = config.KEEP_TEST_CASES
+    attempts = 0
+    max_attempts = max_pass * 100
+    while len(passing_instances) < max_pass and attempts < max_attempts:
+        s = generate_example_string(grammar, nts[0], max_depth=20)
+        if validation_check_inproc(s, orig_parse_fn) and validation_check_inproc(s, corr_parse_fn):
+            if s not in passing_instances:
+                passing_instances.append(s)
+        attempts += 1
+
+    if len(passing_instances) < max_pass:
+        raise RuntimeError(f"Could not find at least {max_pass} passing test cases after {attempts} attempts")
+
     return {
         "nonterminal_prob": nonterminal_prob,
         "loop_prob": loop_prob,
@@ -213,7 +230,8 @@ def generate_case(num_nonterminals: int,
         "corrupted_parser": corrupted_code,
         "corrupted_symbol_count": corrupted_symbol_count,
         # failing test cases wrapped into full-input context
-        "test_cases": json.dumps(full_instances[:config.KEEP_TEST_CASES], ensure_ascii=False),
+        "failing_test_cases": json.dumps(full_instances[:config.KEEP_TEST_CASES], ensure_ascii=False),
+        "passing_test_cases": json.dumps(passing_instances, ensure_ascii=False),
         "cc_complexity": cc_complexity,
         "cc_rank": cc_rank,
     }
@@ -310,7 +328,8 @@ class DatabaseManager:
                 corrupted_parser TEXT,
                 corrupted_symbol_count INTEGER,
                 parser_size INTEGER,
-                test_cases TEXT,
+                failing_test_cases TEXT,
+                passing_test_cases TEXT,
                 cc_complexity INTEGER,
                 cc_rank TEXT
             )
@@ -325,6 +344,10 @@ class DatabaseManager:
             self.cur.execute("UPDATE cases SET parser_size = LENGTH(corrupted_parser)")
         if 'corrupted_symbol_count' not in cols:
             self.cur.execute("ALTER TABLE cases ADD COLUMN corrupted_symbol_count INTEGER")
+        if 'failing_test_cases' not in cols:
+            self.cur.execute("ALTER TABLE cases ADD COLUMN failing_test_cases TEXT")
+        if 'passing_test_cases' not in cols:
+            self.cur.execute("ALTER TABLE cases ADD COLUMN passing_test_cases TEXT")
         if 'cc_complexity' not in cols:
             self.cur.execute("ALTER TABLE cases ADD COLUMN cc_complexity INTEGER")
         if 'cc_rank' not in cols:
@@ -338,8 +361,8 @@ class DatabaseManager:
                 num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
                 original_grammar, original_parser,
                 corrupted_grammar, corrupted_parser, corrupted_symbol_count, parser_size,
-                test_cases, cc_complexity, cc_rank
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                failing_test_cases, passing_test_cases, cc_complexity, cc_rank
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """
         )
         params = (
@@ -353,7 +376,8 @@ class DatabaseManager:
             artefacts.get("corrupted_parser"),
             artefacts.get("corrupted_symbol_count"),
             artefacts.get("parser_size"),
-            artefacts.get("test_cases"),
+            artefacts.get("failing_test_cases"),
+            artefacts.get("passing_test_cases"),
             artefacts.get("cc_complexity"),
             artefacts.get("cc_rank"),
         )
@@ -380,7 +404,8 @@ class DatabaseManager:
                 truncated.get("corrupted_parser"),
                 truncated.get("corrupted_symbol_count"),
                 truncated.get("parser_size"),
-                truncated.get("test_cases"),
+                truncated.get("failing_test_cases"),
+                truncated.get("passing_test_cases"),
                 truncated.get("cc_complexity"),
                 truncated.get("cc_rank"),
             )
@@ -501,6 +526,7 @@ def run_external_grammar_mutation(args, db_manager, config):
             continue
 
         path = get_path(ext_grammar, nonterms[0], nt)
+        print(len(path), "steps from root to mutated nonterminal")
         mutation_depth = len(path) + 1 if path is not None else None
         nonterm_set = set(mutated_grammar.keys())
         term_set = set()
@@ -588,38 +614,55 @@ def run_generation_sweep(args, db_manager, config):
             return
         print(f"[+] Starting parallel generation of {total} cases...")
 
-    with concurrent.futures.ProcessPoolExecutor(max_workers=1) as executor:
-        future_to_task = {
-            executor.submit(_generate_and_prepare_case, *task): task for task in tasks
+    with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = {
+            executor.submit(_generate_and_prepare_case, *task): task
+            for task in tasks
         }
-        for idx, future in enumerate(concurrent.futures.as_completed(future_to_task), start=1):
-            num_nonterms, max_prods, max_rhs, nonterm_prob, loop_prob, _ = future_to_task[future]
-            try:
-                artefacts = future.result()
-            except Exception as e:
-                print(f"[!] Task #{idx}/{total} for num_nonterminals={num_nonterms}, "
-                      f"max_productions={max_prods}, max_rhs_length={max_rhs}, "
-                      f"nonterminal_prob={nonterm_prob}, loop_prob={loop_prob} "
-                      f"generated exception: {e}")
-                continue
-            cases = json.loads(artefacts['test_cases'])
-            orig_fn = compile_parser(artefacts['original_parser'])
-            corr_fn = compile_parser(artefacts['corrupted_parser'])
-            valid_cases = [
-                s for s in cases
-                if validation_check_inproc(s, orig_fn) and not validation_check_inproc(s, corr_fn)
-            ]
-            if not valid_cases:
-                print(f"[!] No valid test cases for "
-                      f"num_nonterminals={num_nonterms}, max_productions={max_prods}, "
-                      f"max_rhs_length={max_rhs}, nonterminal_prob={nonterm_prob}, "
-                      f"loop_prob={loop_prob}, skipping save.")
-                continue
-            artefacts['test_cases'] = json.dumps(valid_cases, ensure_ascii=False)
-            db_manager.save_case(artefacts)
-            print(f"[+] Saved task #{idx}/{total} for num_nonterminals={num_nonterms}, "
-                  f"max_productions={max_prods}, max_rhs_length={max_rhs}, "
-                  f"nonterminal_prob={nonterm_prob}, loop_prob={loop_prob}")
+        saved_count = 0
+        while futures:
+            done, _ = concurrent.futures.wait(
+                futures, return_when=concurrent.futures.FIRST_COMPLETED
+            )
+            for future in done:
+                task = futures.pop(future)
+                num_nonterms, max_prods, max_rhs, nonterm_prob, loop_prob, _ = task
+
+                def resubmit_task(reason: str):
+                    print(f"{reason}, re-submitting.")
+                    new_future = executor.submit(_generate_and_prepare_case, *task)
+                    futures[new_future] = task
+
+                try:
+                    artefacts = future.result()
+                    cases = json.loads(artefacts['failing_test_cases'])
+                    orig_fn = compile_parser(artefacts['original_parser'])
+                    corr_fn = compile_parser(artefacts['corrupted_parser'])
+                    valid_cases = [
+                        s for s in cases
+                        if validation_check_inproc(s, orig_fn) and not validation_check_inproc(s, corr_fn)
+                    ]
+                    if not valid_cases:
+                        msg = (f"[!] No valid test cases for "
+                               f"num_nonterminals={num_nonterms}, max_productions={max_prods}, "
+                               f"max_rhs_length={max_rhs}, nonterminal_prob={nonterm_prob}, "
+                               f"loop_prob={loop_prob}")
+                        resubmit_task(msg)
+                        continue
+
+                    artefacts['failing_test_cases'] = json.dumps(valid_cases, ensure_ascii=False)
+                    db_manager.save_case(artefacts)
+                    saved_count += 1
+                    print(f"[+] Saved task #{saved_count}/{total} for num_nonterminals={num_nonterms}, "
+                          f"max_productions={max_prods}, max_rhs_length={max_rhs}, "
+                          f"nonterminal_prob={nonterm_prob}, loop_prob={loop_prob}")
+
+                except Exception as e:
+                    msg = (f"[!] Task for num_nonterminals={num_nonterms}, "
+                           f"max_productions={max_prods}, max_rhs_length={max_rhs}, "
+                           f"nonterminal_prob={nonterm_prob}, loop_prob={loop_prob} "
+                           f"generated exception: {e}")
+                    resubmit_task(msg)
 
     print(f"[✓] Done. All cases stored in {config.DB_FILE}")
 

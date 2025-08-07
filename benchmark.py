@@ -29,30 +29,36 @@ import multiprocessing
 
 def _repair_single_case(row, backend, model, results_db, run_id, sample):
     (case_id, num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
-     orig_grammar, orig_parser, corr_grammar, corr_parser, test_cases_json) = row
+     orig_grammar, orig_parser, corr_grammar, corr_parser, failing_test_cases_json, passing_test_cases_json) = row
     # per-case DB connection for writing results
     conn = sqlite3.connect(results_db, timeout=30)
     cursor = conn.cursor()
     print(f"[Case {case_id}] ===== Case start: nonterminals={num_nonterminals}, prob={nonterminal_prob}, loop={loop_prob}, depth={mutation_depth} =====")
     # load test cases
     try:
-        test_cases = json.loads(test_cases_json)
+        failing_test_cases = json.loads(failing_test_cases_json)
     except json.JSONDecodeError:
-        test_cases = json.loads(test_cases_json.replace("'", '"'))
-    total_tests = len(test_cases)
-    print(f"[Case {case_id}] Total tests: {total_tests}")
-    # write corrupted parser to file and collect failing test examples
-    corrupted_file = os.path.join(CACHE_DIR, f"case_{case_id}_corrupted_{run_id}_{sample}.py")
+        failing_test_cases = json.loads(failing_test_cases_json.replace("'", '"'))
+    try:
+        passing_test_cases = json.loads(passing_test_cases_json)
+    except json.JSONDecodeError:
+        passing_test_cases = json.loads(passing_test_cases_json.replace("'", '"'))
+    total_failing = len(failing_test_cases)
+    total_passing = len(passing_test_cases)
+    # print(f"[Case {case_id}] Failing tests: {total_failing}, Passing tests: {total_passing}")
+    # # write corrupted parser to file and collect failing test examples
+    random_number = random.randint(0, 10000)
+    corrupted_file = os.path.join(CACHE_DIR, f"case_{case_id}_corrupted_{run_id}_{sample}_{random_number}.py")
     with open(corrupted_file, 'w', encoding='utf-8') as f:
         f.write(corr_parser)
-    error_examples = []
-    for inp in test_cases:
-        proc = subprocess.run(['python3', corrupted_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if proc.returncode != 0:
-            error_examples.append(inp)
+    # error_examples = []
+    # for inp in failing_test_cases:
+    #     proc = subprocess.run(['python3', corrupted_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    #     if proc.returncode != 0:
+    #         error_examples.append(inp)
     # deduplicate preserving order
-    error_examples = list(dict.fromkeys(error_examples))
-    print(f"[Case {case_id}] Collected {len(error_examples)} unique error examples")
+    error_examples = list(dict.fromkeys(passing_test_cases))
+    # print(f"[Case {case_id}] Collected {len(error_examples)} unique error examples")
     # generate patch via localization using failing examples
     response = localise_program(corr_parser, error_examples, backend, model)
     print(f"[Case {case_id}] Localization response:\n{response.response_text}")
@@ -60,10 +66,10 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
     prompt_tokens = response.prompt_tokens
     completion_tokens = response.completion_tokens
     total_tokens = response.total_tokens
-    patch_file = os.path.join(CACHE_DIR, f"case_{case_id}_patch_{run_id}_{sample}.diff")
+    patch_file = os.path.join(CACHE_DIR, f"case_{case_id}_patch_{run_id}_{sample}_{random_number}.diff")
     with open(patch_file, 'w', encoding='utf-8') as f:
         f.write(patch_text)
-    repaired_file = os.path.join(CACHE_DIR, f"case_{case_id}_repaired_{run_id}_{sample}.py")
+    repaired_file = os.path.join(CACHE_DIR, f"case_{case_id}_repaired_{run_id}_{sample}_{random_number}.py")
     shutil.copy(corrupted_file, repaired_file)
     # apply patch quietly
     try:
@@ -111,29 +117,43 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
                     replace_function_ast_in_file(repaired_file, code, fname, repaired_file)
             except Exception:
                 print(f"[Case {case_id}] Repair failed: {e}")
-                passed_tests = 0
-                fix = 0
+                total_failing = len(failing_test_cases)
+                total_passing = len(passing_test_cases)
+                passed_failing = 0
+                passed_passing = 0
+                plausible = 1 if passed_failing == total_failing and total_failing > 0 else 0
+                correct = 1 if plausible == 1 and passed_passing == total_passing and total_passing > 0 else 0
                 cursor.execute(
-                    'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
-                    (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
+                    'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_failing,passed_failing,total_passing,passed_passing,plausible,correct,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+                    (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_failing, passed_failing, total_passing, passed_passing, plausible, correct, prompt_tokens, completion_tokens, total_tokens)
                 )
                 conn.commit()
                 conn.close()
                 return
     # run tests
-    passed_tests = 0
-    for inp in test_cases:
+    passed_failing = 0
+    for inp in failing_test_cases:
         proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if proc.returncode == 0:
-            passed_tests += 1
+            passed_failing += 1
         else:
-            print(f"[Case {case_id}] Test failed on input={inp}, rc={proc.returncode}")
-    print(f"[Case {case_id}] Result: {passed_tests}/{total_tests}")
-    fix = 1 if passed_tests == total_tests else 0
+            print(f"[Case {case_id}] Failing test failed on input={inp}, rc={proc.returncode}")
+    plausible = 1 if passed_failing == total_failing else 0
+
+    passed_passing = 0
+    for inp in passing_test_cases:
+        proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if proc.returncode == 0:
+            passed_passing += 1
+        else:
+            print(f"[Case {case_id}] Passing test failed on input={inp}, rc={proc.returncode}")
+    correct = 1 if plausible == 1 and passed_passing == total_passing else 0
+
+    print(f"[Case {case_id}] Failing passed: {passed_failing}/{total_failing}, Passing passed: {passed_passing}/{total_passing}")
     # write result
     cursor.execute(
-        'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_tests,passed_tests,fix,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)',
-        (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_tests, passed_tests, fix, prompt_tokens, completion_tokens, total_tokens)
+        'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_failing,passed_failing,total_passing,passed_passing,plausible,correct,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+        (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_failing, passed_failing, total_passing, passed_passing, plausible, correct, prompt_tokens, completion_tokens, total_tokens)
     )
     conn.commit()
     conn.close()
@@ -155,7 +175,7 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     cursor = conn.cursor()
     cursor.execute(
         "SELECT id, num_nonterminals, nonterminal_prob, loop_prob, mutation_depth, original_grammar, original_parser,"
-        " corrupted_grammar, corrupted_parser, test_cases"
+        " corrupted_grammar, corrupted_parser, failing_test_cases, passing_test_cases"
         " FROM cases"
     )
     rows = cursor.fetchall()
@@ -171,9 +191,12 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
             num_nonterminals INTEGER,
             nonterminal_prob REAL,
             loop_prob REAL,
-            total_tests INTEGER,
-            passed_tests INTEGER,
-            fix INTEGER,
+            total_failing INTEGER,
+            passed_failing INTEGER,
+            total_passing INTEGER,
+            passed_passing INTEGER,
+            plausible INTEGER,
+            correct INTEGER,
             prompt_tokens INTEGER,
             completion_tokens INTEGER,
             total_tokens INTEGER,
@@ -208,7 +231,7 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     summary_conn = sqlite3.connect(results_db)
     summary_cur = summary_conn.cursor()
     summary_cur.execute(
-        "SELECT case_id, SUM(fix) as successes FROM repair_results GROUP BY case_id"
+        "SELECT case_id, SUM(plausible) as successes FROM repair_results GROUP BY case_id"
     )
     stats = summary_cur.fetchall()
     total_cases = len(stats)

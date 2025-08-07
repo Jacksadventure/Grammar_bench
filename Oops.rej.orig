@@ -1,0 +1,13 @@
+@@ -62,7 +65,10 @@
+         elif la == 'v':
+             match('v')
+     else:
+-        raise ParseError(f'Unexpected token {la!r} in <A>')
++        if la == 'k':
++            # α* loop for <B>
++            while pos < len(tokens) and (tokens[pos] == 'k'):
++                match('k')
+\ No newline at end of line
+ 
+ 
+ 

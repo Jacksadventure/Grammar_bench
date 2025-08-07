@@ -1,0 +1,9 @@
+@@ -98,7 +98,7 @@
+                 elif la == ',':
+                     match(',')
+                     match('u')
+                     match('+')
+                     match('Y')
+                     match('U')
+-                elif True:  # ε
++                else:  # ε

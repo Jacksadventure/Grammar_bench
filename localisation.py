@@ -100,7 +100,7 @@ def localise_program(program, examples, backend, model):
     prompt_input = (
         "parser code with line numbers:\n"
         + "\n".join(annotated)
-        + "\nerror examples:\n"
+        + "\nThis parser failed in these testcases:\n"
         + examples_block
     )
     # Call the AI interface and clean the returned text while preserving token usage

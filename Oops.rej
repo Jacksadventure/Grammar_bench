@@ -1,0 +1,9 @@
+@@ -40,6 +41,7 @@
+     elif la == 'R':
+         match('R')
+     # α* loop for <C>
+     while pos < len(tokens) and (tokens[pos] == 'i'):
+         match('i')
++    match('*')
+\ No newline at end of line
+ 

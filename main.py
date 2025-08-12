@@ -84,14 +84,14 @@ class Config:
     MIN_TEST_CASES = 1
     KEEP_TEST_CASES = 5
     TIMEOUT = 80
-    DB_FILE = "targets15.db"
+    DB_FILE = "targets16.db"
 
     # Benchmark parameters
-    NUM_NONTERMINALS = range(2,16)
+    NUM_NONTERMINALS = range(2, 81, 2)  # 2, 4, ..., 40
     DIMS = NUM_NONTERMINALS
-    NONTERMINAL_PROB = 0.3
-    LOOP_PROB = 0.3
-    CASES_PER_SETTING = 20
+    NONTERMINAL_PROB = 0.5
+    LOOP_PROB = 0.5
+    CASES_PER_SETTING = 10
 
     # Default grammar generation parameters
     DEFAULT_MAX_PRODUCTIONS = 3

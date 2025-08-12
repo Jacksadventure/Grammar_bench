@@ -63,7 +63,7 @@ def generate_random_grammar(
             used_firsts.add(t)
             return t
 
-        # ─── ① optional tail-recursion pair  α A | ε ───────────────────────
+        # ─── ① optional tail-recursion pair A -> α b A | ε ───────────────────────
         if loop_prob and random.random() < loop_prob and max_rhs_length >= 2:
             first = next_first_terminal()
             alpha = [first] + [

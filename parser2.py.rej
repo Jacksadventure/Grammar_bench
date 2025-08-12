@@ -1,0 +1,8 @@
+@@ -522,7 +522,7 @@
+             # standard alts for <L>
+             if pos >= len(tokens):
+                 raise ParseError('Unexpected EOF in <L>')
+             else:
+                 la = tokens[pos]
+                 if la == '|':
+                     match('|')

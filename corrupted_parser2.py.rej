@@ -1,0 +1,14 @@
+@@ -118,7 +118,9 @@
+-    elif la == 'I':
+-        match('I')
+-        match('R')
++    elif la == 'I':
++        match('I')
++        match('R')
++    elif la == '=':
++        match('=')
+     else:
+         raise ParseError(f'Unexpected token {la!r} in <E>')
+\ No newline at end of line
+ 
+ 

@@ -79,9 +79,49 @@ Patch:
          match('*')
      else:
 
+Original code:
+{original_code}
+issue:
+According to the grammar, this parser should accept the input:
+{failing_test_cases}
+
+
 PLEASE DO NOT ADD MARKDOWN TAG LIKE ```diff``` IN YOUR RESPONSE(***IMPORTANT***).
 PLEASE MAKE ONLY MINIMAL CHANGES TO THE CODE.
 PLEASE DON'T MODIFY ERROR HANDLING. 
+"""
+
+patch_refiner_patch_grammar = """
+Original code:
+{original_code}
+
+Patch:
+{patch_text}
+
+Error message:
+{error_message}
+
+You are a patch refiner. Your task is to refine the patch to ensure it can be applied in original code with intention without introducing new errors.
+Please return the refined patch in standard unified diff format, without explanations or extra text.
+PLEASE DO NOT ADD MARKDOWN TAG LIKE ```diff``` IN YOUR RESPONSE(***IMPORTANT***).
+"""
+
+
+patch_refiner_patch_logic = """
+Original buggy code:
+{original_code}
+
+original issue:
+According to the grammar, this parser should accept the input: 
+{failing_test_cases}
+
+Buggy patch:
+{patch_text}
+
+You are a patch refiner. The buggy pathch is failed to fix the original code for fixing the original issue.
+Your task is to refine the patch to ensure it correctly fixes the original code without introducing new errors.
+Please return the refined patch in standard unified diff format, without explanations or extra text.
+PLEASE DO NOT ADD MARKDOWN TAG LIKE ```diff``` IN YOUR RESPONSE(***IMPORTANT***).
 """
 
 def localise_program_input(program, corrupted_text, backend, model):
@@ -96,16 +136,40 @@ def localise_program(program, examples, backend, model):
     # # Annotate parser code with line numbers for AI reference
     annotated = [f"{i} {line}" for i, line in enumerate(program.splitlines(), start=1)]
     # Prepare few-shot examples of failed inputs (deduplicated)
-    examples_block = "\n".join(examples)
-    prompt_input = (
-        "parser code with line numbers:\n"
-        + "\n".join(annotated)
-        + "\nThis parser failed in these testcases:\n"
-        + examples_block
-    )
     # Call the AI interface and clean the returned text while preserving token usage
     # print(prompt_input)
-    resp = ai.get_response(program_localisation_prompt, prompt_input)
+    prompt = program_localisation_prompt.format(
+        original_code="\n".join(annotated),
+        failing_test_cases="\n".join(examples)
+    )
+    resp = ai.get_response(program_localisation_prompt, prompt)
+    text = remove_markdown_tags(remove_think_tags(resp.response_text))
+    resp.response_text = text
+    return resp
+
+def refine_patch_grammar(original_code, patch_text, error_message, backend, model):
+    ai = AIInterface(backend, model)
+    annotated = [f"{i} {line}" for i, line in enumerate(original_code.splitlines(), start=1)]
+    prompt = patch_refiner_patch_grammar.format(
+        original_code="\n".join(annotated),
+        patch_text=patch_text,
+        error_message=error_message
+    )
+
+    resp = ai.get_response(prompt, "")
+    text = remove_markdown_tags(remove_think_tags(resp.response_text))
+    resp.response_text = text
+    return resp
+
+def refine_patch_logic(original_code, failing_test_cases, patch_text, backend, model):
+    ai = AIInterface(backend, model)
+    annotated = [f"{i} {line}" for i, line in enumerate(original_code.splitlines(), start=1)]
+    prompt = patch_refiner_patch_logic.format(
+        original_code="\n".join(annotated),
+        failing_test_cases="\n".join(failing_test_cases.splitlines()),
+        patch_text=patch_text
+    )
+    resp = ai.get_response(prompt, "")
     text = remove_markdown_tags(remove_think_tags(resp.response_text))
     resp.response_text = text
     return resp

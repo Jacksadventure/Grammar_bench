@@ -3,7 +3,7 @@ import json
 from grammar_gen import gen,generate_example_string, generate_parser_code
 # from repair import repair  # deprecated import removed to avoid unused dependency errors
 from ultility import levenshtein_distance,validation_check,get_path
-from localisation import localise_program_input,localise_program
+from localisation import localise_program_input,localise_program, refine_patch_grammar, refine_patch_logic
 import sqlite3
 import subprocess
 import random
@@ -45,115 +45,117 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
         passing_test_cases = json.loads(passing_test_cases_json.replace("'", '"'))
     total_failing = len(failing_test_cases)
     total_passing = len(passing_test_cases)
-    # print(f"[Case {case_id}] Failing tests: {total_failing}, Passing tests: {total_passing}")
-    # # write corrupted parser to file and collect failing test examples
+
     random_number = random.randint(0, 10000)
     corrupted_file = os.path.join(CACHE_DIR, f"case_{case_id}_corrupted_{run_id}_{sample}_{random_number}.py")
     with open(corrupted_file, 'w', encoding='utf-8') as f:
         f.write(corr_parser)
-    # error_examples = []
-    # for inp in failing_test_cases:
-    #     proc = subprocess.run(['python3', corrupted_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    #     if proc.returncode != 0:
-    #         error_examples.append(inp)
-    # deduplicate preserving order
-    error_examples = list(dict.fromkeys(passing_test_cases))
-    # print(f"[Case {case_id}] Collected {len(error_examples)} unique error examples")
-    # generate patch via localization using failing examples
+
+    error_examples = list(dict.fromkeys(failing_test_cases))
+
+    # Initial patch via localization
     response = localise_program(corr_parser, error_examples, backend, model)
     print(f"[Case {case_id}] Localization response:\n{response.response_text}")
     patch_text = response.response_text
-    prompt_tokens = response.prompt_tokens
-    completion_tokens = response.completion_tokens
-    total_tokens = response.total_tokens
+    total_prompt_tokens = getattr(response, 'prompt_tokens', 0)
+    total_completion_tokens = getattr(response, 'completion_tokens', 0)
+    total_tokens = getattr(response, 'total_tokens', 0)
+
+    # Paths for patch/repaired files
     patch_file = os.path.join(CACHE_DIR, f"case_{case_id}_patch_{run_id}_{sample}_{random_number}.diff")
-    with open(patch_file, 'w', encoding='utf-8') as f:
-        f.write(patch_text)
     repaired_file = os.path.join(CACHE_DIR, f"case_{case_id}_repaired_{run_id}_{sample}_{random_number}.py")
-    shutil.copy(corrupted_file, repaired_file)
-    # apply patch quietly
-    try:
-        subprocess.run(
-            ['patch', '-t', '-s', repaired_file, '-i', patch_file], check=True
-        )
-    except Exception as e:
-        # first: naive line-level replacement
+
+    success = False
+    last_passed_failing = 0
+    last_passed_passing = 0
+
+    # Try initial patch + up to 10 refinements
+    for refine_idx in range(0, 11):
+        # Recreate repaired file from the corrupted baseline each attempt
+        shutil.copy(corrupted_file, repaired_file)
+
+        # Write current patch content
+        with open(patch_file, 'w', encoding='utf-8') as f:
+            f.write(patch_text)
+
+        # Try to apply patch
         try:
-            diff_lines = patch_text.splitlines()
-            removals = [l[1:] for l in diff_lines if l.startswith('-') and not l.startswith('---')]
-            additions = [l[1:] for l in diff_lines if l.startswith('+') and not l.startswith('+++')]
-            if len(removals) != len(additions):
-                raise ValueError("Mismatched removal/addition lines")
-            with open(repaired_file, 'r', encoding='utf-8') as f:
-                lines = f.readlines()
-            for old, new in zip(removals, additions):
-                replaced = False
-                for idx, ln in enumerate(lines):
-                    if ln.rstrip('\n') == old:
-                        lines[idx] = new + '\n'
-                        replaced = True
-                        break
-                if not replaced:
-                    raise ValueError(f"Line to replace not found: {old}")
-            with open(repaired_file, 'w', encoding='utf-8') as f:
-                f.writelines(lines)
-        except Exception:
-            # fallback: AST per-function aggregated hunks
-            try:
-                from patch import replace_function_ast_in_file
-                func_hunks = {}
-                for ln in patch_text.splitlines():
-                    if ln.startswith('@@'):
-                        parts = ln.split('@@')
-                        sig = parts[-1].strip()
-                        fname = sig.split()[1].split('(')[0]
-                        func_hunks.setdefault(fname, {'sig': sig, 'lines': []})
-                    elif ln.startswith('+') and not ln.startswith('+++'):
-                        func_hunks[fname]['lines'].append(ln[1:])
-                if not func_hunks:
-                    raise ValueError("No function signature in diff")
-                for fname, info in func_hunks.items():
-                    code = info['sig'] + '\n' + '\n'.join(info['lines'])
-                    replace_function_ast_in_file(repaired_file, code, fname, repaired_file)
-            except Exception:
-                print(f"[Case {case_id}] Repair failed: {e}")
-                total_failing = len(failing_test_cases)
-                total_passing = len(passing_test_cases)
-                passed_failing = 0
-                passed_passing = 0
-                plausible = 1 if passed_failing == total_failing and total_failing > 0 else 0
-                correct = 1 if plausible == 1 and passed_passing == total_passing and total_passing > 0 else 0
-                cursor.execute(
-                    'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_failing,passed_failing,total_passing,passed_passing,plausible,correct,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-                    (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_failing, passed_failing, total_passing, passed_passing, plausible, correct, prompt_tokens, completion_tokens, total_tokens)
-                )
-                conn.commit()
-                conn.close()
-                return
-    # run tests
-    passed_failing = 0
-    for inp in failing_test_cases:
-        proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if proc.returncode == 0:
-            passed_failing += 1
-        else:
-            print(f"[Case {case_id}] Failing test failed on input={inp}, rc={proc.returncode}")
-    plausible = 1 if passed_failing == total_failing else 0
+            # capture outputs for error messages
+            subprocess.run(['patch', '-t', repaired_file, '-i', patch_file], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        except Exception as e:
+            err_msg = f"patch apply failed (attempt {refine_idx}): {e}"
+            print(f"[Case {case_id}] {err_msg}")
+            if refine_idx >= 10:
+                break
+            # refine patch focusing on grammar/format issues
+            resp = refine_patch_grammar(corr_parser, patch_text, err_msg, backend, model)
+            refined = resp.response_text
+            total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
+            total_completion_tokens += getattr(resp, 'completion_tokens', 0)
+            total_tokens += getattr(resp, 'total_tokens', 0)
+            patch_text = refined
+            continue
 
-    passed_passing = 0
-    for inp in passing_test_cases:
-        proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if proc.returncode == 0:
-            passed_passing += 1
-        else:
-            print(f"[Case {case_id}] Passing test failed on input={inp}, rc={proc.returncode}")
-    correct = 1 if plausible == 1 and passed_passing == total_passing else 0
+        # Compile check
+        comp = subprocess.run(['python3', '-m', 'py_compile', repaired_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if comp.returncode != 0:
+            err_msg = comp.stderr.decode('utf-8', errors='ignore')
+            print(f"[Case {case_id}] Compile failed (attempt {refine_idx}): {err_msg.strip()}")
+            if refine_idx >= 10:
+                break
+            resp = refine_patch_grammar(corr_parser, patch_text, err_msg, backend, model)
+            refined = resp.response_text
+            total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
+            total_completion_tokens += getattr(resp, 'completion_tokens', 0)
+            total_tokens += getattr(resp, 'total_tokens', 0)
+            patch_text = refined
+            continue
 
-    print(f"[Case {case_id}] Failing passed: {passed_failing}/{total_failing}, Passing passed: {passed_passing}/{total_passing}")
-    # write result
+        # Run tests (only if patch applied and compiled)
+        passed_failing = 0
+        for inp in failing_test_cases:
+            proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if proc.returncode == 0:
+                passed_failing += 1
+            else:
+                print(f"[Case {case_id}] Failing test failed on input={inp}, rc={proc.returncode}")
+        plausible = 1 if passed_failing == total_failing else 0
+
+        passed_passing = 0
+        for inp in passing_test_cases:
+            proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if proc.returncode == 0:
+                passed_passing += 1
+            else:
+                print(f"[Case {case_id}] Passing test failed on input={inp}, rc={proc.returncode}")
+        correct = 1 if plausible == 1 and passed_passing == total_passing else 0
+
+        last_passed_failing = passed_failing
+        last_passed_passing = passed_passing
+        print(f"[Case {case_id}] Failing passed: {passed_failing}/{total_failing}, Passing passed: {passed_passing}/{total_passing}")
+
+        if correct == 1:
+            success = True
+            break
+
+        # Refine logic when patch applied and compiled but tests still fail
+        if refine_idx >= 10:
+            break
+        failing_str = "\n".join(error_examples)
+        resp = refine_patch_logic(corr_parser, failing_str, patch_text, backend, model)
+        refined = resp.response_text
+        total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
+        total_completion_tokens += getattr(resp, 'completion_tokens', 0)
+        total_tokens += getattr(resp, 'total_tokens', 0)
+        patch_text = refined
+
+    # Finalize and record results
+    plausible = 1 if last_passed_failing == total_failing else 0
+    correct = 1 if plausible == 1 and last_passed_passing == total_passing else 0
+
     cursor.execute(
         'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_failing,passed_failing,total_passing,passed_passing,plausible,correct,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-        (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_failing, passed_failing, total_passing, passed_passing, plausible, correct, prompt_tokens, completion_tokens, total_tokens)
+        (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_failing, last_passed_failing, total_passing, last_passed_passing, plausible, correct, total_prompt_tokens, total_completion_tokens, total_tokens)
     )
     conn.commit()
     conn.close()
@@ -163,7 +165,7 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
         except OSError:
             pass
 
-def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db', workers=1, k=1):
+def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db', workers=1):
     """
     Read parser cases from a SQLite database and perform localization for each case.
     Supports parallel execution with `workers` processes.
@@ -208,9 +210,8 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
     # Determine cases and samples to (re)process
     results_cursor.execute("SELECT case_id, sample FROM repair_results")
     processed = {(case_id, sample) for case_id, sample in results_cursor.fetchall()}
-    to_run = [(row, sample) for row in rows for sample in range(1, k+1)
-              if (row[0], sample) not in processed]
-    print(f"[Main] {len(to_run)} repairs to process using {workers} worker(s) (pass@{k})")
+    to_run = [(row, 1) for row in rows if (row[0], 1) not in processed]
+    print(f"[Main] {len(to_run)} repairs to process using {workers} worker(s)")
     # dispatch either sequentially or in parallel
     if workers > 1:
         ctx = multiprocessing.get_context("spawn")
@@ -226,18 +227,6 @@ def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair
         for row, sample in to_run:
             _repair_single_case(row, backend, model, results_db, run_id, sample)
 
-    # Summary pass@k
-    print(f"\n=== PASS@{k} SUMMARY ===")
-    summary_conn = sqlite3.connect(results_db)
-    summary_cur = summary_conn.cursor()
-    summary_cur.execute(
-        "SELECT case_id, SUM(plausible) as successes FROM repair_results GROUP BY case_id"
-    )
-    stats = summary_cur.fetchall()
-    total_cases = len(stats)
-    passed_cases = sum(1 for _, successes in stats if successes > 0)
-    print(f"pass@{k}: {passed_cases}/{total_cases} = {passed_cases/total_cases:.2%}")
-    summary_conn.close()
 
 def main():
     parser = argparse.ArgumentParser(description='Sample Parser')
@@ -247,7 +236,6 @@ def main():
     parser.add_argument('--db-path', type=str, default='parser_cases.db', help='Path to the parser_cases SQLite database')
     parser.add_argument('--results-db', type=str, default='repair_results.db', help='Path to output results SQLite database')
     parser.add_argument('--workers', type=int, default=1, help='number of parallel workers')
-    parser.add_argument('--k', type=int, default=1, help='number of repair attempts per case for pass@K evaluation')
     args = parser.parse_args()
     # if args.mode == 'input_repair':
     #     program_input_reapir(args.backend,args.model)
@@ -263,7 +251,7 @@ def main():
     else:
         results_db_name = args.results_db
     print(f"Using results database: {results_db_name}")
-    program_reapir(args.backend, args.model, args.db_path, results_db_name, args.workers, args.k)
+    program_reapir(args.backend, args.model, args.db_path, results_db_name, args.workers)
 if __name__ == "__main__":
     import multiprocessing as mp
     try:

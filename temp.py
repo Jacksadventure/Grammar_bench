@@ -1,5 +1,3 @@
-{"<A>": [["V", "<B>"], ["k", "R"], ["4"]], "<B>": [["]", "|", "<B>"], [], ["q", "Z", "E"], [".", "&", "$"]]}
-
 import sys
 
 tokens = []
@@ -20,37 +18,29 @@ def parse(inp):
     global tokens, pos
     tokens = list(inp.strip())
     pos = 0
-    # standard alts for <A>
-    if pos >= len(tokens):
-        raise ParseError('Unexpected EOF in <A>')
-    else:
+    # α* loop for <A>
+    while pos < len(tokens) and (tokens[pos] == 'b'):
+        match('b')
+    # other alts of <A>
+    if pos < len(tokens):
         la = tokens[pos]
-        if la == 'V':
-            match('V')
-            # α* loop for <B>
-            while pos < len(tokens) and (tokens[pos] == ']'):
-                match(']')
-                match('|')
-            # other alts of <B>
-            if pos < len(tokens):
+        if la == '*':
+            match('*')
+            # standard alts for <B>
+            if pos >= len(tokens):
+                raise ParseError('Unexpected EOF in <B>')
+            else:
                 la = tokens[pos]
-                if la == 'q':
-                    match('q')
-                    match('Z')
-                    match('E')
-                elif la == '.':
-                    match('.')
-                    match('&')
-                    match('$')
-                elif True:  # ε
-                    pass
-        elif la == 'k':
-            match('k')
-            match('R')
-        elif la == '4':
-            match('4')
-        else:
-            raise ParseError(f'Unexpected token {la!r} in <A>')
+                if la == '7':
+                    match('7')
+                    match(';')
+                elif la == 'm':
+                    match('m')
+                    match('/')
+                else:
+                    raise ParseError(f'Unexpected token {la!r} in <B>')
+        elif True:  # ε
+            pass
     if pos < len(tokens):
         raise ParseError(f'Extra input at end: {"".join(tokens[pos:])}')
     print("Input accepted.")

@@ -3,7 +3,7 @@ import json
 from grammar_gen import gen,generate_example_string, generate_parser_code
 # from repair import repair  # deprecated import removed to avoid unused dependency errors
 from ultility import levenshtein_distance,validation_check,get_path
-from localisation import localise_program_input,localise_program, refine_patch_grammar, refine_patch_logic, refine_patch_format
+from localisation import localise_program_input, localise_program, refine_patch_grammar, refine_patch_logic
 import sqlite3
 import subprocess
 import random
@@ -15,17 +15,85 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 os.makedirs(CACHE_DIR, exist_ok=True)
 from mutation import mutate_grammar
-from file_diff import get_diff_function
+from file_diff import get_diff_function, get_function_ranges
 from testies import generate_biased_example_wrapper
 from time import sleep
 from file_diff import diff
+import difflib
+import re
+import ast
+import concurrent.futures
+import multiprocessing
 
 MAX_TESTS = 1
 MAX_EXAMPLES = 100
 MAX_MUTATE_ATTEMPTS = 100
 
-import concurrent.futures
-import multiprocessing
+
+def _extract_function_name(func_code: str):
+    """
+    Try to extract the function name from a piece of Python function code.
+    Prefer AST, fallback to regex, finally default to 'parse'.
+    """
+    try:
+        tree = ast.parse(func_code)
+        for node in tree.body:
+            if isinstance(node, ast.FunctionDef):
+                return node.name
+    except Exception:
+        pass
+    m = re.search(r'^\s*def\s+([A-Za-z_]\w*)\s*\(', func_code, re.MULTILINE)
+    if m:
+        return m.group(1)
+    # Final fallback
+    return "parse"
+
+
+def _replace_function_in_file(src_path: str, dst_path: str, func_name: str, new_func_code: str):
+    """
+    Replace the function named func_name in src_path with new_func_code and write to dst_path.
+    If the function is not found, append the new function at the end.
+    """
+    with open(src_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    ranges = get_function_ranges(src_path)  # list of (name, start, end)
+    found = False
+    start_idx = None
+    end_idx = None
+    for name, start, end in ranges:
+        if name == func_name:
+            start_idx = start - 1  # convert to 0-based
+            end_idx = end         # slicing end is exclusive
+            found = True
+            break
+
+    # Normalize new function lines to include trailing newlines
+    new_lines = [ln if ln.endswith('\n') else ln + '\n' for ln in new_func_code.splitlines()]
+
+    if found:
+        out_lines = lines[:start_idx] + new_lines + lines[end_idx:]
+    else:
+        # Ensure a separating newline if the file doesn't end with one
+        if len(lines) > 0 and not lines[-1].endswith('\n'):
+            lines[-1] = lines[-1] + '\n'
+        out_lines = lines + ['\n'] + new_lines
+
+    with open(dst_path, 'w', encoding='utf-8') as f:
+        f.writelines(out_lines)
+
+
+def _make_unified_diff_text(file_a: str, file_b: str) -> str:
+    """
+    Create a unified diff between file_a and file_b and return as a string.
+    """
+    with open(file_a, 'r', encoding='utf-8') as f1:
+        a = f1.readlines()
+    with open(file_b, 'r', encoding='utf-8') as f2:
+        b = f2.readlines()
+    diff_lines = list(difflib.unified_diff(a, b, fromfile=file_a, tofile=file_b, lineterm=''))
+    return "\n".join(diff_lines)
+
 
 def _repair_single_case(row, backend, model, results_db, run_id, sample):
     (case_id, num_nonterminals, nonterminal_prob, loop_prob, mutation_depth,
@@ -53,15 +121,44 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
 
     error_examples = list(dict.fromkeys(failing_test_cases))
 
-    # Initial patch via localization
+    # Step 1: Initial "localisation" now returns a function, not a unified diff.
     response = localise_program(corr_parser, error_examples, backend, model)
-    print(f"[Case {case_id}] Localization response:\n{response.response_text}")
-    patch_text = response.response_text
+    print(f"[Case {case_id}] Localization (function) response received.")
+    func_text = response.response_text
+    print(f"[Case {case_id}] Initial patch:\n{func_text}")
     total_prompt_tokens = getattr(response, 'prompt_tokens', 0)
     total_completion_tokens = getattr(response, 'completion_tokens', 0)
     total_tokens = getattr(response, 'total_tokens', 0)
 
-    # Paths for patch/repaired files
+    # Infer target function name and replace it directly in a working repaired file
+    func_name = _extract_function_name(func_text)
+    initial_repaired_file = os.path.join(CACHE_DIR, f"case_{case_id}_initial_repaired_{run_id}_{sample}_{random_number}.py")
+    try:
+        _replace_function_in_file(corrupted_file, initial_repaired_file, func_name, func_text)
+        print(f"[Case {case_id}] Replaced function '{func_name}' into initial repaired file.")
+    except Exception as e:
+        print(f"[Case {case_id}] Failed to insert function into file: {e}")
+        # Record as failure and exit early
+        cursor.execute(
+            'REPLACE INTO repair_results(case_id,sample,puzzle_id,num_nonterminals,nonterminal_prob,loop_prob,total_failing,passed_failing,total_passing,passed_passing,plausible,correct,prompt_tokens,completion_tokens,total_tokens) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+            (case_id, sample, case_id, num_nonterminals, nonterminal_prob, loop_prob, total_failing, 0, total_passing, 0, 0, 0, total_prompt_tokens, total_completion_tokens, total_tokens)
+        )
+        conn.commit()
+        conn.close()
+        try:
+            os.remove(corrupted_file)
+        except OSError:
+            pass
+        try:
+            os.remove(initial_repaired_file)
+        except OSError:
+            pass
+        return
+
+    # Build a unified diff between corrupted and initial repaired as the baseline "patch_text"
+    patch_text = _make_unified_diff_text(corrupted_file, initial_repaired_file)
+
+    # Paths for subsequent patch/repaired files
     patch_file = os.path.join(CACHE_DIR, f"case_{case_id}_patch_{run_id}_{sample}_{random_number}.diff")
     repaired_file = os.path.join(CACHE_DIR, f"case_{case_id}_repaired_{run_id}_{sample}_{random_number}.py")
 
@@ -69,85 +166,118 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
     last_passed_failing = 0
     last_passed_passing = 0
 
-    # Try initial patch + up to 10 refinements
-    for refine_idx in range(0, 11):
-        # Recreate repaired file from the corrupted baseline each attempt
-        shutil.copy(corrupted_file, repaired_file)
-
-        # Write current patch content
-        with open(patch_file, 'w', encoding='utf-8') as f:
-            f.write(patch_text)
-
-        # Try to apply patch
-        try:
-            # capture outputs for error messages
-            subprocess.run(['patch', '-t', repaired_file, '-i', patch_file], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        except Exception as e:
-            err_msg = f"patch apply failed (attempt {refine_idx}): {e}"
-            print(f"[Case {case_id}] {err_msg}")
-            if refine_idx >= 10:
-                break
-            # refine patch focusing on format/line-number issues first
-            resp = refine_patch_format(corr_parser, patch_text, backend, model)
-            refined = resp.response_text
-            total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
-            total_completion_tokens += getattr(resp, 'completion_tokens', 0)
-            total_tokens += getattr(resp, 'total_tokens', 0)
-            patch_text = refined
-            continue
-
-        # Compile check
-        comp = subprocess.run(['python3', '-m', 'py_compile', repaired_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        if comp.returncode != 0:
-            err_msg = comp.stderr.decode('utf-8', errors='ignore')
-            print(f"[Case {case_id}] Compile failed (attempt {refine_idx}): {err_msg.strip()}")
-            if refine_idx >= 10:
-                break
-            resp = refine_patch_grammar(corr_parser, patch_text, err_msg, backend, model)
-            refined = resp.response_text
-            total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
-            total_completion_tokens += getattr(resp, 'completion_tokens', 0)
-            total_tokens += getattr(resp, 'total_tokens', 0)
-            patch_text = refined
-            continue
-
-        # Run tests (only if patch applied and compiled)
+    # First, evaluate the initial repaired file directly (pre-refinement)
+    comp = subprocess.run(['python3', '-m', 'py_compile', initial_repaired_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if comp.returncode == 0:
+        # Run tests
         passed_failing = 0
         for inp in failing_test_cases:
-            proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.run(['python3', initial_repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if proc.returncode == 0:
                 passed_failing += 1
             else:
-                print(f"[Case {case_id}] Failing test failed on input={inp}, rc={proc.returncode}")
+                print(f"[Case {case_id}] (Initial) Failing test failed on input={inp}, rc={proc.returncode}")
         plausible = 1 if passed_failing == total_failing else 0
 
         passed_passing = 0
         for inp in passing_test_cases:
-            proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.run(['python3', initial_repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             if proc.returncode == 0:
                 passed_passing += 1
             else:
-                print(f"[Case {case_id}] Passing test failed on input={inp}, rc={proc.returncode}")
+                print(f"[Case {case_id}] (Initial) Passing test failed on input={inp}, rc={proc.returncode}")
         correct = 1 if plausible == 1 and passed_passing == total_passing else 0
 
         last_passed_failing = passed_failing
         last_passed_passing = passed_passing
-        print(f"[Case {case_id}] Failing passed: {passed_failing}/{total_failing}, Passing passed: {passed_passing}/{total_passing}")
+        print(f"[Case {case_id}] (Initial) Failing passed: {passed_failing}/{total_failing}, Passing passed: {passed_passing}/{total_passing}")
 
         if correct == 1:
             success = True
-            break
-
-        # Refine logic when patch applied and compiled but tests still fail
-        if refine_idx >= 10:
-            break
-        failing_str = "\n".join(error_examples)
-        resp = refine_patch_logic(corr_parser, failing_str, patch_text, backend, model)
-        refined = resp.response_text
+    else:
+        err_msg = comp.stderr.decode('utf-8', errors='ignore')
+        print(f"[Case {case_id}] (Initial) Compile failed: {err_msg.strip()}")
+        # Use grammar refiner to convert/adjust the baseline diff
+        resp = refine_patch_grammar(corr_parser, patch_text, err_msg, backend, model)
+        patch_text = resp.response_text
         total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
         total_completion_tokens += getattr(resp, 'completion_tokens', 0)
         total_tokens += getattr(resp, 'total_tokens', 0)
-        patch_text = refined
+
+    # If not successful, enter refinement loop (combined total attempts across the two refiner functions: 10)
+    if not success:
+        for refine_idx in range(10):
+            print(f"[Case {case_id}] Refinement attempt {refine_idx + 1} of 10")
+            # Reset repaired_file from the corrupted baseline each attempt
+            shutil.copy(corrupted_file, repaired_file)
+
+            # Write current patch content
+            with open(patch_file, 'w', encoding='utf-8') as f:
+                f.write(patch_text)
+
+            # Try to apply patch
+            try:
+                subprocess.run(['patch', '-t', repaired_file, '-i', patch_file], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            except subprocess.CalledProcessError as e:
+                err_msg = f"patch apply failed (attempt {refine_idx}): {e}"
+                print(f"[Case {case_id}] {err_msg}")
+                # Attempt to refine via grammar refiner using the error signal
+                resp = refine_patch_grammar(corr_parser, patch_text, err_msg, backend, model)
+                refined = resp.response_text
+                total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
+                total_completion_tokens += getattr(resp, 'completion_tokens', 0)
+                total_tokens += getattr(resp, 'total_tokens', 0)
+                patch_text = refined
+                continue
+
+            # Compile check
+            comp = subprocess.run(['python3', '-m', 'py_compile', repaired_file], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            if comp.returncode != 0:
+                err_msg = comp.stderr.decode('utf-8', errors='ignore')
+                print(f"[Case {case_id}] Compile failed (attempt {refine_idx}): {err_msg.strip()}")
+                resp = refine_patch_grammar(corr_parser, patch_text, err_msg, backend, model)
+                refined = resp.response_text
+                total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
+                total_completion_tokens += getattr(resp, 'completion_tokens', 0)
+                total_tokens += getattr(resp, 'total_tokens', 0)
+                patch_text = refined
+                continue
+
+            # Run tests (only if patch applied and compiled)
+            passed_failing = 0
+            for inp in failing_test_cases:
+                proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if proc.returncode == 0:
+                    passed_failing += 1
+                else:
+                    print(f"[Case {case_id}] Failing test failed on input={inp}, rc={proc.returncode}")
+            plausible = 1 if passed_failing == total_failing else 0
+
+            passed_passing = 0
+            for inp in passing_test_cases:
+                proc = subprocess.run(['python3', repaired_file, inp], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                if proc.returncode == 0:
+                    passed_passing += 1
+                else:
+                    print(f"[Case {case_id}] Passing test failed on input={inp}, rc={proc.returncode}")
+            correct = 1 if plausible == 1 and passed_passing == total_passing else 0
+
+            last_passed_failing = passed_failing
+            last_passed_passing = passed_passing
+            print(f"[Case {case_id}] Failing passed: {passed_failing}/{total_failing}, Passing passed: {passed_passing}/{total_passing}")
+
+            if correct == 1:
+                success = True
+                break
+
+            # Refine logic when patch applied and compiled but tests still fail
+            failing_str = "\n".join(error_examples)
+            resp = refine_patch_logic(corr_parser, failing_str, patch_text, backend, model)
+            refined = resp.response_text
+            total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
+            total_completion_tokens += getattr(resp, 'completion_tokens', 0)
+            total_tokens += getattr(resp, 'total_tokens', 0)
+            patch_text = refined
 
     # Finalize and record results
     plausible = 1 if last_passed_failing == total_failing else 0
@@ -159,11 +289,12 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
     )
     conn.commit()
     conn.close()
-    for fname in (corrupted_file, patch_file, repaired_file):
+    for fname in (corrupted_file, patch_file, repaired_file, initial_repaired_file):
         try:
             os.remove(fname)
         except OSError:
             pass
+
 
 def program_reapir(backend, model, db_path='parser_cases.db', results_db='repair_results.db', workers=1):
     """
@@ -252,6 +383,8 @@ def main():
         results_db_name = args.results_db
     print(f"Using results database: {results_db_name}")
     program_reapir(args.backend, args.model, args.db_path, results_db_name, args.workers)
+
+
 if __name__ == "__main__":
     import multiprocessing as mp
     try:

@@ -87,15 +87,15 @@ class Config:
     DB_FILE = "targets16.db"
 
     # Benchmark parameters
-    NUM_NONTERMINALS = range(3, 31, 3)  # 3, 6, ..., 30
+    NUM_NONTERMINALS = range(31, 46, 3)  # 31, 34, ..., 61
     DIMS = NUM_NONTERMINALS
-    NONTERMINAL_PROB = 0.5
-    LOOP_PROB = 0.5
+    NONTERMINAL_PROB = 0.3
+    LOOP_PROB = 0.3
     CASES_PER_SETTING = 10
 
     # Default grammar generation parameters
-    DEFAULT_MAX_PRODUCTIONS = 3
-    DEFAULT_MAX_RHS_LENGTH = 3
+    DEFAULT_MAX_PRODUCTIONS = 4
+    DEFAULT_MAX_RHS_LENGTH = 4
 
     def __init__(self, args=None):
         if args:

@@ -331,6 +331,7 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
     )
     return "\n".join(src)
 
+
 # ───────────────────────── public façade ────────────────────────────────────
 def gen(
     num_nonterminals=10,

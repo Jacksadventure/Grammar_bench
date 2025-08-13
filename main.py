@@ -87,7 +87,7 @@ class Config:
     DB_FILE = "targets16.db"
 
     # Benchmark parameters
-    NUM_NONTERMINALS = range(2, 81, 2)  # 2, 4, ..., 40
+    NUM_NONTERMINALS = range(3, 31, 3)  # 3, 6, ..., 30
     DIMS = NUM_NONTERMINALS
     NONTERMINAL_PROB = 0.5
     LOOP_PROB = 0.5

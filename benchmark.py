@@ -3,7 +3,7 @@ import json
 from grammar_gen import gen,generate_example_string, generate_parser_code
 # from repair import repair  # deprecated import removed to avoid unused dependency errors
 from ultility import levenshtein_distance,validation_check,get_path
-from localisation import localise_program_input,localise_program, refine_patch_grammar, refine_patch_logic
+from localisation import localise_program_input,localise_program, refine_patch_grammar, refine_patch_logic, refine_patch_format
 import sqlite3
 import subprocess
 import random
@@ -87,8 +87,8 @@ def _repair_single_case(row, backend, model, results_db, run_id, sample):
             print(f"[Case {case_id}] {err_msg}")
             if refine_idx >= 10:
                 break
-            # refine patch focusing on grammar/format issues
-            resp = refine_patch_grammar(corr_parser, patch_text, err_msg, backend, model)
+            # refine patch focusing on format/line-number issues first
+            resp = refine_patch_format(corr_parser, patch_text, backend, model)
             refined = resp.response_text
             total_prompt_tokens += getattr(resp, 'prompt_tokens', 0)
             total_completion_tokens += getattr(resp, 'completion_tokens', 0)

@@ -124,6 +124,19 @@ Please return the refined patch in standard unified diff format, without explana
 PLEASE DO NOT ADD MARKDOWN TAG LIKE ```diff``` IN YOUR RESPONSE(***IMPORTANT***).
 """
 
+patch_refiner_format = """
+Original code:
+{original_code}
+
+patch:
+{patch_text}
+
+You are a patch refiner. Your task is to refine the patch to ensure it can be applied in original code with intention without introducing new errors.
+You should especially make sure that the patch indicates the correct line numbers in the original code.
+PLEASE DO NOT ADD MARKDOWN TAG LIKE ```diff``` IN YOUR RESPONSE(***IMPORTANT***).
+"""
+
+
 def localise_program_input(program, corrupted_text, backend, model):
     ai = AIInterface(backend, model)
     return ai.get_response(
@@ -167,6 +180,18 @@ def refine_patch_logic(original_code, failing_test_cases, patch_text, backend, m
     prompt = patch_refiner_patch_logic.format(
         original_code="\n".join(annotated),
         failing_test_cases="\n".join(failing_test_cases.splitlines()),
+        patch_text=patch_text
+    )
+    resp = ai.get_response(prompt, "")
+    text = remove_markdown_tags(remove_think_tags(resp.response_text))
+    resp.response_text = text
+    return resp
+
+def refine_patch_format(original_code, patch_text, backend, model):
+    ai = AIInterface(backend, model)
+    annotated = [f"{i} {line}" for i, line in enumerate(original_code.splitlines(), start=1)]
+    prompt = patch_refiner_format.format(
+        original_code="\n".join(annotated),
         patch_text=patch_text
     )
     resp = ai.get_response(prompt, "")

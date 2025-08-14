@@ -96,7 +96,13 @@ def generate_random_grammar(
                 queue.append(fresh)
 
             prods.append(rhs)
-
+        TERM_POOL = [
+            ch for ch in (
+                string.ascii_letters + string.digits +
+                "!#$%&()*+,-./:;<=>?@[]^_`{|}~"
+            ) if ch not in NT_POOL
+        ]
+        random.shuffle(TERM_POOL)
     # Ensure the grammar is complete and contains the requested number of nonterminals.
     # If not, the generation process has failed, and we rely on the caller's
     # retry logic to try again.
@@ -132,29 +138,38 @@ def generate_example_string(grammar, symbol, max_depth=10):
 
 # ───────────────────────── parser code generator (memoised) ────────────────
 def generate_parser_code(grammar, nonterminals, start_symbol):
+    import textwrap
+
+    # -------------------------------------------------------------
+    # Step 1: Normalize grammar symbols (remove angle brackets <>)
+    # -------------------------------------------------------------
     bare_nonterminals = [nt[1:-1] for nt in nonterminals]
     bare_start = start_symbol[1:-1]
 
     bare_grammar, is_nullable = {}, {}
     for dec_nt, prods in grammar.items():
         nt = dec_nt[1:-1]
-        bare_grammar[nt] = []
+        lst = []
         for p in prods:
             if not p:
+                # Empty production → nullable nonterminal
                 is_nullable[nt] = True
+                lst.append([])  # Represent epsilon (ε) as an empty list
             else:
-                bare_grammar[nt].append(
-                    [sym[1:-1] if sym.startswith("<") else sym for sym in p]
-                )
-        if is_nullable.get(nt, False) and nt not in bare_grammar:
-            bare_grammar[nt] = []
-    grammar = bare_grammar
-    nonterminals = bare_nonterminals
+                # Remove <> from nonterminals, leave terminals as is
+                lst.append([sym[1:-1] if sym.startswith("<") else sym for sym in p])
+        bare_grammar[nt] = lst
 
-    EPS = object()
-    first_sets = {
-        nt: ({EPS} if is_nullable.get(nt, False) else set()) for nt in nonterminals
-    }
+    grammar = bare_grammar
+    nonterminals = set(bare_nonterminals)
+
+    # -------------------------------------------------------------
+    # Step 2: Compute FIRST sets for each nonterminal (with ε)
+    # -------------------------------------------------------------
+    EPS = object()  # Unique marker for epsilon
+    first_sets = {nt: (set([EPS]) if is_nullable.get(nt, False) else set())
+                  for nt in nonterminals}
+
     changed = True
     while changed:
         changed = False
@@ -164,14 +179,16 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                 for sym in prod:
                     if sym in nonterminals:
                         before = len(first_sets[nt])
-                        first_sets[nt].update(
-                            x for x in first_sets[sym] if x is not EPS
-                        )
-                        changed |= len(first_sets[nt]) > before
+                        # Add all FIRST(sym) except ε
+                        first_sets[nt].update(x for x in first_sets[sym] if x is not EPS)
+                        if len(first_sets[nt]) > before:
+                            changed = True
+                        # If sym cannot be empty, stop
                         if EPS not in first_sets[sym]:
                             nullable_prefix = False
                             break
                     else:
+                        # Terminal: add it and stop
                         if sym not in first_sets[nt]:
                             first_sets[nt].add(sym)
                             changed = True
@@ -181,154 +198,139 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                     first_sets[nt].add(EPS)
                     changed = True
 
-    def first_seq(seq):
-        look = set()
-        for sym in seq:
-            if sym not in nonterminals:
-                look.add(sym)
-                return look
-            look.update(x for x in first_sets[sym] if x is not EPS)
-            if EPS not in first_sets[sym]:
-                return look
-        return look
+    # Helper: compute FIRST set of a single production
+    def first_of_prod(prod):
+        s = set()
+        for sym in prod:
+            if sym in nonterminals:
+                s.update(x for x in first_sets[sym] if x is not EPS)
+                if EPS not in first_sets[sym]:
+                    return s, False
+            else:
+                s.add(sym)
+                return s, False
+        return s, True  # Entire production can be empty
 
-    def is_iterative(nt):
-        if not is_nullable.get(nt, False):
-            return False, None
-        for prod in grammar.get(nt, []):
-            if prod and prod[-1] == nt:
-                return True, prod[:-1]
-        return False, None
+    # -------------------------------------------------------------
+    # Step 3: Build predictive parsing decisions (lookahead table)
+    # -------------------------------------------------------------
+    decisions = {}
+    for nt, prods in grammar.items():
+        cases = []
+        epsilon_added = False
+        for prod in prods:
+            look, nullable = first_of_prod(prod)
+            if look:
+                cases.append((sorted(look), prod))
+            if nullable and not epsilon_added:
+                # Special marker for epsilon production
+                cases.append(('__EPS__', []))
+                epsilon_added = True
+        decisions[nt] = cases
 
-    memo = {}
-    INDENT = "    "
+    # Collect all terminals (for debugging / error messages)
+    terminals = set()
+    for nt, prods in grammar.items():
+        for prod in prods:
+            for sym in prod:
+                if sym not in nonterminals:
+                    terminals.add(sym)
 
-    def gen_block(nt, lvl):
-        if nt in memo:
-            return textwrap.indent(memo[nt], INDENT * lvl).splitlines()
+    # -------------------------------------------------------------
+    # Step 4: Convert decision table into a Python parser (iterative)
+    # -------------------------------------------------------------
+    IND = " " * 4
 
-        ind = INDENT * lvl
+    def dumps_cases():
+        """Convert decision table into Python code literal."""
+        def dump_prod(prod):
+            return "[" + ", ".join(repr(x) for x in prod) + "]"
+
         lines = []
-        iterative, alpha = is_iterative(nt)
-
-        if iterative:
-            lookahead = first_seq(alpha)
-            conds = " or ".join(f"tokens[pos] == {repr(t)}" for t in sorted(lookahead)) or "False"
-            lines += [
-                f"{ind}# α* loop for <{nt}>",
-                f"{ind}while pos < len(tokens) and ({conds}):",
-            ]
-            for s in alpha:
-                lines.extend(gen_sym(s, lvl + 1))
-
-            remaining = [p for p in grammar[nt] if p not in (alpha + [nt], [])]
-            if remaining or is_nullable.get(nt, False):
-                lines += [
-                    f"{ind}# other alts of <{nt}>",
-                    f"{ind}if pos < len(tokens):",
-                    f"{ind}{INDENT}la = tokens[pos]",
-                ]
-                first_branch = True
-                for prod in remaining:
-                    fs = first_seq(prod)
-                    if not fs:
-                        continue
-                    kw = "if" if first_branch else "elif"
-                    conds = " or ".join(f"la == {repr(t)}" for t in sorted(fs))
-                    lines.append(f"{ind}{INDENT}{kw} {conds}:")
-                    for s in prod:
-                        lines.extend(gen_sym(s, lvl + 2))
-                    first_branch = False
-                if is_nullable.get(nt, False):
-                    lines += [
-                        f"{ind}{INDENT}{'if' if first_branch else 'elif'} True:  # ε",
-                        f"{ind}{INDENT * 2}pass",
-                    ]
+        lines.append("{")
+        for nt, cases in decisions.items():
+            lines.append(f"{IND}{repr(nt)}: [")
+            for look, prod in cases:
+                if look == '__EPS__':
+                    lines.append(f"{IND*2}({{'__EPS__'}}, {dump_prod(prod)}),")
                 else:
-                    lines += [
-                        f"{ind}{INDENT}else:",
-                        f"{ind}{INDENT * 2}raise ParseError(f'Unexpected token {{la!r}} in <{nt}>')",
-                    ]
-        else:
-            lines += [
-                f"{ind}# standard alts for <{nt}>",
-                f"{ind}if pos >= len(tokens):",
-            ]
-            if is_nullable.get(nt, False):
-                lines.append(f"{ind}{INDENT}pass  # nullable at EOF")
-            else:
-                lines.append(f"{ind}{INDENT}raise ParseError('Unexpected EOF in <{nt}>')")
-            lines += [f"{ind}else:", f"{ind}{INDENT}la = tokens[pos]"]
-            first_branch = True
-            for prod in grammar[nt]:
-                fs = first_seq(prod)
-                if not fs:
-                    continue
-                kw = "if" if first_branch else "elif"
-                conds = " or ".join(f"la == {repr(t)}" for t in sorted(fs))
-                lines.append(f"{ind}{INDENT}{kw} {conds}:")
-                for s in prod:
-                    lines.extend(gen_sym(s, lvl + 2))
-                first_branch = False
-            if is_nullable.get(nt, False):
-                lines += [
-                    f"{ind}{INDENT}{'if' if first_branch else 'elif'} True:  # ε",
-                    f"{ind}{INDENT * 2}pass",
-                ]
-            else:
-                lines += [
-                    f"{ind}{INDENT}else:",
-                    f"{ind}{INDENT * 2}raise ParseError(f'Unexpected token {{la!r}} in <{nt}>')",
-                ]
-
-        memo[nt] = "\n".join(lines)
-        return lines
-
-    def gen_sym(sym, lvl):
-        if sym in nonterminals:
-            return gen_block(sym, lvl)
-        return [f"{INDENT * lvl}match({repr(sym)})"]
+                    lines.append(f"{IND*2}({{{', '.join(repr(x) for x in look)}}}, {dump_prod(prod)}),")
+            lines.append(f"{IND}],")
+        lines.append("}")
+        return "\n".join(lines)
 
     src = [
         "import sys",
         "",
-        "tokens = []",
-        "pos = 0",
+        f"NONTERMINALS = {sorted(nonterminals)!r}",
+        f"TERMINALS = {sorted(terminals)!r}",
+        f"START = {bare_start!r}",
+        "",
+        "# DECISIONS: for each nonterminal, a list of (lookahead set, production).",
+        "# Special lookahead {'__EPS__'} means epsilon (empty production).",
+        f"DECISIONS = {dumps_cases()}",
         "",
         "class ParseError(Exception):",
         "    pass",
         "",
-        "def match(expected):",
-        "    global pos",
-        "    if pos < len(tokens) and tokens[pos] == expected:",
-        "        pos += 1",
-        "    else:",
-        "        got = tokens[pos] if pos < len(tokens) else 'EOF'",
-        "        raise ParseError(f'Expected {expected!r}, got {got!r}')",
-        "",
         "def parse(inp):",
-        "    global tokens, pos",
-        "    tokens = list(inp.strip())",
-        "    pos = 0",
+        "    tokens = list(inp.strip())",  # Input as a list of tokens (characters here)
+        "    pos = 0",                      # Current position in tokens
+        "    stack = [START]",              # Explicit stack for iterative parsing",
+        "",
+        "    def peek_la():",
+        "        return tokens[pos] if pos < len(tokens) else None",
+        "",
+        "    while stack:",
+        "        top = stack.pop()",        # Take top of stack
+        "        la = peek_la()",           # Lookahead symbol
+        "",
+        "        if top not in NONTERMINALS:",
+        "            # Terminal: must match exactly",
+        "            if la == top:",
+        "                pos += 1",
+        "            else:",
+        "                got = la if la is not None else 'EOF'",
+        "                raise ParseError(f\"Expected {top!r}, got {got!r}\")",
+        "            continue",
+        "",
+        "        # Nonterminal: choose a production based on lookahead",
+        "        chosen = None",
+        "        cases = DECISIONS.get(top, [])",
+        "        for look, prod in cases:",
+        "            if '__EPS__' in look:",
+        "                if chosen is None:",
+        "                    chosen = prod  # Save epsilon as fallback",
+        "                continue",
+        "            if la in look:",
+        "                chosen = prod",
+        "                break",
+        "",
+        "        if chosen is None:",
+        "            got = la if la is not None else 'EOF'",
+        "            raise ParseError(f\"Unexpected token {got!r} in <{top}>\")",
+        "",
+        "        # Push production symbols in reverse order (so first symbol is on top)",
+        "        for sym in reversed(chosen):",
+        "            stack.append(sym)",
+        "",
+        "    # If parsing finishes but tokens remain, it's an error",
+        "    if pos < len(tokens):",
+        "        tail = ''.join(tokens[pos:])",
+        "        raise ParseError(f\"Extra input at end: {tail}\")",
+        '    print(\"Input accepted.\")',
+        "",
+        "if __name__ == '__main__':",
+        "    if len(sys.argv) < 2:",
+        '        print(\"Usage: python generated_parser.py <string>\")',
+        "        sys.exit(1)",
+        "    try:",
+        "        parse(sys.argv[1])",
+        "    except ParseError as err:",
+        '        print(\"Input rejected.\")',
+        "        print(err)",
     ]
-    src.extend(gen_block(bare_start, 1))
-    src.extend(
-        [
-            "    if pos < len(tokens):",
-            "        raise ParseError(f'Extra input at end: {\"\".join(tokens[pos:])}')",
-            '    print("Input accepted.")',
-            "",
-            "if __name__ == '__main__':",
-            "    if len(sys.argv) < 2:",
-            '        print(\"Usage: python generated_parser.py <string>\")',
-            "        sys.exit(1)",
-            "    try:",
-            "        parse(sys.argv[1])",
-            "    except ParseError as err:",
-            '        print(\"Input rejected.\")',
-            "        print(err)",
-        ]
-    )
+
     return "\n".join(src)
 
 
@@ -364,7 +366,7 @@ if __name__ == "__main__":
     sys.setrecursionlimit(max(sys.getrecursionlimit(), 5000))
 
     code, exs, g, nts, ts = gen(
-        num_nonterminals=1,
+        num_nonterminals=40,
         max_original_examples=3,
         nonterminal_prob=0.5,
         loop_prob=0.5,

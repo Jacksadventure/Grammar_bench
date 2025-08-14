@@ -84,10 +84,10 @@ class Config:
     MIN_TEST_CASES = 1
     KEEP_TEST_CASES = 5
     TIMEOUT = 80
-    DB_FILE = "targets16.db"
+    DB_FILE = "targets17.db"
 
     # Benchmark parameters
-    NUM_NONTERMINALS = range(3, 31, 3)  # 3, 6, ..., 30
+    NUM_NONTERMINALS = range(1, 10, 3)  # 3, 6, ..., 30
     DIMS = NUM_NONTERMINALS
     NONTERMINAL_PROB = 0.5
     LOOP_PROB = 0.5

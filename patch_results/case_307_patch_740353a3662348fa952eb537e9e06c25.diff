@@ -1,7 +1,0 @@
-@@ -122,7 +122,7 @@ def parse_T():
-         match('>')
-         match('#')
--        match('v')
-+        match('E')
-         parse_T()
-         parse_U()

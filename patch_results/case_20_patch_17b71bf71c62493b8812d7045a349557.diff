@@ -1,9 +1,0 @@
-
-
-@@ -22,7 +22,7 @@
--    if lookahead.startswith('&'):
-+    if lookahead.startswith('V'):
- 
-@@ -25,7 +25,7 @@
--        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['&']))
-+        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['V']))

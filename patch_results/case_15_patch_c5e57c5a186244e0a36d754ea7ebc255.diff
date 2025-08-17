@@ -1,9 +1,0 @@
-@@ -24,7 +24,7 @@
-         match('<')
-         match('r')
-         match('f')
--        match('I')
-+        match('g')
-     elif lookahead.startswith('3'):
-         match('3')
-     else:

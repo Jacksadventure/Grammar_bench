@@ -1,6 +1,0 @@
-@@ -58,1 +58,1 @@
--        match('(')
-+        match('v')
-@@ -132,1 +132,1 @@
--    while pos < len(tokens) and tokens[pos].startswith('T'):
-+    while pos < len(tokens) and tokens[pos].startswith('%'):

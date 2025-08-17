@@ -1,9 +1,0 @@
-@@ -112,7 +112,7 @@ def parse_H():
-     lookahead = tokens[pos]
--    if lookahead.startswith('G'):
--        match('G')
-+    if lookahead.startswith('o'):
-+        match('o')
-     else:
--        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['G']))
-+        error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['o']))

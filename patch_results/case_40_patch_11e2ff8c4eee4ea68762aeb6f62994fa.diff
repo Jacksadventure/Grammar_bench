@@ -1,9 +1,0 @@
-@@ -22,7 +22,8 @@ def parse_H():
-     if lookahead.startswith('['):
-         match('[')
--        match('8')
-+        parse_H()
-     elif lookahead.startswith('p'):
-         match('p')
-     else:
-         error("Unexpected token " + lookahead + " in H, expected one of: " + ", ".join(['[', 'p']))

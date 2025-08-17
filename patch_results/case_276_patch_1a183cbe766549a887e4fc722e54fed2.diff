@@ -1,9 +1,0 @@
-@@ -121,7 +121,7 @@ def parse_B():
-     elif lookahead.startswith('$'):
-         match('$')
-         match('|')
--        match('!')
-+        match('`')
-     elif lookahead.startswith('A'):
-         parse_A()
-     elif lookahead.startswith('g'):

@@ -1,7 +1,0 @@
-@@ -108,7 +108,7 @@ def parse_D():
-     if lookahead.startswith('|'):
--        match('|')
-+        match('y')
-         parse_U()
-         match('a')
-         match('8')

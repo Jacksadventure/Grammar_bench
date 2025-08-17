@@ -1,9 +1,0 @@
-@@ -27,7 +27,7 @@ def parse_H():
-         match('<')
-         match('r')
-         match('f')
--        match('I')
-+        match('g')
-     elif lookahead.startswith('3'):
-         match('3')
-     else:

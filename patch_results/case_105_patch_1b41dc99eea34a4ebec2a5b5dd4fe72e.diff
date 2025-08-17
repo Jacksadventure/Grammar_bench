@@ -1,8 +1,0 @@
-@@ -167,7 +167,7 @@ def parse_I():
-         parse_N()
-     elif lookahead.startswith("'"):
--        match("'")
-+        match("2")
-     else:
--        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['k', "'"]))
-+        error("Unexpected token " + lookahead + " in I, expected one of: " + ", ".join(['k', "2"]))

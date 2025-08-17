@@ -1,9 +1,0 @@
-@@ -21,7 +21,7 @@ def parse_I():
-     lookahead = tokens[pos]
-     if lookahead.startswith('!'):
-         match('!')
--        match('e')
-+        parse_I()
-     elif lookahead.startswith("'"):
-         match("'")
-     else:

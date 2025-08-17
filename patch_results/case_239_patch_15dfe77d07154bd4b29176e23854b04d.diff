@@ -1,6 +1,0 @@
-@@ -212,7 +212,7 @@ def parse_D():
-         match(';')
-         match('z')
-         parse_R()
--        match('P')
-+        match('>')

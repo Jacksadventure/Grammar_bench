@@ -1,9 +1,0 @@
-@@ -22,7 +22,7 @@ def parse_E():
-     lookahead = tokens[pos]
--    if lookahead.startswith('^'):
--        match('^')
-+    if lookahead.startswith('j'):
-+        match('j')
-     else:
--        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['^']))
-+        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['j']))

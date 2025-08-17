@@ -1,9 +1,0 @@
-@@ -22,4 +22,4 @@ def parse_P():
--    if lookahead.startswith('Q'):
--        match('Q')
--    else:
--        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['Q']))
-+    if lookahead.startswith('Z'):
-+        match('Z')
-+    else:
-+        error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['Z']))

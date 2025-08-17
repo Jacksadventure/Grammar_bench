@@ -1,7 +1,0 @@
-@@ -31,7 +31,7 @@ def parse_U():
-         elif lookahead.startswith('='):
--            match('=')
-+            match(')')
-         else:
--            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['v', '=']))
-+            error("Unexpected token " + lookahead + " in P, expected one of: " + ", ".join(['v', ')']))

@@ -1,8 +1,0 @@
-@@ -142,6 +142,7 @@ def parse_H():
-     while pos < len(tokens) and tokens[pos].startswith('B'):
-         match('B')
--        match('T')
-+        match('t')
-         match('r')
-         parse_H()
-+        parse_H()

@@ -1,9 +1,0 @@
-@@ -125,7 +125,7 @@ def parse_R():
-         match('x')
-         parse_R()
-         match('V')
--        match('c')
-+        parse_R()
-@@ -127,1 +127,0 @@ def parse_R():
--    else:
--        error("Unexpected token " + lookahead + " in R, expected one of: " + ", ".join(['x', '']))

@@ -1,8 +1,0 @@
-@@ -87,7 +87,7 @@ def parse_V():
-     if lookahead.startswith('r'):
-         match('r')
--        match('G')
-+        parse_C()
-     elif lookahead.startswith('T'):
-         match('T')
-     else:

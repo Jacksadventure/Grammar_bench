@@ -1,9 +1,0 @@
-@@ -24,7 +24,8 @@ def parse_T():
-         match('c')
-         while pos < len(tokens) and tokens[pos].startswith('#'):
-             match('#')
--            match('m')
-+            match('!')
-             match('3')
-             match('L')
-             match('P')

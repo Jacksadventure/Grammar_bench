@@ -1,8 +1,0 @@
-@@ -175,7 +175,7 @@ def parse_T():
-     elif lookahead.startswith('='):
-         match('=')
--        parse_T()
-+        match('|')
-+        parse_T()
-     else:
-         error("Unexpected token " + lookahead + " in T, expected one of: " + ", ".join(['M', '=']))

@@ -1,8 +1,0 @@
-@@ -33,7 +33,7 @@ def parse_O():
--        elif lookahead.startswith('>'):
--            match('>')
-+        elif lookahead.startswith('8'):
-+            match('8')
-@@ -36,7 +36,7 @@ def parse_O():
--            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['!', 'M', '>']))
-+            error("Unexpected token " + lookahead + " in F, expected one of: " + ", ".join(['!', 'M', '8']))

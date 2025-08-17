@@ -1,5 +1,0 @@
-@@ -84,3 +84,4 @@ def parse_S():
-         match('<')
-         parse_P()
-+        parse_S()
-     else:

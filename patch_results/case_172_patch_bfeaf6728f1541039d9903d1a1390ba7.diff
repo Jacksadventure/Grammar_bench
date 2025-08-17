@@ -1,9 +1,0 @@
-@@ -76,7 +76,7 @@ def parse_B():
--    elif lookahead.startswith('d'):
-+    elif lookahead.startswith('`'):
-@@ -77,7 +77,7 @@ def parse_B():
--        match('d')
-+        match('`')
-@@ -79,7 +79,7 @@ def parse_B():
--        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['%', 'd']))
-+        error("Unexpected token " + lookahead + " in B, expected one of: " + ", ".join(['%', '`']))

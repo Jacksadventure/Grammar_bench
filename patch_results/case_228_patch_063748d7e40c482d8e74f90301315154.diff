@@ -1,5 +1,0 @@
-@@ -152,7 +152,7 @@ def parse_P():
-     while pos < len(tokens) and tokens[pos].startswith("'"):
--        match("'")
-+        match('n')
-         match(')')

@@ -1,8 +1,0 @@
-Looking at the grammar and the parser code, I can see there's a mismatch in the `parse_M()` function. The grammar shows that the first production for `<M>` should be `["0", "b"]`, but the parser code has `match('o')` instead of `match('0')`.
-
-@@ -86,7 +86,7 @@ def parse_M():
-     if lookahead.startswith('o'):
--        match('o')
-+        match('0')
-         match('b')
-     elif lookahead.startswith('X'):

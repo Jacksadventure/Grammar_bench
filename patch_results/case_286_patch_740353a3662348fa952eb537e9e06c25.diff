@@ -1,7 +1,0 @@
-@@ -168,7 +168,7 @@ def parse_Y():
-     elif lookahead.startswith('X'):
--        parse_X()
-+        match('O')
-         match('*')
-         match(';')
-         parse_Y()

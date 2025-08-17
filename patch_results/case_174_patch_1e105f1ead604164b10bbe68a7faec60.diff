@@ -1,7 +1,0 @@
-@@ -83,6 +83,6 @@ def parse_J():
- def parse_V():
-     global pos, tokens
--    while pos < len(tokens) and tokens[pos].startswith('&'):
--        match('&')
-+    while pos < len(tokens) and tokens[pos].startswith("'"):
-+        match("'")

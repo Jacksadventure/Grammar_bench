@@ -1,9 +1,0 @@
-@@ -57,7 +57,7 @@ def parse_S():
-     lookahead = tokens[pos]
--    if lookahead.startswith('6'):
--        match('6')
-+    if lookahead.startswith('g'):
-+        match('g')
-     else:
--        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['6']))
-+        error("Unexpected token " + lookahead + " in S, expected one of: " + ", ".join(['g']))

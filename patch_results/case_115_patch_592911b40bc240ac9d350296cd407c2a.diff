@@ -1,9 +1,0 @@
-@@ -128,7 +128,7 @@ def parse_B():
-     lookahead = tokens[pos]
-     if lookahead.startswith('#'):
-         match('#')
--        match(']')
-+        match("'")
-+        match(']')
-         match('S')
-     elif lookahead.startswith('?'):

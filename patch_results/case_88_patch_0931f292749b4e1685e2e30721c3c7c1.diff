@@ -1,8 +1,0 @@
---- parser.py
-+++ parser.py
-@@ -58,62 +58,62
--            match('@')
-+            match('r')
-@@ -73,77 +73,77
--        match('@')
-+        match('r')

@@ -1,7 +1,0 @@
---- parser.py
-+++ parser.py
-@@ -22,4 +22,4 @@ def parse_H():
--        match('[')
--        match('8')
-+        match('[')
-+        parse_H()

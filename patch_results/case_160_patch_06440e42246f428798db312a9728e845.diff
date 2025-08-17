@@ -1,8 +1,0 @@
-@@ -102,7 +102,8 @@ def parse_O():
-         match('i')
-         match('$')
-         match('c')
-+        parse_O()
-     else:
--        error("Unexpected token " + lookahead + " in O, expected one of: " + ", ".join(['<', '']))
-+        pass

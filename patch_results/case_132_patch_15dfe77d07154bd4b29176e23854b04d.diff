@@ -1,8 +1,0 @@
-@@ -136,8 +136,8 @@
--    elif lookahead.startswith('!'):
--        match('!')
-+    elif lookahead.startswith('~'):
-+        match('~')
-@@ -141,7 +141,7 @@
--        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['o', '!', '7']))
-+        error("Unexpected token " + lookahead + " in Z, expected one of: " + ", ".join(['o', '~', '7']))

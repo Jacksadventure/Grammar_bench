@@ -1,8 +1,0 @@
-@@ -42,6 +42,7 @@ def parse_A():
-     if lookahead.startswith('9'):
-         match('9')
-         parse_D()
-+        parse_A()
-         match('?')
-     else:
-         error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['9', '']))

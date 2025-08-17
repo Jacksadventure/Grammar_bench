@@ -1,9 +1,0 @@
-@@ -124,7 +124,7 @@ def parse_I():
-     global pos, tokens
--    while pos < len(tokens) and tokens[pos].startswith('Q'):
--        match('Q')
-+    while pos < len(tokens) and tokens[pos].startswith('!'):
-+        match('!')
-         parse_I()
-         match(')')
-         match('T')

@@ -1,8 +1,0 @@
-
-
-@@ -23,7 +23,7 @@
--        match('!')
-+        match('Z')
-@@ -25,7 +25,7 @@
--        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['!']))
-+        error("Unexpected token " + lookahead + " in A, expected one of: " + ", ".join(['Z']))

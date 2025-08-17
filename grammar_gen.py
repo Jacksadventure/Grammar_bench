@@ -137,39 +137,35 @@ def generate_example_string(grammar, symbol, max_depth=10):
     )
 
 # ───────────────────────── parser code generator (memoised) ────────────────
-def generate_parser_code(grammar, nonterminals, start_symbol):
-    import textwrap
+import textwrap
 
-    # -------------------------------------------------------------
-    # Step 1: Normalize grammar symbols (remove angle brackets <>)
-    # -------------------------------------------------------------
+import textwrap
+
+def generate_parser_code(grammar, nonterminals, start_symbol):
+    # -------- normalize grammar & compute FIRST sets --------
     bare_nonterminals = [nt[1:-1] for nt in nonterminals]
     bare_start = start_symbol[1:-1]
 
     bare_grammar, is_nullable = {}, {}
     for dec_nt, prods in grammar.items():
         nt = dec_nt[1:-1]
-        lst = []
+        bare_grammar[nt] = []
         for p in prods:
             if not p:
-                # Empty production → nullable nonterminal
                 is_nullable[nt] = True
-                lst.append([])  # Represent epsilon (ε) as an empty list
             else:
-                # Remove <> from nonterminals, leave terminals as is
-                lst.append([sym[1:-1] if sym.startswith("<") else sym for sym in p])
-        bare_grammar[nt] = lst
-
+                bare_grammar[nt].append(
+                    [sym[1:-1] if sym.startswith("<") else sym for sym in p]
+                )
+        if is_nullable.get(nt, False) and nt not in bare_grammar:
+            bare_grammar[nt] = []
     grammar = bare_grammar
-    nonterminals = set(bare_nonterminals)
+    nonterminals = bare_nonterminals
 
-    # -------------------------------------------------------------
-    # Step 2: Compute FIRST sets for each nonterminal (with ε)
-    # -------------------------------------------------------------
-    EPS = object()  # Unique marker for epsilon
-    first_sets = {nt: (set([EPS]) if is_nullable.get(nt, False) else set())
-                  for nt in nonterminals}
-
+    EPS = object()
+    first_sets = {
+        nt: ({EPS} if is_nullable.get(nt, False) else set()) for nt in nonterminals
+    }
     changed = True
     while changed:
         changed = False
@@ -179,16 +175,12 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                 for sym in prod:
                     if sym in nonterminals:
                         before = len(first_sets[nt])
-                        # Add all FIRST(sym) except ε
                         first_sets[nt].update(x for x in first_sets[sym] if x is not EPS)
-                        if len(first_sets[nt]) > before:
-                            changed = True
-                        # If sym cannot be empty, stop
+                        changed |= len(first_sets[nt]) > before
                         if EPS not in first_sets[sym]:
                             nullable_prefix = False
                             break
                     else:
-                        # Terminal: add it and stop
                         if sym not in first_sets[nt]:
                             first_sets[nt].add(sym)
                             changed = True
@@ -198,139 +190,267 @@ def generate_parser_code(grammar, nonterminals, start_symbol):
                     first_sets[nt].add(EPS)
                     changed = True
 
-    # Helper: compute FIRST set of a single production
-    def first_of_prod(prod):
-        s = set()
-        for sym in prod:
-            if sym in nonterminals:
-                s.update(x for x in first_sets[sym] if x is not EPS)
-                if EPS not in first_sets[sym]:
-                    return s, False
+    def first_seq(seq):
+        look = set()
+        for sym in seq:
+            if sym not in nonterminals:
+                look.add(sym)
+                return look
+            look.update(x for x in first_sets[sym] if x is not EPS)
+            if EPS not in first_sets[sym]:
+                return look
+        return look
+
+    def is_iterative(nt):
+        # recognizes pattern X -> α X | ε  (simple right recursion)
+        if not is_nullable.get(nt, False):
+            return False, None
+        for prod in grammar.get(nt, []):
+            if prod and prod[-1] == nt:
+                return True, prod[:-1]
+        return False, None
+
+    # ----------------- iterative code generator (no recursion) -----------------
+    INDENT = "    "
+    memo = {}  # nt -> generated block string (without outer indent)
+
+    def indent_lines(lines, lvl):
+        if not lines:
+            return []
+        return textwrap.indent("\n".join(lines), INDENT * lvl).splitlines()
+
+    def gen_block_iterative(root_nt, root_lvl):
+        if root_nt in memo:
+            return indent_lines(memo[root_nt].splitlines(), root_lvl)
+
+        # All frames are 4-tuples:
+        #   ('BLOCK', nt, stage, payload or None)
+        #   ('EMIT_PROD', payload, idx, None)
+        #   ('FINALIZE', nt, None, None)
+        #
+        # EMIT_PROD payload:
+        #   { 'seq': [...], 'base_lvl': int, 'parent_nt': 'X', 'acc_lines': [] }
+        stack = [('BLOCK', root_nt, 0, None)]
+        partials = {root_nt: []}  # nt -> list[str] (unindented)
+
+        while stack:
+            tag, a, b, c = stack.pop()
+
+            if tag == 'BLOCK':
+                nt, stage, payload = a, b, c
+
+                if stage == 0:
+                    if nt in memo:
+                        continue
+                    partials.setdefault(nt, [])
+                    lines = partials[nt]
+
+                    iterative, alpha = is_iterative(nt)
+                    if iterative:
+                        lookahead = first_seq(alpha)
+                        conds = " or ".join(f"tokens[pos] == {repr(t)}"
+                                            for t in sorted(lookahead)) or "False"
+                        lines += [
+                            f"# α* loop for <{nt}>",
+                            f"while pos < len(tokens) and ({conds}):",
+                        ]
+                        # exclude α X 和 ε
+                        ax = alpha + [nt]
+                        remaining = []
+                        for p in grammar[nt]:
+                            if p == ax or p == []:
+                                continue
+                            remaining.append(p)
+
+                        # 关键修正：为了让 FINALIZE 最后执行，
+                        # 先 push FINALIZE，再 push stage1，再 push α 的 EMIT_PROD
+                        stack.append(('FINALIZE', nt, None, None))                  # 最后执行
+                        stack.append(('BLOCK', nt, 1, {'remaining': remaining}))    # 然后构建剩余分支
+                        if alpha:
+                            stack.append((
+                                'EMIT_PROD',
+                                {
+                                    'seq': alpha,
+                                    'base_lvl': 1,   # 循环体缩进
+                                    'parent_nt': nt,
+                                    'acc_lines': [],
+                                },
+                                0,
+                                None
+                            ))
+                        continue
+
+                    # 非迭代：先把 FINALIZE 压深，再压 stage2，这样先构建分支再 finalize
+                    lines += [
+                        f"# standard alts for <{nt}>",
+                        "if pos >= len(tokens):",
+                    ]
+                    if is_nullable.get(nt, False):
+                        lines.append(f"{INDENT}pass  # nullable at EOF")
+                    else:
+                        lines.append(f"{INDENT}raise ParseError('Unexpected EOF in <{nt}>')")
+                    lines += ["else:", f"{INDENT}la = tokens[pos]"]
+
+                    stack.append(('FINALIZE', nt, None, None))                 # 最后执行
+                    stack.append(('BLOCK', nt, 2, {'prods': grammar[nt]}))     # 先构建分支
+                    continue
+
+                if stage == 1:
+                    # 迭代形式的“其他产生式”
+                    lines = partials[nt]
+                    remaining = payload['remaining']
+                    if remaining or is_nullable.get(nt, False):
+                        lines += [
+                            f"# other alts of <{nt}>",
+                            "if pos < len(tokens):",
+                            f"{INDENT}la = tokens[pos]",
+                        ]
+                        first_branch = True
+                        for prod in remaining:
+                            fs = first_seq(prod)
+                            if not fs:
+                                continue
+                            kw = "if" if first_branch else "elif"
+                            conds = " or ".join(f"la == {repr(t)}" for t in sorted(fs))
+                            lines.append(f"{INDENT}{kw} {conds}:")
+                            stack.append((
+                                'EMIT_PROD',
+                                {
+                                    'seq': prod,
+                                    'base_lvl': 2,      # 分支体缩进
+                                    'parent_nt': nt,
+                                    'acc_lines': [],
+                                },
+                                0,
+                                None
+                            ))
+                            first_branch = False
+                        if is_nullable.get(nt, False):
+                            lines += [
+                                f"{INDENT}{'if' if first_branch else 'elif'} True:  # ε",
+                                f"{INDENT*2}pass",
+                            ]
+                        else:
+                            lines += [
+                                f"{INDENT}else:",
+                                f"{INDENT*2}raise ParseError(f'Unexpected token {{la!r}} in <{nt}>')",
+                            ]
+                    continue
+
+                if stage == 2:
+                    # 非迭代形式：if/elif 链
+                    lines = partials[nt]
+                    prods = payload['prods']
+                    first_branch = True
+                    for prod in prods:
+                        fs = first_seq(prod)
+                        if not fs:
+                            continue
+                        kw = "if" if first_branch else "elif"
+                        conds = " or ".join(f"la == {repr(t)}" for t in sorted(fs))
+                        lines.append(f"{INDENT}{kw} {conds}:")
+                        stack.append((
+                            'EMIT_PROD',
+                            {
+                                'seq': prod,
+                                'base_lvl': 2,
+                                'parent_nt': nt,
+                                'acc_lines': [],
+                            },
+                            0,
+                            None
+                        ))
+                        first_branch = False
+                    if is_nullable.get(nt, False):
+                        lines += [
+                            f"{INDENT}{'if' if first_branch else 'elif'} True:  # ε",
+                            f"{INDENT*2}pass",
+                        ]
+                    else:
+                        lines += [
+                            f"{INDENT}else:",
+                            f"{INDENT*2}raise ParseError(f'Unexpected token {{la!r}} in <{nt}>')",
+                        ]
+                    continue
+
+            elif tag == 'EMIT_PROD':
+                payload, idx = a, b
+                seq = payload['seq']
+                base_lvl = payload['base_lvl']
+                parent_nt = payload['parent_nt']
+                acc_lines = payload['acc_lines']
+
+                while idx < len(seq):
+                    s = seq[idx]
+                    if s in nonterminals:
+                        if s not in memo:
+                            # 先构建子块，再继续本产生式
+                            stack.append(('EMIT_PROD', payload, idx, None))
+                            stack.append(('BLOCK', s, 0, None))
+                            break
+                        # 内联已生成的子块
+                        acc_lines.extend(indent_lines(memo[s].splitlines(), base_lvl))
+                    else:
+                        acc_lines.append(f"{INDENT*base_lvl}match({repr(s)})")
+                    idx += 1
+
+                if idx == len(seq):
+                    partials[parent_nt].extend(acc_lines)
+
+            elif tag == 'FINALIZE':
+                nt = a
+                if nt not in memo:
+                    memo[nt] = "\n".join(partials[nt])
+
             else:
-                s.add(sym)
-                return s, False
-        return s, True  # Entire production can be empty
+                raise RuntimeError("Unknown frame tag")
 
-    # -------------------------------------------------------------
-    # Step 3: Build predictive parsing decisions (lookahead table)
-    # -------------------------------------------------------------
-    decisions = {}
-    for nt, prods in grammar.items():
-        cases = []
-        epsilon_added = False
-        for prod in prods:
-            look, nullable = first_of_prod(prod)
-            if look:
-                cases.append((sorted(look), prod))
-            if nullable and not epsilon_added:
-                # Special marker for epsilon production
-                cases.append(('__EPS__', []))
-                epsilon_added = True
-        decisions[nt] = cases
+        return indent_lines(memo[root_nt].splitlines(), root_lvl)
 
-    # Collect all terminals (for debugging / error messages)
-    terminals = set()
-    for nt, prods in grammar.items():
-        for prod in prods:
-            for sym in prod:
-                if sym not in nonterminals:
-                    terminals.add(sym)
-
-    # -------------------------------------------------------------
-    # Step 4: Convert decision table into a Python parser (iterative)
-    # -------------------------------------------------------------
-    IND = " " * 4
-
-    def dumps_cases():
-        """Convert decision table into Python code literal."""
-        def dump_prod(prod):
-            return "[" + ", ".join(repr(x) for x in prod) + "]"
-
-        lines = []
-        lines.append("{")
-        for nt, cases in decisions.items():
-            lines.append(f"{IND}{repr(nt)}: [")
-            for look, prod in cases:
-                if look == '__EPS__':
-                    lines.append(f"{IND*2}({{'__EPS__'}}, {dump_prod(prod)}),")
-                else:
-                    lines.append(f"{IND*2}({{{', '.join(repr(x) for x in look)}}}, {dump_prod(prod)}),")
-            lines.append(f"{IND}],")
-        lines.append("}")
-        return "\n".join(lines)
-
+    # ----------------- assemble final source -----------------
     src = [
         "import sys",
         "",
-        f"NONTERMINALS = {sorted(nonterminals)!r}",
-        f"TERMINALS = {sorted(terminals)!r}",
-        f"START = {bare_start!r}",
-        "",
-        "# DECISIONS: for each nonterminal, a list of (lookahead set, production).",
-        "# Special lookahead {'__EPS__'} means epsilon (empty production).",
-        f"DECISIONS = {dumps_cases()}",
+        "tokens = []",
+        "pos = 0",
         "",
         "class ParseError(Exception):",
         "    pass",
         "",
+        "def match(expected):",
+        "    global pos",
+        "    if pos < len(tokens) and tokens[pos] == expected:",
+        "        pos += 1",
+        "    else:",
+        "        got = tokens[pos] if pos < len(tokens) else 'EOF'",
+        "        raise ParseError(f'Expected {expected!r}, got {got!r}')",
+        "",
         "def parse(inp):",
-        "    tokens = list(inp.strip())",  # Input as a list of tokens (characters here)
-        "    pos = 0",                      # Current position in tokens
-        "    stack = [START]",              # Explicit stack for iterative parsing",
-        "",
-        "    def peek_la():",
-        "        return tokens[pos] if pos < len(tokens) else None",
-        "",
-        "    while stack:",
-        "        top = stack.pop()",        # Take top of stack
-        "        la = peek_la()",           # Lookahead symbol
-        "",
-        "        if top not in NONTERMINALS:",
-        "            # Terminal: must match exactly",
-        "            if la == top:",
-        "                pos += 1",
-        "            else:",
-        "                got = la if la is not None else 'EOF'",
-        "                raise ParseError(f\"Expected {top!r}, got {got!r}\")",
-        "            continue",
-        "",
-        "        # Nonterminal: choose a production based on lookahead",
-        "        chosen = None",
-        "        cases = DECISIONS.get(top, [])",
-        "        for look, prod in cases:",
-        "            if '__EPS__' in look:",
-        "                if chosen is None:",
-        "                    chosen = prod  # Save epsilon as fallback",
-        "                continue",
-        "            if la in look:",
-        "                chosen = prod",
-        "                break",
-        "",
-        "        if chosen is None:",
-        "            got = la if la is not None else 'EOF'",
-        "            raise ParseError(f\"Unexpected token {got!r} in <{top}>\")",
-        "",
-        "        # Push production symbols in reverse order (so first symbol is on top)",
-        "        for sym in reversed(chosen):",
-        "            stack.append(sym)",
-        "",
-        "    # If parsing finishes but tokens remain, it's an error",
-        "    if pos < len(tokens):",
-        "        tail = ''.join(tokens[pos:])",
-        "        raise ParseError(f\"Extra input at end: {tail}\")",
-        '    print(\"Input accepted.\")',
-        "",
-        "if __name__ == '__main__':",
-        "    if len(sys.argv) < 2:",
-        '        print(\"Usage: python generated_parser.py <string>\")',
-        "        sys.exit(1)",
-        "    try:",
-        "        parse(sys.argv[1])",
-        "    except ParseError as err:",
-        '        print(\"Input rejected.\")',
-        "        print(err)",
+        "    global tokens, pos",
+        "    tokens = list(inp.strip())",
+        "    pos = 0",
     ]
 
+    # Generate main block iteratively (no recursion in code-gen)
+    src.extend(gen_block_iterative(bare_start, 1))
+
+    src.extend(
+        [
+            "    if pos < len(tokens):",
+            "        raise ParseError(f'Extra input at end: {\"\".join(tokens[pos:])}')",
+            '    print("Input accepted.")',
+            "",
+            "if __name__ == '__main__':",
+            "    if len(sys.argv) < 2:",
+            '        print(\"Usage: python generated_parser.py <string>\")',
+            "        sys.exit(1)",
+            "    try:",
+            "        parse(sys.argv[1])",
+            "    except ParseError as err:",
+            '        print(\"Input rejected.\")',
+            "        print(err)",
+        ]
+    )
     return "\n".join(src)
 
 

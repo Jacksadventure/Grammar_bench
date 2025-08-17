@@ -1,9 +1,0 @@
-@@ -166,7 +166,7 @@ def parse_E():
-     lookahead = tokens[pos]
-     if lookahead.startswith('?'):
-         match('?')
-+    elif lookahead.startswith('1'):
-+        match('1')
-     else:
--        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['?']))
-+        error("Unexpected token " + lookahead + " in E, expected one of: " + ", ".join(['1']))
